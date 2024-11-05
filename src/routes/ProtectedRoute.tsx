@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate , Outlet } from 'react-router-dom';
 import { useUser } from '@/context/userContext';
 import { ReactNode , useEffect } from 'react';
 import Cookie from 'js-cookie';
@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }:{children:ReactNode}) => {
 });
 
   return (
-    isLoggedIn ? children : <Navigate to="/login" replace />
+    isLoggedIn ? <Outlet/> : <Navigate to="/login" replace />
   )
 };
 
