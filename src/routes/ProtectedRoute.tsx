@@ -5,6 +5,7 @@ import Cookie from 'js-cookie';
 import { useQuery } from 'react-query';
 import { fetchVerifyToken } from '@/api/authApi';
 
+
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { isLoggedIn, login, logout } = useUser();
   const token = Cookie.get('token');

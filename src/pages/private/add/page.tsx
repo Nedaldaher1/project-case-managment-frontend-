@@ -18,8 +18,8 @@ const Page = () => {
     const [caseNumber, setCaseNumber] = useState('');
     const [accusation, setAccusation] = useState('');
     const [technicalReports, setTechnicalReports] = useState('');
-    const [caseReferral, setCaseReferral] = useState('');
     const { member_number } = useUser();
+    const [action_Other, setActionOther] = useState('');
 
     // حالة الأسئلة
     const [defendantStatus, setDefendantStatus] = useState('');
@@ -43,7 +43,7 @@ const Page = () => {
                 victimQuestion: victimStatus,
                 witnessQuestion: witnessStatus,
                 technicalReports,
-                caseReferral,
+                actionOther: action_Other,
                 userId: id
             });
 
@@ -55,7 +55,7 @@ const Page = () => {
             setVictimStatus('');
             setWitnessStatus('');
             setTechnicalReports('');
-            setCaseReferral('');
+            setActionOther('');
 
             if (req.data.success) {
                 toast.success('تم إضافة القضية بنجاح');
@@ -144,14 +144,32 @@ const Page = () => {
 
                     <div dir="rtl" className="w-[156px]">
                         <label className="text-white text-sm" htmlFor="technicalReports">تقارير فنية</label>
-                        <Input type="text" value={technicalReports} onChange={(e) => setTechnicalReports(e.target.value)} name="technicalReports" />
+                        <Select dir="rtl" value={technicalReports} onValueChange={setTechnicalReports}>
+                            <SelectTrigger className="w-[156px]">
+                                <SelectValue placeholder="اختيار الحالة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="لا يوجد">لا يوجد</SelectItem>
+                                <SelectItem value="تم">تم</SelectItem>
+                                <SelectItem value="حتى الآن">حتى الآن</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div dir="rtl" className="w-[156px]">
-                        <label className="text-white text-sm" htmlFor="caseReferral">إحالة القضية</label>
-                        <Input type="text" value={caseReferral} onChange={(e) => setCaseReferral(e.target.value)} name="caseReferral" />
-                    </div>
-
+                            <label className="text-white" htmlFor="technicalReports">اجراءات اخرى</label>
+                            <Select dir="rtl" value={action_Other} onValueChange={setActionOther}>
+                                <SelectTrigger  >
+                                    <SelectValue placeholder="اختيار الحالة" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="لا يوجد">لا يوجد</SelectItem>
+                                    <SelectItem value="تم">تم</SelectItem>
+                                    <SelectItem value="حتى الآن">حتى الآن</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                
                     <Button type="submit" className="w-[252px] bg-[#45369f] hover:bg-[#5643bd]">
                         إضافة
                     </Button>

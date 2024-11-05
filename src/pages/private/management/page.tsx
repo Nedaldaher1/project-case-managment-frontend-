@@ -42,6 +42,7 @@ const Page = () => {
         technicalReports: string;
         caseReferral: string;
         isReadyForDecision: boolean;
+        actionOther: string;
     }
 
     const [data, setData] = useState<Case[]>([]);
@@ -129,13 +130,13 @@ const Page = () => {
         const filterData = () => {
             const filtered = data.filter(item => {
                 const memberNumberMatch = memberNumber ? item.memberNumber === memberNumber : true;
-                const isReadyForDecisionMatch = isReadyForDecision ? item.isReadyForDecision === (isReadyForDecision === 'نعم') : true;
-
+                const isReadyForDecisionMatch = isReadyForDecision ? item.isReadyForDecision === (isReadyForDecision === 'لا' ? true : false) : true;
+    
                 return memberNumberMatch && isReadyForDecisionMatch;
             });
             setFilteredData(filtered);
         };
-
+    
         filterData();
     }, [memberNumber, isReadyForDecision, data]);
 
@@ -214,8 +215,11 @@ const Page = () => {
             }
         },
         {
+            accessorKey:'actionOther' , header:"اجراءات اخرى"
+        },
+        {
             accessorKey: 'isReadyForDecision',
-            header: 'جاهزة للقرار',
+            header: 'جاهزة للتصرف',
             cell: (info) => {
                 const anyQuestionHasValue = info.row.original.defendantQuestion ||
                     info.row.original.officerQuestion ||
@@ -226,7 +230,8 @@ const Page = () => {
                     info.row.original.defendantQuestion,
                     info.row.original.officerQuestion,
                     info.row.original.victimQuestion,
-                    info.row.original.witnessQuestion
+                    info.row.original.witnessQuestion,
+                    info.row.original.technicalReports,
                 ].some(question => question && question.includes('حتى الآن'));
         
                 return hasPendingText ? 'لا' : (anyQuestionHasValue ? 'نعم' : 'لا');
@@ -237,8 +242,9 @@ const Page = () => {
             header: 'تعديل',
             cell: (info) => {
                 return (
-                    <div className="flex justify-center items-center w-[50px]">
+                    <div className="flex justify-center items-center ">
                         <DialogEditCase
+                            actionOther={info.row.original.actionOther}
                             caseID={Number(info.row.original.id)}
                             caseNumber={info.row.original.caseNumber}
                             memberNumber={info.row.original.memberNumber}
@@ -279,7 +285,7 @@ const Page = () => {
             <div dir='rtl' className="w-[1210px] ">
                 {/* Filter Section */}
                 <div className="flex items-center self-end space-x-4 mb-4 gap-5">
-                    <Select value={memberNumber} onValueChange={(value) => setMemberNumber(value)}>
+                    <Select dir="rtl" value={memberNumber} onValueChange={(value) => setMemberNumber(value)}>
                         <SelectTrigger className="w-[156px]">
                             <SelectValue placeholder="رقم العضو" />
                         </SelectTrigger>

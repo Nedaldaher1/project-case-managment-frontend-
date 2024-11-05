@@ -26,9 +26,10 @@ interface UpdatedCaseFields {
     technicalReports?: string;
     caseReferral?: string;
     isReadyForDecision?: boolean;
+    actionOther?: string;
 }
 
-const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision }: DialogEditCasePriavteProps) => {
+const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision,actionOther }: DialogEditCasePriavteProps) => {
     const [case_Number, setCaseNumber] = useState(caseNumber);
     const { member_number } = useUser();
     const [accus_ation, setAccusation] = useState(accusation);
@@ -39,6 +40,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
     const [technical_Reports, setTechnicalReports] = useState(technicalReports);
     const [caseRe_ferral, setCaseReferral] = useState(caseReferral);
     const [isReadyFor_Decision, setIsReadyForDecision] = useState(isReadyForDecision);
+    const [action_Other, setActionOther] = useState(actionOther);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -53,6 +55,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
         if (witness_Question) updatedFields.witnessQuestion = witness_Question;
         if (technical_Reports) updatedFields.technicalReports = technical_Reports;
         if (caseRe_ferral) updatedFields.caseReferral = caseRe_ferral;
+        if(action_Other) updatedFields.actionOther = action_Other;
         updatedFields.isReadyForDecision = isReadyFor_Decision;
 
         if (Object.keys(updatedFields).length > 1) {
@@ -202,13 +205,33 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                         </div>
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="technicalReports">التقارير الفنية</label>
-                            <Input value={technical_Reports} name="technicalReports" onChange={handleChange} type="text" placeholder="التقارير الفنية" className="w-[175px] bg-[#273142] text-white " />
+                            <Select dir="rtl" value={technical_Reports} onValueChange={setTechnicalReports}>
+                                <SelectTrigger className="w-[175px] bg-[#283444] text-white  border-white  " >
+                                    <SelectValue placeholder="اختيار الحالة" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1B2431]  text-white border-none">
+                                    <SelectItem value="لا يوجد">لا يوجد</SelectItem>
+                                    <SelectItem value="تم">تم</SelectItem>
+                                    <SelectItem value="حتى الآن">حتى الآن</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
+
                     </div>
                     <div className="flex flex-col space-y-5 space-x-4">
-                        <label htmlFor="caseReferral">حالة القضية</label>
-                        <Input value={caseRe_ferral} name="caseReferral" onChange={handleChange} type="text" placeholder="حالة القضية" className="bg-[#273142] text-white w-full" />
-                    </div>
+                            <label htmlFor="technicalReports">اجراءات اخرى</label>
+                            <Select dir="rtl" value={action_Other} onValueChange={setActionOther}>
+                                <SelectTrigger className="w-[175px] bg-[#283444] text-white  border-white  " >
+                                    <SelectValue placeholder="اختيار الحالة" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1B2431]  text-white border-none">
+                                    <SelectItem value="لا يوجد">لا يوجد</SelectItem>
+                                    <SelectItem value="تم">تم</SelectItem>
+                                    <SelectItem value="حتى الآن">حتى الآن</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
                     <Button type="submit" variant="default" className="bg-[#4741DE] hover:bg-[#6A68FF] self-center min-w-56">حفظ التعديلات</Button>
                 </form>
                 <DialogFooter className="mt-4"></DialogFooter>

@@ -26,6 +26,7 @@ export interface DialogEditCasePriavteProps {
     technicalReports: string;
     caseReferral: string;
     isReadyForDecision: boolean;
+    actionOther: string;
 
 }
 
