@@ -28,9 +28,9 @@ interface UpdatedCaseFields {
     isReadyForDecision?: boolean;
 }
 
-const ModalEditCase = ({ children, caseID,caseNumber,accusation,defendantQuestion,officerQuestion,victimQuestion,witnessQuestion,technicalReports,caseReferral,isReadyForDecision  }: DialogEditCasePriavteProps) => {
+const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision }: DialogEditCasePriavteProps) => {
     const [case_Number, setCaseNumber] = useState(caseNumber);
-    const { member_number} = useUser();
+    const { member_number } = useUser();
     const [accus_ation, setAccusation] = useState(accusation);
     const [defendant_Question, setDefendantQuestion] = useState(defendantQuestion);
     const [officer_Question, setOfficerQuestion] = useState(officerQuestion);
@@ -60,7 +60,7 @@ const ModalEditCase = ({ children, caseID,caseNumber,accusation,defendantQuestio
                 if (!import.meta.env.VITE_REACT_APP_API_URL) {
                     throw new Error('API URL is not defined');
                 }
-                const res= await axios.put(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/edit`, updatedFields);
+                const res = await axios.put(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/edit`, updatedFields);
                 console.log(res);
                 toast.success('تم التحديث بنجاح!');
             } catch (error) {
@@ -121,7 +121,7 @@ const ModalEditCase = ({ children, caseID,caseNumber,accusation,defendantQuestio
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="memberNumber">رقم العضو</label>
                             <Select dir="rtl" disabled value={member_number.toString()}>
-                                <SelectTrigger className="w-[175px] bg-[#283444] text-gray-500  border-white  ">
+                                <SelectTrigger className="w-[175px] bg-[#283444] text-white text-white  border-white  ">
                                     <SelectValue placeholder="رقم العضو" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#1B2431]  text-white border-none">
@@ -136,7 +136,7 @@ const ModalEditCase = ({ children, caseID,caseNumber,accusation,defendantQuestio
                                     <SelectItem value="9">9</SelectItem>
                                     <SelectItem value="10">10</SelectItem>
                                 </SelectContent>
-                            </Select>                        
+                            </Select>
                         </div>
                     </div>
                     <div className="flex justify-between">
@@ -146,27 +146,63 @@ const ModalEditCase = ({ children, caseID,caseNumber,accusation,defendantQuestio
                         </div>
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="defendantQuestion">سؤال المتهم</label>
-                            <Input value={defendant_Question} name="defendantQuestion" onChange={handleChange} type="text" placeholder="سؤال المتهم" className="bg-[#273142] text-white w-full" />
+                            <Select dir="rtl" value={defendant_Question} name="defendantQuestion" onValueChange={setDefendantQuestion}>
+                                <SelectTrigger className="w-[175px] bg-[#283444] text-white  border-white  ">
+                                    <SelectValue placeholder="سؤال المتهم" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1B2431]  text-white border-none">
+                                    <SelectItem value="لا يوجد">لا يوجد</SelectItem>
+                                    <SelectItem value="تم">تم</SelectItem>
+                                    <SelectItem value="حتى الآن">حتى الآن</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                     <div className="flex justify-between">
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="officerQuestion">سؤال الضابط</label>
-                            <Input value={officer_Question}  name="officerQuestion" onChange={handleChange} type="text" placeholder="سؤال الضابط" className="bg-[#273142] text-white w-full" />
+                            <Select dir="rtl" value={officer_Question} name="officerQuestion" onValueChange={setOfficerQuestion}>
+                                <SelectTrigger className="w-[175px] bg-[#283444] text-white  border-white  ">
+                                    <SelectValue placeholder="سؤال المتهم" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1B2431]  text-white border-none">
+                                    <SelectItem value="لا يوجد">لا يوجد</SelectItem>
+                                    <SelectItem value="تم">تم</SelectItem>
+                                    <SelectItem value="حتى الآن">حتى الآن</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="victimQuestion">سؤال المجني عليه</label>
-                            <Input value={victim_Question} name="victimQuestion" onChange={handleChange} type="text" placeholder="سؤال المجني عليه" className="bg-[#273142] text-white w-full" />
+                            <Select dir="rtl" value={victim_Question} name="victimQuestion" onValueChange={setVictimQuestion}>
+                                <SelectTrigger className="w-[175px] bg-[#283444] text-white  border-white  ">
+                                    <SelectValue placeholder="سؤال المتهم" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1B2431]  text-white border-none">
+                                    <SelectItem value="لا يوجد">لا يوجد</SelectItem>
+                                    <SelectItem value="تم">تم</SelectItem>
+                                    <SelectItem value="حتى الآن">حتى الآن</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                     <div className="flex justify-between">
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="witnessQuestion">سؤال الشهود</label>
-                            <Input value={witness_Question} name="witnessQuestion" onChange={handleChange} type="text" placeholder="سؤال الشهود" className="bg-[#273142] text-white w-full" />
+                            <Select dir="rtl" value={witness_Question} name="witnessQuestion" onValueChange={setWitnessQuestion}>
+                                <SelectTrigger className="w-[175px] bg-[#283444] text-white  border-white  ">
+                                    <SelectValue placeholder="سؤال المتهم" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1B2431]  text-white border-none">
+                                    <SelectItem value="لا يوجد">لا يوجد</SelectItem>
+                                    <SelectItem value="تم">تم</SelectItem>
+                                    <SelectItem value="حتى الآن">حتى الآن</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="technicalReports">التقارير الفنية</label>
-                            <Input value={technical_Reports} name="technicalReports" onChange={handleChange} type="text" placeholder="التقارير الفنية" className="bg-[#273142] text-white w-full" />
+                            <Input value={technical_Reports} name="technicalReports" onChange={handleChange} type="text" placeholder="التقارير الفنية" className="w-[175px] bg-[#273142] text-white " />
                         </div>
                     </div>
                     <div className="flex flex-col space-y-5 space-x-4">
