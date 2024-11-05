@@ -121,7 +121,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="memberNumber">رقم العضو</label>
                             <Select dir="rtl" disabled value={member_number.toString()}>
-                                <SelectTrigger className="w-[175px] bg-[#283444] text-white text-white  border-white  ">
+                                <SelectTrigger className="w-[175px] bg-[#283444]  text-white  border-white  ">
                                     <SelectValue placeholder="رقم العضو" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#1B2431]  text-white border-none">
