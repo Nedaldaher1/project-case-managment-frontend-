@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import Cookies from 'js-cookie';
-import { useNavigate } from 'react-router-dom'; // استخدام useHistory بدلاً من useRouter
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import useAuth from '@/hooks/useAuth';
+import { useUser } from '@/context/userContext';
+
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [fieldError, setFieldError] = useState({ username: '', password: '' });
-    const Navigate = useNavigate(); // استخدام useHistory بدلاً من useRouter
+    const navigate = useNavigate(); // استخدام useNavigate بدلاً من useHistory
     const { loginMutation } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -28,18 +30,16 @@ const Login = () => {
         }
 
         try {
-
-
             const data = await loginMutation.mutateAsync({ username, password });
-            Cookies.set('token', data.token, { expires: 1 });
             Cookies.set('username', data.user.username, { expires: 1 });
             Cookies.set('uuid', data.user.id, { expires: 1 });
             Cookies.set('role', data.user.role, { expires: 1 });
-            Cookies.set('member_number' , data.user.memberNumber, { expires: 1 });
+            Cookies.set('member_number', data.user.memberNumber, { expires: 1 });
+            Cookies.set('isAdmin', (data.user.role === 'admin' || data.user.role === 'onwer').toString(), { expires: 1 });
 
-            Navigate('/'); // استخدام useHistory بدلاً من useRouter
-            return;
-            
+            // التوجيه إلى الصفحة الرئيسية ثم إعادة تحميل الصفحة
+            navigate('/');
+            window.location.reload();  // إعادة تحميل الصفحة
         } catch (error) {
             setError('حدث خطأ غير متوقع');
             console.error(error);

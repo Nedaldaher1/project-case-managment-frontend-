@@ -11,17 +11,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { links } from '@/data/navbarName';
 import { useUser } from '@/context/userContext';
+import { logoutSession } from '@/api/authApi';
+
 import './style.scss';
 
-export default function Navbar() {
+interface NavbarProps {
+    className?: string;
+}
+
+
+const Navbar = ({className}:NavbarProps) => {
     const username = Cookies.get('username');
     const userContext = useUser();
-    const { isLoggedIn, logout  } = userContext;
+    const { isLoggedIn, logout, isAdmin } = userContext;
     const Navigate = useNavigate();
 
-
     return (
-        <nav className='navbar'>
+        <nav className={`navbar ${className}`}>
             <ul>
                 <li>
                     <div className='flex flex-row-reverse items-center justify-center gap-5 space-y-2'>
@@ -39,7 +45,8 @@ export default function Navbar() {
                                         <DropdownMenuLabel>Hello {username}</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={() => {
-                                          logout();
+                                            logout();
+                                            logoutSession();
                                         }}>logout</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -53,9 +60,9 @@ export default function Navbar() {
                             isLoggedIn ? (
                                 links.map((link) => (
                                     <Link key={link} to={link === 'تجديد المتهمين' ? '/case/public/home' : '/case/private/home'} className='text-lg'>{link}</Link>
-    
+
                                 ))
-                            ):(
+                            ) : (
                                 <></>
                             )
                         }
@@ -70,3 +77,4 @@ export default function Navbar() {
         </nav>
     );
 }
+export default Navbar;

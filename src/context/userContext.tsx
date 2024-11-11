@@ -3,9 +3,10 @@ import Cookie from 'js-cookie';
 
 const UserContext = createContext({
     isLoggedIn: false,
-    login: () => {},
-    logout: () => {},
+    login: () => { },
+    logout: () => { },
     member_number: 0 as number,
+    isAdmin: false,
 });
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -13,6 +14,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         // جلب الحالة من ملفات تعريف الارتباط عند تحميل المكون
         return Cookie.get('isLoggedIn') === 'true';
     });
+
+    const [isAdmin, setIsAdmin] = useState<boolean>(Cookie.get('isAdmin') === 'true' || false);
 
     // تحديث ملفات تعريف الارتباط عند تغيير قيمة `isLoggedIn`
     useEffect(() => {
@@ -28,20 +31,27 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         Cookie.set('isLoggedIn', 'true', { secure: true, sameSite: 'Strict' });
     };
 
-    const logout = () => {
-        setIsLoggedIn(false);
-        Cookie.remove('token');
-        Cookie.remove('isLoggedIn');
-        Cookie.remove('username');
-        Cookie.remove('uuid');
-        Cookie.remove('role');
-        Cookie.remove('member_number');
+    const logout = async () => {
+        try {
+            setIsLoggedIn(false);
+            Cookie.remove('isLoggedIn');
+            Cookie.remove('username');
+            Cookie.remove('uuid');
+            Cookie.remove('role');
+            Cookie.remove('member_number');
+            Cookie.remove('isAdmin');
+            Cookie.remove('sidebar:state')
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Error logging out:', error);
+
+        }
 
     };
     const member_number = parseInt(Cookie.get('member_number') || '0');
-
     return (
-        <UserContext.Provider value={{ isLoggedIn, login, logout,member_number }}>
+        <UserContext.Provider value={{ isLoggedIn, login, logout, member_number, isAdmin }}>
             {children}
         </UserContext.Provider>
     );

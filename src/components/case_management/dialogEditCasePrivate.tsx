@@ -64,7 +64,6 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                     throw new Error('API URL is not defined');
                 }
                 const res = await axios.put(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/edit`, updatedFields);
-                console.log(res);
                 toast.success('تم التحديث بنجاح!');
             } catch (error) {
                 toast.error('فشلت عملية التحديث');

@@ -50,7 +50,7 @@ const Page = () => {
         getData();
 
     }, []);
-    console.log(data);
+    console.log(filteredData);
 
     // Filter data in real-time based on case number and date filter
     useEffect(() => {

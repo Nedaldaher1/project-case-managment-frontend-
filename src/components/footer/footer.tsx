@@ -9,7 +9,7 @@ const Footer: FC = () => {
     };
 
     return (
-        <div className="w-full h-[90px] flex justify-around items-center">
+        <div className="w-full h-[90px] flex justify-around items-center bg-gray-100">
             <div className='flex justify-center items-center gap-5'>
                 <h1 className="text-black" onClick={() => handleNavigation('/')}>نيابة اجا الجزئية</h1>
             </div>

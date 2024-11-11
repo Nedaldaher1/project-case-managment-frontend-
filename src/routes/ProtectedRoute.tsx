@@ -1,28 +1,24 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useUser } from '@/context/userContext';
 import { ReactNode } from 'react';
-import Cookie from 'js-cookie';
 import { useQuery } from 'react-query';
 import { fetchVerifyToken } from '@/api/authApi';
 
-
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { isLoggedIn, login, logout } = useUser();
-  const token = Cookie.get('token');
+  const { isLoggedIn, login } = useUser();
 
   // التحقق من صحة التوكن فقط إذا كان موجودًا
-  const { data, error, isLoading } = useQuery(
+  const { isLoading, isError } = useQuery(
     'session',
-    () => fetchVerifyToken(token as string),
+    fetchVerifyToken,
     {
       onSuccess: () => {
         login();
       },
-      onError: (error: Error) => {
-        logout();
-        console.error('Token verification failed:', error.message);
+      onError: () => {
+        console.error('Token verification failed');
       },
-      enabled: !!token, // التحقق فقط إذا كان التوكن موجودًا
+      retry: false, // تعطيل المحاولات التلقائية لتقليل عدد الطلبات
     }
   );
 
@@ -30,11 +26,11 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     return <div>Loading...</div>; // يمكنك استبدال هذا بكومبوننت تحميل مخصص
   }
 
-  if (error || !token) {
+  if (isError || !isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
 
-  return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
