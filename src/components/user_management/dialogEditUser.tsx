@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { userEdit } from '@/api/authApi'
 import { DialogEditUserProps } from '@/types/DialogEditUserProps'
 import { toast } from "react-hot-toast";
@@ -17,14 +17,15 @@ import Cookies from "js-cookie";
 interface DialogEditUserComponentProps {
     id: string;
     children: React.ReactNode;
-    user: string;
+    roleUser: string;
 }
 
-const DialogEditUser = ({ children, id , user }: DialogEditUserComponentProps) => {
+const DialogEditUser = ({ children, id, roleUser }: DialogEditUserComponentProps) => {
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-    const [role, setRole] = useState<string>("");
+    const [role, setRole] = useState<string>("viewer");
     const userCookie = Cookies.get('username');
+    const roleCookie = Cookies.get('role');
     const data: DialogEditUserProps = {
         id: "",
         username: "",
@@ -32,17 +33,20 @@ const DialogEditUser = ({ children, id , user }: DialogEditUserComponentProps) =
         role: ""
     };
 
+
+
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            if(userCookie === user){
-                toast.error("لا يمكن تعديل حسابك الخاص")
+            if (userCookie === username) {
+                toast.error("رجاء تغير اسم المستخدم ");
                 return;
             }
-
+            const roleData = roleUser === 'admin' ? 'admin' : role;
             if (username) data.username = username;
             if (password) data.password = password;
-            if (role) data.role = role;
+            if (role) data.role = roleData ;
             const response = await userEdit(id, data);
 
             if (response.status === 200) {
@@ -68,6 +72,8 @@ const DialogEditUser = ({ children, id , user }: DialogEditUserComponentProps) =
         }
     };
 
+
+
     return (
         <Dialog>
             <DialogTrigger>
@@ -89,15 +95,23 @@ const DialogEditUser = ({ children, id , user }: DialogEditUserComponentProps) =
                         </div>
                         <div>
                             <label htmlFor="role">الدور</label>
-                            <Select onValueChange={setRole}>
-                                <SelectTrigger>
-                                    <SelectValue>اختر الدور</SelectValue>
+                            <Select defaultValue="viewer"  disabled={roleUser === 'admin'} dir="rtl" onValueChange={setRole}>
+                                <SelectTrigger className="w-[175px]  text-black  border-white  ">
+                                    <SelectValue placeholder="اختيار الدور" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="onwer">رئيس</SelectItem>
-                                    <SelectItem value="admin">مدير</SelectItem>
+                                <SelectContent className="  text-black border-none">
+                                    {
+                                        roleCookie === 'owner' ? (
+                                            <>
+                                                <SelectItem value="owner">رئيس</SelectItem>
+                                                <SelectItem value="admin">مدير</SelectItem>
+                                            </>
+                                        ) : (
+                                            null
+                                        )
+                                    }
                                     <SelectItem value="editor">محرر</SelectItem>
-                                    <SelectItem value="viewer">محرر</SelectItem>
+                                    <SelectItem value="viewer">مشاهد</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
