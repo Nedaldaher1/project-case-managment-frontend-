@@ -21,6 +21,7 @@ import Cookies from "js-cookie";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {useUser} from "@/context/userContext"
 import {Img} from 'react-image'
+import {logoutSession} from '@/api/authApi'
 
 // Menu items.
 const items = [
@@ -111,7 +112,10 @@ const SiderBarAdmin = () => {
                 }}>
                   <span>اعدادات الحساب</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout}>
+                <DropdownMenuItem onClick={async()=>{
+                  await logoutSession();
+                  logout();
+                }}>
                   <span>تسجيل الخروج</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
