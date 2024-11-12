@@ -86,7 +86,7 @@ const Page = () => {
                 header: 'تعديل', cell: ({ row }) => {
                     return (
                         <div className="flex flex-row  justify-center items-center">
-                            <DialogEditUser id={row.original.id} roleUser={row.original.role}>
+                            <DialogEditUser id={row.original.id} roleUser={row.original.role} userNamePass={row.original.username}>
                                 <Edit className="cursor-pointer" size={24} />
                             </DialogEditUser>
                             <Trash className=" text-red-500 cursor-pointer" onClick={() => {

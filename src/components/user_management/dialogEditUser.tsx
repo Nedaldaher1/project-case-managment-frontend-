@@ -18,9 +18,10 @@ interface DialogEditUserComponentProps {
     id: string;
     children: React.ReactNode;
     roleUser: string;
+    userNamePass: string;
 }
 
-const DialogEditUser = ({ children, id, roleUser }: DialogEditUserComponentProps) => {
+const DialogEditUser = ({ children, id, roleUser , userNamePass }: DialogEditUserComponentProps) => {
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [role, setRole] = useState<string>("viewer");
@@ -43,6 +44,11 @@ const DialogEditUser = ({ children, id, roleUser }: DialogEditUserComponentProps
                 toast.error("رجاء تغير اسم المستخدم ");
                 return;
             }
+
+        if(username === userNamePass){
+            toast.error("رجاء تغير اسم المستخدم ");
+            return;
+        }
             const roleData = roleUser === 'admin' ? 'admin' : role;
             if (username) data.username = username;
             if (password) data.password = password;
@@ -88,10 +94,16 @@ const DialogEditUser = ({ children, id, roleUser }: DialogEditUserComponentProps
                         <div>
                             <label htmlFor="username">اسم المستخدم</label>
                             <Input onChange={handleChange} id="username" type="text" />
+                            {
+                             
+                             username === userNamePass ? <p className="text-red-500">هاذا الاسم موجود عليك تغيره</p> : null
+                            
+                            }
                         </div>
                         <div>
                             <label htmlFor="password">كلمة المرور</label>
                             <Input onChange={handleChange} id="password" type="password" />
+
                         </div>
                         <div>
                             <label htmlFor="role">الدور</label>
