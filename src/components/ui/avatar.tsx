@@ -1,7 +1,6 @@
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { Img } from 'react-image';
-
 import { cn } from "@/lib/utils";
 
 const Avatar = React.forwardRef<
@@ -22,13 +21,36 @@ Avatar.displayName = AvatarPrimitive.Root.displayName;
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof Img>,
   React.ComponentPropsWithoutRef<typeof Img>
->(({ className, ...props }, ref) => (
-  <Img
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-));
+>(({ className, ...props }, ref) => {
+  const [isLoaded, setIsLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    let isMounted = true; // علم للتحقق من تحميل المكون
+
+    const handleLoad = () => {
+      if (isMounted) {
+        setIsLoaded(true); // تحديث الحالة عند تحميل الصورة
+      }
+    };
+
+    if (props.src) {
+      handleLoad();
+    }
+
+    return () => {
+      isMounted = false; // إلغاء التحديث عند إلغاء تحميل المكون
+    };
+  }, [props.src]);
+
+  return (
+    <Img
+      ref={ref}
+      className={cn("aspect-square h-full w-full", className)}
+      {...props}
+      style={{ visibility: isLoaded ? "visible" : "hidden" }}
+    />
+  );
+});
 AvatarImage.displayName = "AvatarImage";
 
 const AvatarFallback = React.forwardRef<

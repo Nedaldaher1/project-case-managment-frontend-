@@ -69,7 +69,6 @@ const Login = () => {
         try {
             const data = await loginMutation.mutateAsync({ username, password });
             setData(data);
-            console.log(data);
 
             setIs2FA(true)
         } catch (error) {
