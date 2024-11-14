@@ -16,95 +16,87 @@ import {
     flexRender,
     ColumnDef
 } from '@tanstack/react-table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Trash, Edit } from "lucide-react"
+import { Trash, Hand } from "lucide-react"
 import Cookies from "js-cookie";
-
 import { toast } from "react-hot-toast";
-import { deleteUserById } from "@/api/authApi";
-import DialogEditUser from '@/components/user_management/dialogEditUser'
-
-import DialogAddUser from "@/components/user_management/dialogAddUser";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { deleteBackup , restoreBackup } from '@/api/authApi'
 
-interface User {
+interface Backup {
     id: string;
-    member_id: string;
-    username: string;
-    password: string;
-    role: string;
+    backupName: string;
+    backupDate: string;
+    backupSize: string;
+    backupType: string;
+    backupStatus: string;
+
 }
 const Page = () => {
 
-    const [data, setData] = useState<User[]>([]);
-    const [filteredData, setFilteredData] = useState<User[]>([]);
+    const [data, setData] = useState<Backup[]>([]);
+    const [filteredData, setFilteredData] = useState<Backup[]>([]);
     const [pageSize, setPageSize] = useState(10);
-    const [roleFilter, setRoleFilter] = useState("");
+    const [dateFilter, setDateFilter] = useState("");
     const username = Cookies.get('username');
 
 
     const getData = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/auth/users`);
-            setData(response.data.users || []);
-            setFilteredData(response.data.users || []);
+            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/auth/backup/get`);
+            setData(response.data.getBackup || []);
+            setFilteredData(response.data.getBackup || []);
         } catch (error) {
             console.error("Error fetching data:", error);
         }
     };
-
     useEffect(() => {
         getData();
 
     }, []);
+    console.log(data);
 
     // Filter data in real-time based on case number and date filter
     useEffect(() => {
         const filterData = () => {
             const filtered = data.filter(item => {
-                // filter based on role
-                const roleMatch = item.role.includes(roleFilter);
-                return roleMatch;
+                const dateMatch = item.backupDate.includes(dateFilter);
+                return dateMatch;
             });
             setFilteredData(filtered);
         };
         filterData();
-    }, [roleFilter, data]);
+    }, [data, dateFilter]);
 
-    console.log(filteredData);
 
     // Define columns with useMemo
-    const columns = useMemo<ColumnDef<User>[]>(
+    const columns = useMemo<ColumnDef<Backup>[]>(
         () => [
             { accessorKey: 'id', header: 'رقم المتسلسل' },
-            { accessorKey: 'member_id', header: 'رقم العضو' },
-            { accessorKey: 'username', header: 'اسم المستخدم' },
-            { accessorKey: 'password', header: 'كلمة المرور' },
-            { accessorKey: 'role', header: 'الرتبة' },
+            { accessorKey: 'backupName', header: 'اسم النسخة' },
+            { accessorKey: 'backupDate', header: 'تاريخ النسخة', cell: ({ row }) => new Date(row.original.backupDate).toLocaleDateString() },
+            { accessorKey: 'backupSize', header: 'حجم النسخة' },
+            { accessorKey: 'backupType', header: 'نوع النسخة' },
+            { accessorKey: 'backupStatus', header: 'حالة النسخة' },
             {
                 header: 'تعديل', cell: ({ row }) => {
                     return (
                         <div className="flex flex-row  justify-center items-center">
-                            <DialogEditUser id={row.original.id} roleUser={row.original.role} userNamePass={row.original.username}>
-                                <Edit className="cursor-pointer" size={24} />
-                            </DialogEditUser>
-                            <Trash className=" text-red-500 cursor-pointer" onClick={() => {
-
-                                if (username === row.original.username) {
-                                    toast.error("لا يمكن حذف حسابك الخاص")
-                                } else {
-                                    deleteUserById(row.original.id)
-                                    toast.success("تم حذف المستخدم بنجاح")
+                            <Trash className=" text-red-500 cursor-pointer" onClick={async () => {
+                                const response = await deleteBackup(row.original.id);
+                                if (response) {
+                                    toast.success("تم حذف النسخة بنجاح");
+                                    getData();
                                 }
-
                             }} size={24} />
-
+                            <Hand className=" text-green-500 cursor-pointer" onClick={async() => {
+                                    const response = await restoreBackup(row.original.id);
+                                    if (response) {
+                                        toast.success("تم استعادة النسخة بنجاح");
+                                        getData();
+                                    }
+                                
+                            }} size={24} />
                         </div>
                     )
                 }
@@ -133,19 +125,13 @@ const Page = () => {
             <div className="flex flex-col items-center justify-center">
 
                 <div className="flex items-center self-end space-x-4 mb-4">
-                    <Select dir="rtl" name="role" onValueChange={setRoleFilter}>
-                        <SelectTrigger className="w-[175px] bg-[#283444] text-white  border-white  ">
-                            <SelectValue placeholder="اختيار الرتبة" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#1B2431]  text-white border-none">
-                            <SelectItem value="onwer">الرئيس</SelectItem>
-                            <SelectItem value="admin">المدير</SelectItem>
-                            <SelectItem value="editor">المحرر</SelectItem>
-                            <SelectItem value="viewer">مشاهد</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <DialogAddUser/>
-
+                    <Input value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} type="date" placeholder="أبحث" />
+                    <Button onClick={() => {
+                        setFilteredData([])
+                        setData([])
+                    }}>
+                        مسح الفلترة
+                    </Button>
                 </div>
 
                 {/* Table Section */}

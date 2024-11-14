@@ -19,54 +19,57 @@ const HomePagePrivate = lazy(() => import('@/pages/private/home/page'));
 const ManagementCasePrivate = lazy(() => import('@/pages/public/management/page'));
 const Home = lazy(() => import('@/pages/homePage'));
 const GetUser = lazy(() => import('@/pages/dashboard/users/page'));
-
+const BackupPage = lazy(() => import('@/pages/dashboard/backups/page'));
+const Profile = lazy(() => import('@/pages/dashboard/profile/page'));
 const App = () => {
     const { isLoggedIn, isAdmin } = useUser();
-    
+
 
     return (
         isAdmin ? (
             // Layout for admin user
             <SidebarProvider className=''>
-            <div className="grid grid-rows-[1fr_auto] grid-cols-[auto_1fr] w-screen min-h-screen">
-                {/* Sidebar */}
+                <div className="grid grid-rows-[1fr_auto] grid-cols-[auto_1fr] w-screen min-h-screen">
+                    {/* Sidebar */}
                     {
-                        isLoggedIn ? <NavbarAdmin  /> : <Outlet />
+                        isLoggedIn ? <NavbarAdmin /> : <Outlet />
                     }
 
 
-                {/* Main Content */}
-                <main className="   w-full h-full   col-auto ">
-                    <SidebarTrigger />
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <Routes>
-                            <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
-                                <Route path="/" element={<Home />} />
-                                <Route path="*" element={<NotFoundPage />} />
-                                <Route path="/case/public/add" element={<AddCasePublic />} />
-                                <Route path="/case/public/management" element={<ManagementCasePrivate />} />
-                                <Route path="/case/public/home" element={<HomePagePublic />} />
-                                <Route path="/case/private/management" element={<ManagementCasePublic />} />
-                                <Route path="/case/private/add" element={<AddCasePrivate />} />
-                                <Route path="/case/private/home" element={<HomePagePrivate />} />
-                            </Route>
-                            <Route element={<ProtectedRouteDashbord><Outlet /></ProtectedRouteDashbord>}>
-                                <Route path="/dashboard/users" element={<GetUser />} />
-                            </Route>
-                            {
-                                !isLoggedIn &&  (
-                                    <Route path="/login" element={<Login />} />
-                                )
-                            }
-                        </Routes>
-                    </Suspense>
-                </main>
+                    {/* Main Content */}
+                    <main className="   w-full h-full   col-auto ">
+                        <SidebarTrigger />
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <Routes>
+                                <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                                    <Route path="/" element={<Home />} />
+                                    <Route path="*" element={<NotFoundPage />} />
+                                    <Route path="/case/public/add" element={<AddCasePublic />} />
+                                    <Route path="/case/public/management" element={<ManagementCasePrivate />} />
+                                    <Route path="/case/public/home" element={<HomePagePublic />} />
+                                    <Route path="/case/private/management" element={<ManagementCasePublic />} />
+                                    <Route path="/case/private/add" element={<AddCasePrivate />} />
+                                    <Route path="/case/private/home" element={<HomePagePrivate />} />
+                                    <Route path="/dashboard/profile" element={<Profile />} />
+                                </Route>
+                                <Route element={<ProtectedRouteDashbord><Outlet /></ProtectedRouteDashbord>}>
+                                    <Route path="/dashboard/users" element={<GetUser />} />
+                                    <Route path="/dashboard/backups" element={<BackupPage />} />
+                                </Route>
+                                {
+                                    !isLoggedIn && (
+                                        <Route path="/login" element={<Login />} />
+                                    )
+                                }
+                            </Routes>
+                        </Suspense>
+                    </main>
 
-                {/* Footer */}
-                <footer className="col-span-2">
-                    <Footer />
-                </footer>
-            </div>
+                    {/* Footer */}
+                    <footer className="col-span-2">
+                        <Footer />
+                    </footer>
+                </div>
             </SidebarProvider>
         ) : (
             // Layout for non-admin user
@@ -84,6 +87,8 @@ const App = () => {
                                 <Route path="/case/private/management" element={<ManagementCasePublic />} />
                                 <Route path="/case/private/add" element={<AddCasePrivate />} />
                                 <Route path="/case/private/home" element={<HomePagePrivate />} />
+                                <Route path="/dashboard/profile" element={<Profile />} />
+
                             </Route>
                             <Route element={<ProtectedRouteDashbord><Outlet /></ProtectedRouteDashbord>}>
                                 <Route path="/dashboard" element={<ManagementCasePrivate />} />

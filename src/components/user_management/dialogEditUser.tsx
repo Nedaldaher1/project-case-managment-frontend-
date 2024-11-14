@@ -21,7 +21,7 @@ interface DialogEditUserComponentProps {
     userNamePass: string;
 }
 
-const DialogEditUser = ({ children, id, roleUser , userNamePass }: DialogEditUserComponentProps) => {
+const DialogEditUser = ({ children, id, roleUser, userNamePass }: DialogEditUserComponentProps) => {
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [role, setRole] = useState<string>("viewer");
@@ -45,14 +45,14 @@ const DialogEditUser = ({ children, id, roleUser , userNamePass }: DialogEditUse
                 return;
             }
 
-        if(username === userNamePass){
-            toast.error("رجاء تغير اسم المستخدم ");
-            return;
-        }
+            if (username === userNamePass) {
+                toast.error("رجاء تغير اسم المستخدم ");
+                return;
+            }
             const roleData = roleUser === 'admin' ? 'admin' : role;
             if (username) data.username = username;
             if (password) data.password = password;
-            if (role) data.role = roleData ;
+            if (role) data.role = roleData;
             const response = await userEdit(id, data);
 
             if (response.status === 200) {
@@ -95,9 +95,9 @@ const DialogEditUser = ({ children, id, roleUser , userNamePass }: DialogEditUse
                             <label htmlFor="username">اسم المستخدم</label>
                             <Input onChange={handleChange} id="username" type="text" />
                             {
-                             
-                             username === userNamePass ? <p className="text-red-500">هاذا الاسم موجود عليك تغيره</p> : null
-                            
+
+                                username === userNamePass ? <p className="text-red-500">هاذا الاسم موجود عليك تغيره</p> : null
+
                             }
                         </div>
                         <div>
@@ -107,7 +107,7 @@ const DialogEditUser = ({ children, id, roleUser , userNamePass }: DialogEditUse
                         </div>
                         <div>
                             <label htmlFor="role">الدور</label>
-                            <Select defaultValue="viewer"  disabled={roleUser === 'admin'} dir="rtl" onValueChange={setRole}>
+                            <Select defaultValue="viewer" disabled={roleUser === 'admin'} dir="rtl" onValueChange={setRole}>
                                 <SelectTrigger className="w-[175px]  text-black  border-white  ">
                                     <SelectValue placeholder="اختيار الدور" />
                                 </SelectTrigger>

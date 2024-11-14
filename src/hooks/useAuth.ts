@@ -8,15 +8,14 @@ const useAuth = () => {
     const queryClient = useQueryClient();
     const userContext = useUser();
 
-    const { login, logout } = userContext;
+    const {  logout } = userContext;
 
     const loginMutation = useMutation(({ username, password }: { username: string; password: string }) => loginUser(username, password),
         {
             onSuccess: (data) => {
                 if (data) {
                     Cookies.set('token', data.token); // تخزين الرمز المميز في الكوكيز
-                    login();
-                    toast.success('تم تسجيل الدخول بنجاح');
+                    // toast.success('تم تسجيل الدخول بنجاح');
                     queryClient.invalidateQueries('session');
                 } else {
                     toast.error('فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد الخاصة بك.');

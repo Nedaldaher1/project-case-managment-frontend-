@@ -16,8 +16,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const [isAdmin, setIsAdmin] = useState<boolean>(Cookie.get('isAdmin') === 'true' || false);
-
-    // تحديث ملفات تعريف الارتباط عند تغيير قيمة `isLoggedIn`
     useEffect(() => {
         if (isLoggedIn) {
             Cookie.set('isLoggedIn', 'true', { secure: true, sameSite: 'Strict' });
@@ -28,7 +26,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     const login = () => {
         setIsLoggedIn(true);
-        Cookie.set('isLoggedIn', 'true', { secure: true, sameSite: 'Strict' });
+        return true;
     };
 
     const logout = async () => {

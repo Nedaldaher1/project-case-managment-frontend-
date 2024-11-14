@@ -1,4 +1,4 @@
-import { Calendar, Home, User, Search, Settings, Waypoints, IdCard } from "lucide-react";
+import { Backpack, Home, User, Search, Settings, IdCard } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,12 +16,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link } from "react-router-dom";
+import { Link,Navigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {useUser} from "@/context/userContext"
 import {Img} from 'react-image'
 import {logoutSession} from '@/api/authApi'
+
 
 // Menu items.
 const items = [
@@ -46,14 +47,9 @@ const items = [
     icon: User,
   },
   {
-    title: "قائمة الجلسات",
-    url: "/sessions",
-    icon: Calendar,
-  },
-  {
-    title: "الأحداث",
-    url: "/events",
-    icon: Waypoints,
+    title: "ادارة النسخ الاحتياطية",
+    url: "/dashboard/backups",
+    icon: Backpack,
   },
   {
     title: "اعدادات",
@@ -110,7 +106,7 @@ const SiderBarAdmin = () => {
                 <DropdownMenuItem onClick={()=>{
                   logout();
                 }}>
-                  <span>اعدادات الحساب</span>
+                  <Link to="/dashboard/profile">الملف الشخصي</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={async()=>{
                   await logoutSession();
