@@ -50,7 +50,6 @@ const App = () => {
                                     <Route path="/case/private/management" element={<ManagementCasePublic />} />
                                     <Route path="/case/private/add" element={<AddCasePrivate />} />
                                     <Route path="/case/private/home" element={<HomePagePrivate />} />
-                                    <Route path="/dashboard/profile" element={<Profile />} />
                                 </Route>
                                 <Route element={<ProtectedRouteDashbord><Outlet /></ProtectedRouteDashbord>}>
                                     <Route path="/dashboard/users" element={<GetUser />} />
@@ -87,7 +86,6 @@ const App = () => {
                                 <Route path="/case/private/management" element={<ManagementCasePublic />} />
                                 <Route path="/case/private/add" element={<AddCasePrivate />} />
                                 <Route path="/case/private/home" element={<HomePagePrivate />} />
-                                <Route path="/dashboard/profile" element={<Profile />} />
 
                             </Route>
                             <Route element={<ProtectedRouteDashbord><Outlet /></ProtectedRouteDashbord>}>

@@ -46,6 +46,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const [fieldError, setFieldError] = useState({ username: '', password: '' });
     const [is2FA, setIs2FA] = useState(false);
+    const [isUnauthorized, setIsUnauthorized] = useState(false);
     const navigate = useNavigate(); // استخدام useNavigate بدلاً من useHistory
     const { loginMutation } = useAuth();
     const [data, setData] = useState<UserData | null>(null);
@@ -79,10 +80,10 @@ const Login = () => {
 
     const handleSubmit2FA = async ({ pin }: { pin: string }) => {
         try {
-            const res = await verifyToken2FA(pin, data?.user.id || ''); ;
+            const res = await verifyToken2FA(pin, data?.user.id || '');;
             console.log(res);
             if (res && typeof res === 'object' && 'status' in res && res.status === 200) {
-                if (data) { 
+                if (data) {
                     Cookies.set('username', data.user.username, { expires: 1 });
                     Cookies.set('uuid', data.user.id, { expires: 1 });
                     Cookies.set('role', data.user.role, { expires: 1 });
@@ -92,6 +93,9 @@ const Login = () => {
                 navigate('/');
                 window.location.reload();
                 setIs2FA(false);
+            }
+            if (res && typeof res === 'object' && 'status' in res && res.status === 401) {
+                setIsUnauthorized(true);
             }
         } catch (error) {
             setError('حدث خطأ غير متوقع');
@@ -205,17 +209,11 @@ const Login = () => {
                                                         اذهب الى تطبيق Google Authenticator وادخل الرقم الموجود في التطبيق أو أتصل بالمطور
                                                     </FormDescription>
                                                     <FormMessage>
-                                                        {form.formState.errors.pin?.type === "required" && (
-                                                            <span className="text-red-500">
-                                                                هذا الحقل مطلوب.
-                                                            </span>
-                                                        )}
-                                                        {form.formState.errors.pin?.type === "minLength" && (
-                                                            <span className="text-red-500">
-                                                                يجب أن يتكون رمز التحقق من 6 أحرف.
-                                                            </span>
-                                                        )}
-                                                    </FormMessage>                                          </FormItem>
+                                                       {
+                                                        isUnauthorized && <span className='text-red-500 text-sm'>الرمز غير صحيح</span>
+                                                       }
+                                                    </FormMessage>                                          
+                                                </FormItem>
                                             )}
                                         />
 
