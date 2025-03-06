@@ -58,9 +58,8 @@ const Navbar = ({className}:NavbarProps) => {
                     <div className="flex flex-row justify-center items-center cursor-pointer gap-3">
                         {
                             isLoggedIn ? (
-                                links.map((link) => (
-                                    <Link key={link} to={link === 'تجديد المتهمين' ? '/case/public/home' : '/case/private/home'} className='text-lg'>{link}</Link>
-
+                                links.map((item, index) => (
+                                    <Link key={index}  to={item.linkTo} className='text-lg'>{item.name}</Link>
                                 ))
                             ) : (
                                 <></>
