@@ -21,6 +21,9 @@ const Home = lazy(() => import('@/pages/homePage'));
 const GetUser = lazy(() => import('@/pages/dashboard/users/page'));
 const BackupPage = lazy(() => import('@/pages/dashboard/backups/page'));
 const Archives = lazy(() => import('@/pages/archives/home/page'));
+const ArchivesManagement = lazy(() => import('@/pages/archives/management/page'));
+const ArchiveInsert = lazy(() => import('@/pages/archives/management/insert/page'));
+const ArchivesDataManagement = lazy(() => import('@/pages/archives/management/data_management/page'));
 const Profile = lazy(() => import('@/pages/dashboard/profile/page'));
 const App = () => {
     const { isLoggedIn, isAdmin } = useUser();
@@ -88,6 +91,9 @@ const App = () => {
                                 <Route path="/case/private/add" element={<AddCasePrivate />} />
                                 <Route path="/case/private/home" element={<HomePagePrivate />} />
                                 <Route path="/case/public/archives" element={<Archives />} />
+                                <Route path="/case/public/archives/management" element={<ArchivesManagement />} />
+                                <Route path="/case/public/archives/management/insert" element={<ArchiveInsert />} />
+                                <Route path="/case/public/archives/management/data" element={<ArchivesDataManagement />} />
 
                             </Route>
                             <Route element={<ProtectedRouteDashbord><Outlet /></ProtectedRouteDashbord>}>

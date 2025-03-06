@@ -103,9 +103,6 @@ const Page = () => {
     useEffect(() => {
         const uuid = Cookies.get('uuid');
         const role = Cookies.get('role');
-
-
-
         switch (role) {
             case 'admin':
                 getData();
