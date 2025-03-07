@@ -6,11 +6,11 @@ export const links =[
         linkTo: '/case/public/archives'
     },
     {
-        name: 'تجديد المتهمين',
+        name: 'تجديد حبس المتهمين',
         linkTo: '/case/public/home'
     },
     {
-        name: 'قضايا العضو',
+        name: 'قضايا الاعضاء',
         linkTo: '/case/private/home'
     }
 ]

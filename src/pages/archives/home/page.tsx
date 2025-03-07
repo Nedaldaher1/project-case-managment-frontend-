@@ -21,13 +21,13 @@ const Home = () => {
     }, []);
     console.log(data);
     return (
-        <div className=' h-[1200px] flex flex-col items-center justify-center gap-16'>
+        <div className=' h-[600px] flex flex-col items-center justify-center gap-16'>
             <div className='flex flex-col items-center justify-center gap-16'>
-
-                <div className="flex flex-wrap max-w-[1200px]  items-center justify-center gap-16">
+        <h1 className=" text-6xl"> نظام الارشيف الالكتروني للأحراز  </h1>
+                <div className="flex flex-wrap max-w-[1200px]  items-center justify-center  gap-8">
                     {
                         data.map((office, index) => (
-                            <Link key={index} to={`management?type=${office.id}`} className="my-link">
+                            <Link key={index} to={`management?type=${office.id}`} className="my-link  rounded-full">
 
                             <div className="my-div group">
                                 {/* عنصر انميشن الحدود */}
