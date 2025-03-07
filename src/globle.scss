@@ -1,0 +1,88 @@
+.my-div {
+    position: relative;
+    width: 300px; /* تعادل w-[300px] */
+    height: 250px; /* تعادل h-[250px] */
+    background-color: #e5e7eb; /* الخلفية الرمادية عند عدم hover */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 8px 10px -6px rgba(0, 0, 0, 0.1); /* تعادل shadow-xl */
+    border-radius: 0.5rem; /* تعادل rounded-lg */
+    overflow: hidden;
+    transition: all 300ms ease-in-out;
+    cursor: pointer;
+  }
+  
+  /* الخلفية التي تظهر عند hover */
+  .my-div__bg {
+    position: absolute;
+    inset: 0; /* يملأ العنصر بالكامل */
+    background-position: center;
+    background-size: cover;
+    opacity: 0; /* مخفي في البداية */
+    transition: opacity 300ms ease-in-out;
+  }
+  
+  /* عند hover تظهر الخلفية */
+  .my-div:hover .my-div__bg {
+    opacity: 1;
+  }
+  
+  /* النص أو الرابط داخل العنصر */
+  .my-link {
+    font-size: 1.875rem; /* تعادل text-3xl */
+    position: relative; /* لضمان ظهور الرابط فوق الخلفية */
+    z-index: 1;
+    color: #000; /* لون النص */
+    text-decoration: none; /* إزالة التسطير */
+  }
+  
+  /* تأثير الحدود المتحركة */
+  .border-animation {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.5rem;
+  }
+  
+  /* العنصر الذي يحمل تأثير الحدود */
+  .border-animation::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 2px solid transparent;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6) border-box;
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) padding-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 300ms ease-in-out; /* انتقال سلس للظهور */
+  }
+  
+  /* عند hover تظهر الحدود مع animation */
+  .my-div:hover .border-animation::before {
+    opacity: 1;
+    animation: border-appear 1.5s linear;
+  }
+  
+  /* تعريف animation لظهور الحدود */
+  @keyframes border-appear {
+    0% {
+        clip-path: polygon(0 0, 0 0, 0 0);
+    }
+    25% {
+        clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+    }
+    50% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 0);
+    }
+    75% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    100% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+  }

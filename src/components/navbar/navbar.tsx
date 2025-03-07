@@ -27,11 +27,10 @@ const Navbar = ({className}:NavbarProps) => {
     const Navigate = useNavigate();
 
     return (
-        <nav className={`navbar ${className}`}>
+        <nav className={`navbar ${className} bg-gray-100 `}>
             <ul>
                 <li>
-                    <div className='flex flex-row-reverse items-center justify-center gap-5 space-y-2'>
-                        <h1>نيابة اجا الجزئية</h1>
+                    <div className='flex flex-row-reverse items-center justify-center gap-5 space-y-2 '>
                         {
                             isLoggedIn && (
                                 <DropdownMenu >
