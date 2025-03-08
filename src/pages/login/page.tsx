@@ -114,7 +114,7 @@ const Login = () => {
                     control={form.control}
                     name="pin"
                     render={({ field }) => (
-                      <FormItem className='text-center'>
+                      <FormItem className=' flex flex-col items-center justify-center text-center'>
                         <FormLabel>التحقق الثنائي (2FA)</FormLabel>
                         <FormControl>
                           <InputOTP maxLength={6} {...field}>
