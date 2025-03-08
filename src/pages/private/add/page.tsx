@@ -5,7 +5,7 @@ import { useState } from "react";
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Cookies from "js-cookie";
-import { useUser } from "@/context/userContext";
+import { useAuth } from "@/context/userContext";
 import {
     Select,
     SelectContent,
@@ -18,7 +18,8 @@ const Page = () => {
     const [caseNumber, setCaseNumber] = useState('');
     const [accusation, setAccusation] = useState('');
     const [technicalReports, setTechnicalReports] = useState('');
-    const { member_number } = useUser();
+    const {  userData } = useAuth();
+    const member_number = userData?.member_id;
     const [action_Other, setActionOther] = useState('');
 
     // حالة الأسئلة

@@ -10,7 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useUser } from '@/context/userContext';
+import { useAuth } from '@/context/userContext';
 
 const Page = () => {
     const [caseNumber, setCaseNumber] = useState('');
@@ -20,7 +20,8 @@ const Page = () => {
     const [caseRenewalDate, setCaseRenewalDate] = useState('');
     const [memberLocation, setMemberLocation] = useState('');
     const [caseType, setcaseType] = useState('');
-    const { member_number} = useUser();
+    const { tempUserData} = useAuth();
+    const member_number = tempUserData?.member_id;
 
 
 
@@ -127,7 +128,7 @@ const Page = () => {
 
                     <div dir="rtl" className="w-[156px]">
                         <label className=" text-white text-sm" htmlFor="caseRenewalDate">رقم العضو</label>
-                        <Select  dir="rtl" disabled value={member_number.toString()}>
+                        <Select  dir="rtl" disabled value={(member_number ?? '').toString()}>
                             <SelectTrigger className="w-[156px]">
                                 <SelectValue placeholder="رقم العضو" />
                             </SelectTrigger>

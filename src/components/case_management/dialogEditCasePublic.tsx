@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useUser } from '@/context/userContext';
+import { useAuth } from '@/context/userContext';
 
 // تعريف نوع UpdatedCaseFields
 interface UpdatedCaseFields {
@@ -34,7 +34,8 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
   const [casePrisonDate, setCasePrisonDate] = useState<number | undefined>(imprisonmentDuration ? parseInt(imprisonmentDuration.toString()) : undefined);
   const [memberLocation, setMemberLocation] = useState(member_Location);
   const [caseType, setcaseType] = useState(type_case);
-  const { member_number } = useUser();
+  const { userData } = useAuth();
+  const member_number = userData?.member_id;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,7 +47,9 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
     if (casePrisonDate) updatedFields.imprisonmentDuration = casePrisonDate;
     if (memberLocation) updatedFields.member_location = memberLocation;
     if (caseType) updatedFields.type_case = caseType;
-    updatedFields.member_number = member_number.toString();
+    if (member_number) {
+      updatedFields.member_number = member_number.toString();
+    }
 
     if (Object.keys(updatedFields).length > 1) { // Check if at least one field is filled
       try {
@@ -116,7 +119,7 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
           </div>
           <div dir="rtl" className="flex flex-col space-y-5 space-x-4">
             <label className=" text-white text-sm" htmlFor="caseRenewalDate">مكان العضو</label>
-            <Select disabled value={member_number.toString()} >
+            <Select disabled value={member_number ? member_number.toString() : ''} >
               <SelectTrigger className="bg-[#273142] text-white w-full" >
                 <SelectValue placeholder="رقم العضو" />
               </SelectTrigger>

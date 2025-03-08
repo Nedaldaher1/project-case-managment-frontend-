@@ -1,58 +1,171 @@
+// src/context/userContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import Cookie from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import { verifyToken2FA, loginUser } from '@/api/authApi';
+import { useMutation } from 'react-query';
+import { encryptData, decryptData } from '@/utils/encryptData';
+import {deleteAllCookies} from '@/utils/cookiesData'
 
-const UserContext = createContext({
-    isLoggedIn: false,
-    login: () => { },
-    logout: () => { },
-    member_number: 0 as number,
-    isAdmin: false,
+interface UserData {
+  id: string;
+  username: string;
+  role: string;
+  member_id: string;
+}
+
+interface AuthContextType {
+  isLoggedIn: boolean;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => void;
+  userData: UserData | null;
+  tempUserData: UserData | null;
+  is2FARequired: boolean;
+  verify2FA: (token: string) => Promise<void>;
+  error: string;
+  fieldErrors: { username: string; password: string };
+  isUnauthorized: boolean;
+  setStatusLoggedIn: () => void;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  isLoggedIn: false,
+  login: async () => {},
+  logout: () => {},
+  userData: null,
+  tempUserData: null,
+  is2FARequired: false,
+  verify2FA: async () => {},
+  error: '',
+  fieldErrors: { username: '', password: '' },
+  isUnauthorized: false,
+  setStatusLoggedIn: () => {},
 });
 
-export const UserProvider = ({ children }: { children: ReactNode }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-        // جلب الحالة من ملفات تعريف الارتباط عند تحميل المكون
-        return Cookie.get('isLoggedIn') === 'true';
-    });
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [tempUserData, setTempUserData] = useState<UserData | null>(() => {
+    const storedTempUserData = localStorage.getItem('tempUserData');
+    return storedTempUserData ? decryptData(storedTempUserData) : null;
+  });
+  const [is2FARequired, setIs2FARequired] = useState(!!tempUserData);
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({ username: '', password: '' });
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
 
-    const [isAdmin, setIsAdmin] = useState<boolean>(Cookie.get('isAdmin') === 'true' || false);
-    useEffect(() => {
-        if (isLoggedIn) {
-            Cookie.set('isLoggedIn', 'true', { secure: true, sameSite: 'Strict' });
-        } else {
-            Cookie.remove('isLoggedIn');
+  // حفظ tempUserData في localStorage عند تغييرها
+  useEffect(() => {
+    if (tempUserData) {
+      localStorage.setItem('tempUserData', encryptData(tempUserData));
+    } 
+  }, [tempUserData]);
+
+  // طلب تسجيل الدخول الأساسي
+  const loginMutation = useMutation(
+    ({ username, password }: { username: string; password: string }) => loginUser(username, password),
+    {
+      onSuccess: (data) => {
+        const user = {
+          id: data.user.id,
+          username: data.user.username,
+          role: data.user.role,
+          member_id: data.user.member_id,
+        };
+        setTempUserData(user);
+        setIs2FARequired(true);
+        setError('');
+      },
+      onError: (error: any) => {
+        setError(error.response?.data?.message || 'فشل تسجيل الدخول');
+      },
+    }
+  );
+
+  // طلب التحقق من 2FA
+  const verify2FAMutation = useMutation(
+    (token: string) => verifyToken2FA(token, tempUserData?.id || ''),
+    {
+      onSuccess: (data) => {
+        if ((data as { status: number }).status === 200) {
+          Cookies.set('uuid', tempUserData?.id || '');
+          setUserData(tempUserData);
+          setIsLoggedIn(true);
+          setIs2FARequired(false);
+          setTempUserData(null); // هنا يتم تحديث الحالة لإزالة البيانات من localStorage
+          navigate('/');
+          window.location.reload();
         }
-    }, [isLoggedIn]);
+      },
+      onError: (error: any) => {
+        setIsUnauthorized(true);
+        setError(error.response?.data?.message || 'الرمز غير صحيح');
+      },
+    }
+  );
 
-    const login = () => {
-        setIsLoggedIn(true);
-        return true;
-    };
+  const login = async (username: string, password: string) => {
+    setError('');
+    setFieldErrors({ username: '', password: '' });
 
-    const logout = async () => {
-        try {
-            setIsLoggedIn(false);
-            Cookie.remove('isLoggedIn');
-            Cookie.remove('username');
-            Cookie.remove('uuid');
-            Cookie.remove('role');
-            Cookie.remove('member_number');
-            Cookie.remove('isAdmin');
-            Cookie.remove('sidebar:state')
-            window.location.reload();
+    if (!username || !password) {
+      setFieldErrors({
+        username: !username ? 'يرجى تعبئة اسم المستخدم' : '',
+        password: !password ? 'يرجى تعبئة كلمة المرور' : '',
+      });
+      return;
+    }
 
-        } catch (error) {
-            console.error('Error logging out:', error);
+    try {
+      await loginMutation.mutateAsync({ username, password });
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
 
-        }
+  const verify2FA = async (token: string) => {
+    try {
+      await verify2FAMutation.mutateAsync(token);
+    } catch (error) {
+      console.error('2FA error:', error);
+    }
+  };
 
-    };
-    const member_number = parseInt(Cookie.get('member_number') || '0');
-    return (
-        <UserContext.Provider value={{ isLoggedIn, login, logout, member_number, isAdmin }}>
-            {children}
-        </UserContext.Provider>
-    );
+  const logout = () => {
+    // delete all cookies
+    setIsLoggedIn(false);
+    setUserData(null);
+    setTempUserData(null); // هنا يتم تحديث الحالة لإزالة البيانات من localStorage
+    localStorage.removeItem('tempUserData');
+    deleteAllCookies();
+    navigate('/login');
+    window.location.reload();
+  };
+
+  const setStatusLoggedIn = () => {
+    setIsLoggedIn(true);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        login,
+        logout,
+        userData,
+        tempUserData,
+        is2FARequired,
+        verify2FA,
+        error,
+        fieldErrors,
+        isUnauthorized,
+        setStatusLoggedIn,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useUser = () => useContext(UserContext);
+export const useAuth = () => useContext(AuthContext);

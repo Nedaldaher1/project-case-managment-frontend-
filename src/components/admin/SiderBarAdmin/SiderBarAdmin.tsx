@@ -19,7 +19,7 @@ import {
 import { Link,Navigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import {useUser} from "@/context/userContext"
+import {useAuth} from "@/context/userContext"
 import {Img} from 'react-image'
 import {logoutSession} from '@/api/authApi'
 
@@ -60,7 +60,7 @@ const items = [
 
 const SiderBarAdmin = () => {
 
-  const {logout} = useUser();
+  const {logout} = useAuth();
 
   const username = Cookies.get('username');
 

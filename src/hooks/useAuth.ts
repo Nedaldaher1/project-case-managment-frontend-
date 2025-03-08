@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from 'react-query';
 import Cookies from 'js-cookie'; // استيراد مكتبة js-cookie
 import { loginUser } from '../api/authApi'; // افترض أنك لا تحتاج logoutUser
-import { useUser } from '@/context/userContext';
+import { useAuth as useUserContext } from '@/context/userContext';
 import { toast } from 'react-hot-toast';
 
 const useAuth = () => {
     const queryClient = useQueryClient();
-    const userContext = useUser();
+    const userContext = useUserContext();
 
     const { logout } = userContext;
 

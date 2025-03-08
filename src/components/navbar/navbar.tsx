@@ -10,7 +10,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { links } from '@/data/navbarName';
-import { useUser } from '@/context/userContext';
+import { useAuth } from '@/context/userContext';
 import { logoutSession } from '@/api/authApi';
 
 import './style.scss';
@@ -22,8 +22,8 @@ interface NavbarProps {
 
 const Navbar = ({className}:NavbarProps) => {
     const username = Cookies.get('username');
-    const userContext = useUser();
-    const { isLoggedIn, logout, isAdmin } = userContext;
+    const userContext = useAuth();
+    const { isLoggedIn, logout } = userContext;
     const Navigate = useNavigate();
 
     return (

@@ -1,15 +1,14 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useUser } from '@/context/userContext';
+import { useAuth } from '@/context/userContext';
 import { ReactNode, useEffect, useState } from 'react';
 import Cookie from 'js-cookie';
 import { useQuery } from 'react-query';
 import { fetchVerifyToken } from '@/api/authApi';
 
 const ProtectedRouteDashboard = ({ children }: { children: ReactNode }) => {
-    const { isLoggedIn, isAdmin } = useUser();
+    const { isLoggedIn ,userData } = useAuth();
+    const isAdmin = userData?.role === 'admin';
     const token = Cookie.get('token');
-    const role = Cookie.get('role');
-    console.log(isAdmin);
 
     // التحقق من صحة التوكن باستخدام react-query وإعداد حالة admin حسب الدور
     const { data, error, isLoading } = useQuery(

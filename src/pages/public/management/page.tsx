@@ -37,14 +37,26 @@ const Page = () => {
     const [pageSize, setPageSize] = useState(10);
     const [caseNumberFilter, setCaseNumberFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const getData = async () => {
         try {
+            setIsLoading(true);
             const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases`);
-            setData(response.data.cases || []);
-            setFilteredData(response.data.cases || []);
+            console.log("API Response:", response.data);
+            
+            const cases = response.data.cases || [];
+            console.log("Processed Cases:", cases);
+            
+            setData(cases);
+            setFilteredData(cases);
+            setError("");
         } catch (error) {
             console.error("Error fetching data:", error);
+            setError("فشل في جلب البيانات");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -54,21 +66,37 @@ const Page = () => {
 
     useEffect(() => {
         const filterData = () => {
+            console.log("Filtering with:", { caseNumberFilter, dateFilter });
+            
             const filtered = data.filter(item => {
-                const caseNumberMatch = item.caseNumber.includes(caseNumberFilter);
-
-                const startDate = new Date(item.startDate);
-                const renewalDate = new Date(startDate);
-                renewalDate.setDate(startDate.getDate() + item.imprisonmentDuration - 1);
-
-                const dateMatch = dateFilter
-                    ? renewalDate.toISOString().split('T')[0] === dateFilter
-                    : true;
+                // Case Number Filter
+                const caseNumberMatch = item.caseNumber.toLowerCase().includes(caseNumberFilter.toLowerCase());
+                
+                // Date Filter
+                let dateMatch = true;
+                if (dateFilter) {
+                    try {
+                        const startDate = new Date(item.startDate);
+                        const renewalDate = new Date(startDate);
+                        renewalDate.setDate(startDate.getDate() + (item.imprisonmentDuration || 0) - 1);
+                        
+                        const renewalDateString = renewalDate.toISOString().split('T')[0];
+                        const filterDate = new Date(dateFilter).toISOString().split('T')[0];
+                        
+                        dateMatch = renewalDateString === filterDate;
+                    } catch (e) {
+                        console.error("Invalid date processing:", e);
+                        dateMatch = false;
+                    }
+                }
 
                 return caseNumberMatch && dateMatch;
             });
+
+            console.log("Filtered Results:", filtered);
             setFilteredData(filtered);
         };
+        
         filterData();
     }, [caseNumberFilter, dateFilter, data]);
 
@@ -76,15 +104,28 @@ const Page = () => {
         { accessorKey: 'id', header: 'رقم مسلسل' },
         { accessorKey: 'defendantName', header: 'اسم المتهم' },
         { accessorKey: 'imprisonmentDuration', header: 'مدة الحبس' },
-        { accessorKey: 'startDate', header: 'بداية المدة', cell: info => new Date(info.getValue() as string).toLocaleDateString('ar-EG') },
+        { 
+            accessorKey: 'startDate', 
+            header: 'بداية المدة', 
+            cell: info => {
+                const value = info.getValue() as string;
+                console.log("startDate value:", value);
+                return new Date(value).toLocaleDateString('ar-EG');
+            }
+        },
         {
             header: 'موعد التجديد',
             cell: info => {
-                const startDate = new Date(info.row.original.startDate);
-                const imprisonmentDuration = info.row.original.imprisonmentDuration;
-                const renewalDate = new Date(startDate);
-                renewalDate.setDate(startDate.getDate() + imprisonmentDuration - 1);
-                return renewalDate.toLocaleDateString('ar-EG');
+                try {
+                    const startDate = new Date(info.row.original.startDate);
+                    const imprisonmentDuration = info.row.original.imprisonmentDuration || 0;
+                    const renewalDate = new Date(startDate);
+                    renewalDate.setDate(startDate.getDate() + imprisonmentDuration - 1);
+                    return renewalDate.toLocaleDateString('ar-EG');
+                } catch (e) {
+                    console.error("Error calculating renewal date:", e);
+                    return "تاريخ غير صحيح";
+                }
             }
         },
         { accessorKey: 'member_location', header: 'مكان التجديد' },
@@ -122,47 +163,58 @@ const Page = () => {
         getPaginationRowModel: getPaginationRowModel(),
     });
 
+    console.log("Table State:", {
+        rows: table.getRowModel().rows,
+        columns: table.getAllColumns(),
+        filteredData
+    });
+
     const handleExport = async () => {
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet("Cases");
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet("Cases");
 
-        // Adding Header
-        worksheet.columns = [
-            { header: "رقم مسلسل", key: "id", width: 15 },
-            { header: "اسم المتهم", key: "defendantName", width: 20 },
-            { header: "مدة الحبس", key: "imprisonmentDuration", width: 15 },
-            { header: "بداية المدة", key: "startDate", width: 20 },
-            { header: "موعد التجديد", key: "renewalDate", width: 20 },
-            { header: "مكان التجديد", key: "member_location", width: 20 },
-            { header: "رقم العضو", key: "member_number", width: 15 },
-            { header: "نوع القضية", key: "type_case", width: 20 },
-            { header: "رقم القضية", key: "caseNumber", width: 20 },
-        ];
+            worksheet.columns = [
+                { header: "رقم مسلسل", key: "id", width: 15 },
+                { header: "اسم المتهم", key: "defendantName", width: 20 },
+                { header: "مدة الحبس", key: "imprisonmentDuration", width: 15 },
+                { header: "بداية المدة", key: "startDate", width: 20 },
+                { header: "موعد التجديد", key: "renewalDate", width: 20 },
+                { header: "مكان التجديد", key: "member_location", width: 20 },
+                { header: "رقم العضو", key: "member_number", width: 15 },
+                { header: "نوع القضية", key: "type_case", width: 20 },
+                { header: "رقم القضية", key: "caseNumber", width: 20 },
+            ];
 
-        // Adding Data
-        filteredData.forEach(item => {
-            const startDate = new Date(item.startDate);
-            const renewalDate = new Date(startDate);
-            renewalDate.setDate(startDate.getDate() + item.imprisonmentDuration - 1);
+            filteredData.forEach(item => {
+                try {
+                    const startDate = new Date(item.startDate);
+                    const renewalDate = new Date(startDate);
+                    renewalDate.setDate(startDate.getDate() + (item.imprisonmentDuration || 0) - 1);
 
-            worksheet.addRow({
-                ...item,
-                startDate: startDate.toLocaleDateString("ar-EG"),
-                renewalDate: renewalDate.toLocaleDateString("ar-EG"),
+                    worksheet.addRow({
+                        ...item,
+                        startDate: startDate.toLocaleDateString("ar-EG"),
+                        renewalDate: renewalDate.toLocaleDateString("ar-EG"),
+                    });
+                } catch (e) {
+                    console.error("Error exporting row:", item, e);
+                }
             });
-        });
 
-        // Generate and Download
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        const url = URL.createObjectURL(blob);
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const url = URL.createObjectURL(blob);
 
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "Cases.xlsx";
-        link.click();
-
-        URL.revokeObjectURL(url);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "Cases.xlsx";
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("فشل التصدير");
+        }
     };
 
     return (
@@ -185,35 +237,49 @@ const Page = () => {
                         onChange={(e) => setDateFilter(e.target.value)}
                         className="border rounded p-2"
                     />
-
                 </div>
 
-                <div className="w-[1110px]">
-                    <Table className="overflow-hidden">
-                        <TableHeader>
-                            {table.getHeaderGroups().map(headerGroup => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map(header => (
-                                        <TableHead key={header.id}>
-                                            {flexRender(header.column.columnDef.header, header.getContext())}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.map(row => (
-                                <TableRow key={row.id}>
-                                    {row.getVisibleCells().map(cell => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                {isLoading && <p className="text-blue-500">جاري التحميل...</p>}
+                {error && <p className="text-red-500">{error}</p>}
+                
+                {!isLoading && !error && (
+                    <div className="w-[1110px]">
+                        <Table className="overflow-hidden">
+                            <TableHeader>
+                                {table.getHeaderGroups().map(headerGroup => (
+                                    <TableRow key={headerGroup.id}>
+                                        {headerGroup.headers.map(header => (
+                                            <TableHead key={header.id}>
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                            </TableHead>
+                                        ))}
+                                    </TableRow>
+                                ))}
+                            </TableHeader>
+                            <TableBody>
+                                {table.getRowModel().rows.map(row => {
+                                    console.log("Rendering row:", row.original);
+                                    return (
+                                        <TableRow key={row.id}>
+                                            {row.getVisibleCells().map(cell => {
+                                                const value = cell.getValue();
+                                                console.log(`Cell [${cell.id}]:`, value);
+                                                return (
+                                                    <TableCell key={cell.id}>
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                        {filteredData.length === 0 && !isLoading && (
+                            <p className="text-center my-4">لا توجد بيانات متطابقة مع عوامل التصفية</p>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

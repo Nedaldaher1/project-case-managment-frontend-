@@ -12,7 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useUser } from '@/context/userContext';
+import { useAuth } from '@/context/userContext';
 
 interface UpdatedCaseFields {
     id: string;
@@ -31,7 +31,7 @@ interface UpdatedCaseFields {
 
 const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision,actionOther }: DialogEditCasePriavteProps) => {
     const [case_Number, setCaseNumber] = useState(caseNumber);
-    const { member_number } = useUser();
+    const { userData } = useAuth();
     const [accus_ation, setAccusation] = useState(accusation);
     const [defendant_Question, setDefendantQuestion] = useState(defendantQuestion);
     const [officer_Question, setOfficerQuestion] = useState(officerQuestion);
@@ -41,6 +41,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
     const [caseRe_ferral, setCaseReferral] = useState(caseReferral);
     const [isReadyFor_Decision, setIsReadyForDecision] = useState(isReadyForDecision);
     const [action_Other, setActionOther] = useState(actionOther);
+    const member_number = userData?.member_id;
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -122,7 +123,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                         </div>
                         <div className="flex flex-col space-y-5 space-x-4">
                             <label htmlFor="memberNumber">رقم العضو</label>
-                            <Select dir="rtl" disabled value={member_number.toString()}>
+                            <Select dir="rtl" disabled value={member_number ? member_number.toString() : ''}>
                                 <SelectTrigger className="w-[175px] bg-[#283444]  text-white  border-white  ">
                                     <SelectValue placeholder="رقم العضو" />
                                 </SelectTrigger>

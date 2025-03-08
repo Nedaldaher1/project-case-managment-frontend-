@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useUser } from '@/context/userContext';
+import { useAuth } from '@/context/userContext';
 import { ReactNode } from 'react';
 import { useQuery } from 'react-query';
 import { fetchVerifyToken } from '@/api/authApi';
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { isLoggedIn, login } = useUser();
+  const { isLoggedIn, setStatusLoggedIn } = useAuth();
 
   // التحقق من صحة التوكن فقط إذا كان موجودًا
   const { isLoading, isError } = useQuery(
@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     fetchVerifyToken,
     {
       onSuccess: () => {
-        login();
+        setStatusLoggedIn();
       },
       onError: () => {
         console.error('Token verification failed');

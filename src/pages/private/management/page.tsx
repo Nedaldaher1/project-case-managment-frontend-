@@ -51,6 +51,7 @@ const Page = () => {
     const [pageSize] = useState(10);
     const [memberNumber, setMemberNumber] = useState<string>('');
     const [isReadyForDecision, setIsReadyForDecision] = useState<string>('');
+    const [isAuthorized, setIsAuthorized] = useState<boolean>(false); // حالة التحقق من الصلاحية
 
     const getData = async () => {
         try {
@@ -73,10 +74,12 @@ const Page = () => {
             console.error("Error fetching data:", error);
         }
     };
+
     const clearFilters = () => {
         setMemberNumber('');
         setIsReadyForDecision('');
-    }
+    };
+
     const getDataByUser = async (user: string) => {
         try {
             const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/${user}`);
@@ -98,33 +101,30 @@ const Page = () => {
         } catch (error) {
             console.error("Error fetching data:", error);
         }
-    }
+    };
 
     useEffect(() => {
         const uuid = Cookies.get('uuid');
         const role = Cookies.get('role');
-        switch (role) {
-            case 'admin':
+
+        // التحقق من الصلاحية
+        if (role === 'admin' || role === 'editor') {
+            setIsAuthorized(true); // المستخدم مصرح له
+            if (role === 'admin') {
                 getData();
-                break;
-            case 'editor':
-                if (uuid) {
-                    getDataByUser(uuid);
-                } else {
-                    throw new Error('UUID not found');
-                }
-                break;
-            default:
-                console.error('Unauthorized');
+            } else if (role === 'editor' && uuid) {
+                getDataByUser(uuid);
+            }
+        } else {
+            setIsAuthorized(false); // المستخدم غير مصرح له
         }
     }, []);
-
 
     useEffect(() => {
         const filterData = () => {
             const filtered = data.filter(item => {
                 const memberNumberMatch = memberNumber ? item.memberNumber === memberNumber : true;
-                const isReadyForDecisionMatch = isReadyForDecision ? item.isReadyForDecision === (isReadyForDecision === 'لا' ? true : false) : true;
+                const isReadyForDecisionMatch = isReadyForDecision ? item.isReadyForDecision === (isReadyForDecision === 'نعم') : true;
 
                 return memberNumberMatch && isReadyForDecisionMatch;
             });
@@ -133,9 +133,6 @@ const Page = () => {
 
         filterData();
     }, [memberNumber, isReadyForDecision, data]);
-
-    console.log(data);
-
 
     const columns = useMemo<ColumnDef<Case>[]>(() => [
         {
@@ -233,7 +230,6 @@ const Page = () => {
                 return hasPendingText ? 'لا' : (anyQuestionHasValue ? 'نعم' : 'لا');
             }
         },
-
         {
             header: 'تعديل',
             cell: (info) => {
@@ -260,7 +256,6 @@ const Page = () => {
             }
         }
     ], []);
-
 
     const table = useReactTable({
         data: filteredData,
@@ -311,13 +306,20 @@ const Page = () => {
         window.URL.revokeObjectURL(url);
     };
 
+    // إذا لم يكن المستخدم مصرحًا له، عرض رسالة
+    if (!isAuthorized) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen">
+                <p className="text-2xl text-red-500">غير مصرح لك بالاطلاع على البيانات.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col items-center h-[110vh] space-y-4">
-
             <div dir='rtl' className="w-[1210px] ">
                 {/* Filter Section */}
                 <div className="flex items-center self-end space-x-4 mb-4 gap-5">
-
                     <Select dir="rtl" value={memberNumber} onValueChange={(value) => setMemberNumber(value)}>
                         <SelectTrigger className="w-[156px]">
                             <SelectValue placeholder="رقم العضو" />
@@ -359,8 +361,6 @@ const Page = () => {
                                     </TableHead>
                                 ))}
                             </TableRow>
-
-
                         ))}
                     </TableHeader>
                     <TableBody>
@@ -370,7 +370,6 @@ const Page = () => {
                                     <TableCell key={cell.id} className="text-center align-middle truncate max-w-[150px]">
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </TableCell>
-
                                 ))}
                             </TableRow>
                         ))}
@@ -400,4 +399,4 @@ const Page = () => {
     );
 };
 
-export default Page;
+export default Page;    
