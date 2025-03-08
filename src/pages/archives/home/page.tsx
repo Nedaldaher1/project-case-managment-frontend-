@@ -7,7 +7,10 @@ const Home = () => {
     const [data, setData] = useState<{ id: string, name: string }[]>([]);
     const getData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/archives/office/all');
+            if (!import.meta.env.VITE_REACT_APP_API_URL) {
+                throw new Error('API URL is not defined');
+            }
+            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/archives/office/all`);
             setData(response.data.offices);
         } catch (error) {
             console.error('An error occurred while fetching data:', error);

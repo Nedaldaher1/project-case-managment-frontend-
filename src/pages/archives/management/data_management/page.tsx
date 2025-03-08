@@ -70,7 +70,10 @@ const ProsecutionTable = () => {
     const fetchData = useCallback(async (page: number, query: string) => {
         setIsLoading(true);
         try {
-            const response = await axios.get<ApiResponse>(`http://localhost:3000/archives/data/all`, {
+            if (!import.meta.env.VITE_REACT_APP_API_URL) {
+                throw new Error('API URL is not defined');
+            }
+            const response = await axios.get<ApiResponse>(`${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/all`, {
                 params: {
                     type,
                     page,

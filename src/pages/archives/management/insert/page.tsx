@@ -62,7 +62,10 @@ const Insert = () => {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/archives/data/create', {
+            if (!import.meta.env.VITE_REACT_APP_API_URL) {
+                throw new Error('API URL is not defined');
+            }
+            const response = await axios.post(`${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/create`, {
                 serialNumber: Number(serialNumber),
                 itemNumber: Number(itemNumber),
                 charge,
