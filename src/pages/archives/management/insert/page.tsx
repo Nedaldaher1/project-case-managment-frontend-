@@ -11,21 +11,20 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-// قائمة النيابات الثابتة
 const offices = [
     { id: "1", name: "النيابة الكلية" },
-    { id: "2", name: "نيابة قسم اول الجزئية" },
-    { id: "3", name: "نيابة قسم ثاني الجزئية" },
-    { id: "4", name: "نيابة مركز المنصورة" },
-    { id: "5", name: "نيابة طلخا" },
-    { id: "6", name: "نيابة السنبلاوين" },
-    { id: "7", name: "نيابة اجا" },
-    { id: "8", name: "نيابة ميت غمر" },
-    { id: "9", name: "نيابة تمي الامديد" },
+    { id: "2", name: "نيابة قسم اول المنصورة الجزئية" },
+    { id: "3", name: "نيابة قسم ثاني المنصورة الجزئية" },
+    { id: "4", name: "نيابة مركز المنصورة الجزئية" },
+    { id: "5", name: "نيابة طلخا الجزئية" },
+    { id: "6", name: "نيابة السنبلاوين الجزئية" },
+    { id: "7", name: "نيابة اجا الجزئية" },
+    { id: "8", name: "نيابة قسم ميت غمر الجزئية" },
+    { id: "9", name: "نيابة تمي الامديد الجزئية" },
+    { id: "10", name: "نيابة مركز ميت غمر الجزئية" }
 ];
 
 const Insert = () => {
-    // حالات الحقول
     const [serialNumber, setSerialNumber] = useState('');
     const [prosecutionOfficeId, setProsecutionOfficeId] = useState('');
     const [itemNumber, setItemNumber] = useState('');
@@ -40,13 +39,15 @@ const Insert = () => {
     const [numberCase, setNumberCase] = useState('');
     const [prosecutionDetentionDecision, setProsecutionDetentionDecision] = useState('');
     const [finalCourtJudgment, setFinalCourtJudgment] = useState('');
+    const [year, setYear] = useState<string>('');
+    const [statusEvidence, setStatusEvidence] = useState('');
+    const [typeCaseTotalNumber, setTypeCaseTotalNumber] = useState('');
+    const [typeCaseNumber, setTypeCaseNumber] = useState('');
 
-    // دالة إرسال البيانات
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // التحقق من عدم وجود أرقام سالبة
         if (
             Number(serialNumber) < 0 ||
             Number(itemNumber) < 0 ||
@@ -65,24 +66,31 @@ const Insert = () => {
             if (!import.meta.env.VITE_REACT_APP_API_URL) {
                 throw new Error('API URL is not defined');
             }
-            const response = await axios.post(`${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/create`, {
-                serialNumber: Number(serialNumber),
-                itemNumber: Number(itemNumber),
-                charge,
-                seizureStatement,
-                disposalOfSeizure,
-                prosecutionDetentionDecision,
-                finalCourtJudgment,
-                totalNumber: Number(totalNumber),
-                roomNumber: Number(roomNumber),
-                referenceNumber: Number(referenceNumber),
-                shelfNumber: Number(shelfNumber),
-                prosecutionOfficeId: Number(prosecutionOfficeId),
-                numberCase: Number(numberCase)
-            });
+            const response = await axios.post(
+                `${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/create`,
+                {
+                    serialNumber: Number(serialNumber),
+                    itemNumber: Number(itemNumber),
+                    charge,
+                    seizureStatement,
+                    disposalOfSeizure,
+                    prosecutionDetentionDecision,
+                    finalCourtJudgment,
+                    totalNumber,
+                    roomNumber: Number(roomNumber),
+                    referenceNumber: Number(referenceNumber),
+                    shelfNumber: Number(shelfNumber),
+                    prosecutionOfficeId: Number(prosecutionOfficeId),
+                    numberCase: Number(numberCase),
+                    year: Number(year),
+                    statusEvidence,
+                    typeCaseTotalNumber,
+                    typeCaseNumber
+
+                }
+            );
 
             if (response.data.success) {
-                // مسح الحقول
                 setSerialNumber('');
                 setProsecutionOfficeId('');
                 setItemNumber('');
@@ -96,7 +104,10 @@ const Insert = () => {
                 setNumberCase('');
                 setProsecutionDetentionDecision('');
                 setFinalCourtJudgment('');
-
+                setYear('');
+                setStatusEvidence('');
+                setTypeCaseTotalNumber('');
+                setTypeCaseNumber('');
                 toast.success('تم إضافة الأرشيف بنجاح!');
             }
         } catch (error) {
@@ -107,205 +118,296 @@ const Insert = () => {
     };
 
     return (
-        <div className="flex flex-row items-center justify-center">
-            <div className="flex items-center justify-center max-w-[1200px] h-screen gap-16">
-                <div className="flex justify-center items-center text-white shadow-xl text-xl w-[1050px] h-[600px] bg-gray-950 rounded-lg">
-                    <form
-                        onSubmit={handleSubmit}
-                        className="max-w-[800px] h-[600px] flex flex-col items-center justify-center gap-8"
-                    >
-                        {/* الصف الأول: مسلسل، قسم النيابة، رقم الأشياء */}
-                        <div className="flex gap-16">
-                            {/* مسلسل */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">مسلسل</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="number"
-                                    value={serialNumber}
-                                    onChange={(e) => setSerialNumber(e.target.value)}
-                                    min="0"
-                                    required
-                                />
-                            </div>
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="h-[60px] text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    إضافة الحرز
+                </h1>
 
-                            {/* قسم النيابة */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">قسم النيابة</label>
-                                <Select
-                                    value={prosecutionOfficeId}
-                                    onValueChange={setProsecutionOfficeId}
-                                >
-                                    <SelectTrigger className="text-black bg-white rounded-xl">
-                                        <SelectValue placeholder="اختر النيابة" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {offices.map((office) => (
-                                            <SelectItem
-                                                key={office.id}
-                                                value={office.id}
-                                            >
-                                                {office.name}
+                <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
+                    <form onSubmit={handleSubmit} className="space-y-8">
+
+                        {/* قسم بيانات الحرز */}
+                        <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
+                            <legend className="px-2 text-xl font-semibold text-blue-600">
+                                بيانات الحرز
+                            </legend>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                                {/* مكتب النيابة */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">مكتب النيابة</label>
+                                    <Select
+                                        value={prosecutionOfficeId}
+                                        onValueChange={setProsecutionOfficeId}
+                                    >
+                                        <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                            <SelectValue placeholder="اختر مكتب النيابة" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {offices.map((office) => (
+                                                <SelectItem key={office.id} value={office.id}>
+                                                    {office.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* مسلسل */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">مسلسل</label>
+                                    <input
+                                        type="number"
+                                        value={serialNumber}
+                                        onChange={(e) => setSerialNumber(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        min="0"
+                                        required
+
+                                    />
+                                </div>
+
+                                {/* رقم الأشياء */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">رقم الأشياء</label>
+                                    <input
+                                        type="number"
+                                        value={itemNumber}
+                                        onChange={(e) => setItemNumber(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        min="0"
+                                        required
+
+                                    />
+                                </div>
+
+                                {/* رقم القضية */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">رقم القضية</label>
+                                    <input
+                                        type="number"
+                                        value={numberCase}
+                                        onChange={(e) => setNumberCase(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        required
+                                        min="0"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right"> نوع القضية لرقم القضية</label>
+                                    <Select
+                                        value={typeCaseNumber}
+                                        onValueChange={setTypeCaseNumber}
+                                    >
+                                        <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                            <SelectValue placeholder="اختر نوع القضية" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value={"جنح"}>
+                                                جنح
                                             </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                            <SelectItem value={"جناية"}>
+                                                جناية
+                                            </SelectItem>
+                                            <SelectItem value={"اداري"}>
+                                                اداري
+                                            </SelectItem>
+                                            <SelectItem value={"اقتصادية"}>
+                                                اقتصادية
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                            {/* رقم الأشياء */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">رقم الأشياء</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="number"
-                                    value={itemNumber}
-                                    onChange={(e) => setItemNumber(e.target.value)}
-                                    min="0"
-                                    required
-                                />
+
+                                {/* السنة */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">السنة</label>
+                                    <input
+                                        type="text"
+                                        value={year}
+                                        onChange={(e) => setYear(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+
+                                    />
+                                </div>
+
+                                {/* التهمة */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">التهمة</label>
+                                    <input
+                                        type="text"
+                                        value={charge}
+                                        onChange={(e) => setCharge(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+
+                                    />
+                                </div>
+
+                                {/* بيان الحرز */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">بيان الحرز</label>
+                                    <input
+                                        type="text"
+                                        value={seizureStatement}
+                                        onChange={(e) => setSeizureStatement(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+
+                                    />
+                                </div>
+
+                                {/* الرقم الكلي */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">الرقم الكلي</label>
+                                    <input
+                                        type="text"
+                                        value={totalNumber}
+                                        onChange={(e) => setTotalNumber(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        min="0"
+
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right"> نوع القضية لرقم الكلي</label>
+                                    <Select
+                                        value={typeCaseTotalNumber}
+                                        onValueChange={setTypeCaseTotalNumber}
+                                    >
+                                        <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                            <SelectValue placeholder="اختر نوع القضية" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value={"جنح"}>
+                                                جنح
+                                            </SelectItem>
+                                            <SelectItem value={"جناية"}>
+                                                جناية
+                                            </SelectItem>
+                                            <SelectItem value={"اداري"}>
+                                                اداري
+                                            </SelectItem>
+                                            <SelectItem value={"اقتصادية"}>
+                                                اقتصادية
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
                             </div>
+                        </fieldset>
+
+                        {/* قسم مكان تواجد الحرز */}
+                        <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
+                            <legend className="px-2 text-xl font-semibold text-blue-600">
+                                مكان تواجد الحرز
+                            </legend>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                                {/* رقم الغرفة */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">رقم الغرفة</label>
+                                    <input
+                                        type="number"
+                                        value={roomNumber}
+                                        onChange={(e) => setRoomNumber(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        min="0"
+
+                                    />
+                                </div>
+
+                                {/* رقم الاستاند */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">رقم الاستاند</label>
+                                    <input
+                                        type="number"
+                                        value={referenceNumber}
+                                        onChange={(e) => setReferenceNumber(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        min="0"
+
+                                    />
+                                </div>
+
+                                {/* رقم الرف */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">رقم الرف</label>
+                                    <input
+                                        type="number"
+                                        value={shelfNumber}
+                                        onChange={(e) => setShelfNumber(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        min="0"
+
+                                    />
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        {/* قسم التصرف في الحرز */}
+                        <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
+                            <legend className="px-2 text-xl font-semibold text-blue-600">
+                                التصرف في الحرز
+                            </legend>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                                {/* قرار النيابة */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">قرار النيابة</label>
+                                    <input
+                                        type="text"
+                                        value={prosecutionDetentionDecision}
+                                        onChange={(e) => setProsecutionDetentionDecision(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+
+                                    />
+                                </div>
+
+                                {/* حكم المحكمة النهائي */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">حكم المحكمة النهائي</label>
+                                    <input
+                                        type="text"
+                                        value={finalCourtJudgment}
+                                        onChange={(e) => setFinalCourtJudgment(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+
+                                    />
+                                </div>
+
+                                {/* حالة الحرز */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">حالة الحرز</label>
+                                    <Select
+                                        value={statusEvidence}
+                                        onValueChange={setStatusEvidence}
+                                    >
+                                        <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                            <SelectValue placeholder="اختر حالة الحرز" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="على زمة التحقيق">على زمة التحقيق</SelectItem>
+                                            <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
+                                            <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
+                                            <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        {/* زر الإرسال */}
+                        <div className="flex justify-end">
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl"
+                            >
+                                {isSubmitting ? 'جارٍ الإضافة...' : 'إضافة'}
+                            </Button>
                         </div>
-
-                        {/* الصف الثاني: الرقم الكلي، رقم الغرفة، رقم الاستاند */}
-                        <div className="flex gap-16">
-                            {/* الرقم الكلي */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">الرقم الكلي</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="number"
-                                    value={totalNumber}
-                                    onChange={(e) => setTotalNumber(e.target.value)}
-                                    min="0"
-                                    required
-                                />
-                            </div>
-
-                            {/* رقم الغرفة */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">رقم الغرفة</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="number"
-                                    value={roomNumber}
-                                    onChange={(e) => setRoomNumber(e.target.value)}
-                                    min="0"
-                                    required
-                                />
-                            </div>
-
-                            {/* رقم الاستاند */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">رقم الاستاند</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="number"
-                                    value={referenceNumber}
-                                    onChange={(e) => setReferenceNumber(e.target.value)}
-                                    min="0"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {/* الصف الثالث: رقم الرف، التهمة، بيان الحرز */}
-                        <div className="flex gap-16">
-                            {/* رقم الرف */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">رقم الرف</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="number"
-                                    value={shelfNumber}
-                                    onChange={(e) => setShelfNumber(e.target.value)}
-                                    min="0"
-                                    required
-                                />
-                            </div>
-
-                            {/* التهمة */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">التهمة</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="text"
-                                    value={charge}
-                                    onChange={(e) => setCharge(e.target.value)}
-                                    required
-                                />
-                            </div>
-
-                            {/* بيان الحرز */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">بيان الحرز</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="text"
-                                    value={seizureStatement}
-                                    onChange={(e) => setSeizureStatement(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {/* الصف الرابع: التصرف في الحرز */}
-                        <div className="flex gap-16">
-                            {/* التصرف في الحرز */}
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">التصرف في الحرز</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="text"
-                                    value={disposalOfSeizure}
-                                    onChange={(e) => setDisposalOfSeizure(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">رقم القضية</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="number"
-                                    value={numberCase}
-                                    onChange={(e) => setNumberCase(e.target.value)}
-                                    required
-                                    min="0"
-                                />
-                            </div>
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end"> حكم المحكمة النهائي</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="text"
-                                    value={finalCourtJudgment}
-                                    onChange={(e) => setFinalCourtJudgment(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div className="flex gap-16">
-                            <div className="w-[200px] flex flex-col items-center justify-center gap-2">
-                                <label className="self-end">قرار النيابة في الحرز</label>
-                                <input
-                                    className="p-1 text-black outline-none bg-white rounded-xl"
-                                    type="text"
-                                    value={prosecutionDetentionDecision}
-                                    onChange={(e) => setProsecutionDetentionDecision(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            
-                        </div>
-
-
-                        {/* زر الحفظ */}
-                        <Button
-                            type="submit"
-                            className="w-[200px] h-[40px] bg-gray-200 rounded-xl text-black"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'جاري الحفظ...' : 'حفظ'}
-                        </Button>
                     </form>
                 </div>
             </div>
@@ -313,4 +415,4 @@ const Insert = () => {
     );
 };
 
-export default Insert;
+export default Insert;  

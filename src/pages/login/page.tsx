@@ -32,6 +32,9 @@ const Login = () => {
   const { login, verify2FA, is2FARequired, error, fieldErrors, isUnauthorized } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('tempUserData'));
+
+
 
   // تهيئة useForm للتحقق من صحة رمز 2FA
   const form = useForm<{ pin: string }>({
@@ -51,7 +54,10 @@ const Login = () => {
 
   return (
     <div className='flex items-center justify-center h-[80vh]'>
-      <div className='w-[856px] h-[587px] rounded-2xl flex bg-[#F6F5F7]'>
+      {isLoggedIn ? (
+        <></>
+      ) : (
+        <div className='w-[856px] h-[587px] rounded-2xl flex bg-[#F6F5F7]'>
         {/* الجانب الأيسر (الثابت) */}
         <div className='w-[418px] h-[587px] bg-[#45369f] rounded-s-2xl flex items-center justify-center'>
           <h1 className='text-white text-center font-[Cairo] text-[96px] leading-[150px] font-bold w-[201px]'>
@@ -141,6 +147,7 @@ const Login = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -95,7 +95,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIs2FARequired(false);
           setTempUserData(null); // هنا يتم تحديث الحالة لإزالة البيانات من localStorage
           navigate('/');
-          window.location.reload();
+          console.log(tempUserData)
+          // window.location.reload();
         }
       },
       onError: (error: any) => {

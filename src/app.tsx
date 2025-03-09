@@ -23,10 +23,10 @@ const ArchivesDataManagement = lazy(() => import('@/pages/archives/management/da
 const UnauthorizedPage = lazy(() => import('@/pages/unauthorized/page')); // تأكد من إنشاء هذه الصفحة
 
 const App = () => {
-    const { isLoggedIn, userData } = useAuth();
-    const isAdmin = userData?.role === 'admin';
-    const isEditor = userData?.role === 'editor';
-
+    const { isLoggedIn, tempUserData } = useAuth();
+    const isAdmin = tempUserData?.role === 'admin';
+    const isEditor = tempUserData?.role === 'editor';
+    
     // مكون حماية للصلاحيات
     const RoleProtectedRoute = ({ children }: { children: JSX.Element }) => {
         if (!isAdmin && !isEditor) {
