@@ -149,26 +149,26 @@ const ProsecutionTable = () => {
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingData) return;
-    
+
         try {
             const response = await axios.put(
                 `${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/update/${editingData.id}`,
                 editingData
             );
-    
+
             if (response.data.success) {
                 // التحقق من وجود البيانات المحدثة بشكل صحيح
                 if (!response.data.updatedData) {
                     throw new Error('البيانات المحدثة غير موجودة');
                 }
-    
+
                 // تحديث الحالة مع البيانات الجديدة
-                setData(prev => prev.map(item => 
+                setData(prev => prev.map(item =>
                     item.id === editingData.id ? response.data.updatedData : item
                 ));
-                
+
                 setIsEditModalOpen(false);
-                
+
                 toast.success('تم التحديث بنجاح!', {
                     icon: '✅',
                     style: {
@@ -177,7 +177,7 @@ const ProsecutionTable = () => {
                         color: '#fff',
                     }
                 });
-                
+
                 // إعادة جلب البيانات للتأكد من المزامنة
                 setTimeout(() => {
                     fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber);
@@ -439,7 +439,7 @@ const ProsecutionTable = () => {
                             <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">
                                 تعديل بيانات الحرز
                             </h2>
-                            
+
                             <form onSubmit={handleUpdate} className="space-y-8">
                                 {/* قسم بيانات الحرز */}
                                 <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
@@ -715,7 +715,7 @@ const ProsecutionTable = () => {
                                                     <SelectValue placeholder="اختر حالة الحرز" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="على زمة التحقيق">على زمة التحقيق</SelectItem>
+                                                    <SelectItem value=" على ذمة التحقيق"> على ذمة التحقيق </SelectItem>
                                                     <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
                                                     <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
                                                     <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
