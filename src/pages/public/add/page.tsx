@@ -20,8 +20,9 @@ const Page = () => {
     const [caseRenewalDate, setCaseRenewalDate] = useState('');
     const [memberLocation, setMemberLocation] = useState('');
     const [caseType, setcaseType] = useState('');
-    const { tempUserData} = useAuth();
-    const member_number = tempUserData?.member_id;
+    const {tempUserData , userData} = useAuth();
+    const member_number = userData?.member_id;
+    console.log(userData);
 
 
 

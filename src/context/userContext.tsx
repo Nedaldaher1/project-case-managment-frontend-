@@ -44,8 +44,14 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const storedIsLoggedIn = localStorage.getItem('isLoggedIn');
+    return storedIsLoggedIn ? decryptData(storedIsLoggedIn) : false;
+  });
+  const [userData, setUserData] = useState<UserData | null>(() => {
+    const storedUserData = localStorage.getItem('userData');
+    return storedUserData ? decryptData(storedUserData) : null;
+  });
   const [tempUserData, setTempUserData] = useState<UserData | null>(() => {
     const storedTempUserData = localStorage.getItem('tempUserData');
     return storedTempUserData ? decryptData(storedTempUserData) : null;
@@ -57,9 +63,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // حفظ tempUserData في localStorage عند تغييرها
   useEffect(() => {
+  
+    if (isLoggedIn) {
+      localStorage.setItem('isLoggedIn', encryptData(isLoggedIn));
+    }
+    if(userData){
+      localStorage.setItem('userData', encryptData(userData));
+    }
+  }, [tempUserData,isLoggedIn,userData]);
+
+  useEffect(() => {
+
     if (tempUserData) {
-      localStorage.setItem('tempUserData', encryptData(tempUserData));
-    } 
+      localStorage.setItem('tempUserData', encryptData(tempUserData
+      ));
+    }else{
+      localStorage.removeItem('tempUserData');
+    }
   }, [tempUserData]);
 
   // طلب تسجيل الدخول الأساسي
@@ -139,6 +159,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUserData(null);
     setTempUserData(null); // هنا يتم تحديث الحالة لإزالة البيانات من localStorage
     localStorage.removeItem('tempUserData');
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userData');
     deleteAllCookies();
     navigate('/login');
     window.location.reload();

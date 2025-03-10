@@ -1,36 +1,44 @@
-import { Navigate, Outlet } from 'react-router-dom';
+// صفحاتة حماية الروابط
+import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/userContext';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import { fetchVerifyToken } from '@/api/authApi';
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { isLoggedIn, setStatusLoggedIn } = useAuth();
+  const { 
+    isLoggedIn, 
+    setStatusLoggedIn, 
+    is2FARequired,
+    tempUserData,
+    logout
+  } = useAuth();
+  const navigate = useNavigate();
 
-  // التحقق من صحة التوكن فقط إذا كان موجودًا
+  // 1. التحقق من وجود بيانات مؤقتة
+
+
+  // 2. التحقق من صحة التوكن
   const { isLoading, isError } = useQuery(
     'session',
     fetchVerifyToken,
     {
       onSuccess: () => {
-        setStatusLoggedIn();
+        if (!is2FARequired) {
+          setStatusLoggedIn();
+        }
       },
-      onError: () => {
-        console.error('Token verification failed');
-      },
-      retry: false, // تعطيل المحاولات التلقائية لتقليل عدد الطلبات
+      onError: () => navigate('/login'),
+      retry: false,
+      enabled: !is2FARequired
     }
   );
 
-  if (isLoading) {
-    return <div>Loading...</div>; // يمكنك استبدال هذا بكومبوننت تحميل مخصص
-  }
-
-  if (isError || !isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Outlet />;
+  // 3. التحقق النهائي من حالة المستخدم
+  if (isLoading) return <div>Loading...</div>;
+  
+  if (isLoggedIn) return <Outlet />;
+  return <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

@@ -18,7 +18,7 @@ const Page = () => {
     const [caseNumber, setCaseNumber] = useState('');
     const [accusation, setAccusation] = useState('');
     const [technicalReports, setTechnicalReports] = useState('');
-    const {  userData } = useAuth();
+    const {userData} = useAuth();
     const member_number = userData?.member_id;
     const [action_Other, setActionOther] = useState('');
 
