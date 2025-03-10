@@ -119,7 +119,7 @@ const ProsecutionTable = () => {
                     type,
                     page,
                     limit: PAGE_SIZE,
-                    caseNumber: caseNum,
+                    numberCase: caseNum,
                     itemNumber: itemNum
                 }
             });
@@ -295,18 +295,21 @@ const ProsecutionTable = () => {
                     className="flex gap-3"
                 >
                     <input
-                        type="text"
+                        type="number"
                         placeholder="ابحث برقم القضية..."
                         className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
                         value={caseNumberSearch}
                         onChange={(e) => setCaseNumberSearch(e.target.value)}
+                        min={'0'}
                     />
                     <input
-                        type="text"
+                        type="number"
                         placeholder="ابحث برقم الأشياء..."
                         className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
                         value={itemNumberSearch}
                         onChange={(e) => setItemNumberSearch(e.target.value)}
+                        min={'0'}
+
                     />
                 </motion.div>
 
