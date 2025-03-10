@@ -388,7 +388,7 @@ const Insert = () => {
                                             <SelectValue placeholder="اختر حالة الحرز" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="على زمة التحقيق">على زمة التحقيق</SelectItem>
+                                            <SelectItem value="على ذمة التحقيق">على ذمة التحقيق</SelectItem>
                                             <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
                                             <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
                                             <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
