@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import DialogShowContact from "@/components/case_management/dialobShowContact";
 import ExcelJS from "exceljs";
+import { useAuth } from "@/context/userContext";
 
 const Page = () => {
     interface Case {
@@ -52,7 +53,9 @@ const Page = () => {
     const [memberNumber, setMemberNumber] = useState<string>('');
     const [isReadyForDecision, setIsReadyForDecision] = useState<string>('');
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false); // حالة التحقق من الصلاحية
-
+    const { userData } = useAuth();
+    const role = userData?.role;
+    const uuid = userData?.id;
     const getData = async () => {
         try {
             const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases`);
@@ -104,9 +107,6 @@ const Page = () => {
     };
 
     useEffect(() => {
-        const uuid = Cookies.get('uuid');
-        const role = Cookies.get('role');
-
         // التحقق من الصلاحية
         if (role === 'admin' || role === 'editor') {
             setIsAuthorized(true); // المستخدم مصرح له
