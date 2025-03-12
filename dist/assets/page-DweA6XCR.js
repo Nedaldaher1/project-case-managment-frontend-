@@ -1,1 +1,0 @@
-import{j as e}from"./index-mz9mZwsC.js";const t=()=>e.jsxs("div",{className:"flex flex-col items-center justify-center h-screen",children:[e.jsx("h1",{className:"text-2xl text-red-500",children:"غير مصرح لك بالوصول"}),e.jsx("p",{className:"mt-4",children:"يرجى التواصل مع المدير لطلب الصلاحيات."})]});export{t as default};

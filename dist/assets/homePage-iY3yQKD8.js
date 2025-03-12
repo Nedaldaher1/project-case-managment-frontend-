@@ -1,1 +1,0 @@
-import{r as t,j as e}from"./index-mz9mZwsC.js";import{A as s}from"./aos-B9Km_wSB.js";const i=()=>(t.useEffect(()=>{s.init()},[]),e.jsx("div",{className:"  flex items-center justify-center h-[60vh] ",children:e.jsx("h1",{className:" text-6xl",children:"منظومة تيسر الاعمال داخل النيابة"})}));export{i as default};

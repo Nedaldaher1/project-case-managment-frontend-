@@ -5,16 +5,20 @@ export interface DialogEditCasePublicProps {
     defendantName: string;
     imprisonmentDuration: number;
     startDate: Date;
-    member_Location: string;
     memberNumber: string;
     type_case: string;
     children: React.ReactNode;
-    
-   }
+    year: string;
+    issuingDepartment: string;
+    investigationID: string;
+    officeNumber: string;
+
+
+}
 
 
 export interface DialogEditCasePriavteProps {
-    caseID : number;
+    caseID: number;
     children: React.ReactNode;
     caseNumber: string;
     memberNumber: string;
@@ -30,4 +34,3 @@ export interface DialogEditCasePriavteProps {
 
 }
 
-  

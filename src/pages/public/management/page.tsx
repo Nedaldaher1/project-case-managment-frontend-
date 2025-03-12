@@ -17,6 +17,7 @@ import {
 } from '@tanstack/react-table';
 import ExcelJS from "exceljs";
 import DialogEditCase from "@/components/case_management/dialogEditCasePublic";
+import toast from 'react-hot-toast';
 
 const Page = () => {
     interface Case {
@@ -26,26 +27,38 @@ const Page = () => {
         imprisonmentDuration: number;
         startDate: string;
         caseID: string;
-        member_location: string;
+        issuingDepartment: string;
         member_number: string;
         type_case: string;
+        year: string;
+        investigationID: string;
+        officeNumber: string;
     }
 
     const [data, setData] = useState<Case[]>([]);
     const [filteredData, setFilteredData] = useState<Case[]>([]);
-    const [pageSize] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(20);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCases, setTotalCases] = useState(0);
     const [caseNumberFilter, setCaseNumberFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+    const [renewalDate, setRenewalDate] = useState("");
 
-    const getData = async () => {
+    const getData = async (page: number = 1) => {
         try {
             setIsLoading(true);
-            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases`);
-            const cases = response.data.cases || [];
+            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases`, {
+                params: { page, pageSize },
+            });
+
+            const { cases, total, totalPages } = response.data;
             setData(cases);
             setFilteredData(cases);
+            setTotalPages(totalPages);
+            setTotalCases(total);
             setError("");
         } catch (error) {
             setError("فشل في جلب البيانات");
@@ -55,15 +68,15 @@ const Page = () => {
     };
 
     useEffect(() => {
-        getData();
-    }, []);
+        getData(currentPage);
+    }, [currentPage, pageSize]);
 
     useEffect(() => {
         const filterData = () => {
             const filtered = data.filter(item => {
                 const caseNumberMatch = item.caseNumber.toLowerCase().includes(caseNumberFilter.toLowerCase());
                 let dateMatch = true;
-                
+
                 if (dateFilter) {
                     try {
                         const startDate = new Date(item.startDate);
@@ -84,13 +97,20 @@ const Page = () => {
 
     const columns = useMemo<ColumnDef<Case>[]>(() => [
         { accessorKey: 'id', header: 'رقم مسلسل' },
+        { accessorKey: 'caseNumber', header: 'رقم القضية' },
+        { accessorKey: 'year', header: 'السنة' },
+        { accessorKey: 'type_case', header: 'نوع القضية' },
+        {
+            accessorKey: 'investigationID', header: 'رقم حصر التحقيق'
+        },
         { accessorKey: 'defendantName', header: 'اسم المتهم' },
-        { accessorKey: 'imprisonmentDuration', header: 'مدة الحبس' },
-        { 
-            accessorKey: 'startDate', 
-            header: 'بداية المدة', 
+        { accessorKey: 'member_number', header: 'رقم العضو' },
+        {
+            accessorKey: 'startDate',
+            header: 'بداية المدة',
             cell: info => new Date(info.getValue() as string).toLocaleDateString('ar-EG')
         },
+        { accessorKey: 'imprisonmentDuration', header: 'مدة الحبس' },
         {
             header: 'موعد التجديد',
             cell: info => {
@@ -98,16 +118,16 @@ const Page = () => {
                     const startDate = new Date(info.row.original.startDate);
                     const renewalDate = new Date(startDate);
                     renewalDate.setDate(startDate.getDate() + (info.row.original.imprisonmentDuration || 0) - 1);
+                    setRenewalDate(renewalDate.toLocaleDateString('ar-EG'));
                     return renewalDate.toLocaleDateString('ar-EG');
                 } catch {
                     return "تاريخ غير صحيح";
                 }
             }
         },
-        { accessorKey: 'member_location', header: 'مكان التجديد' },
-        { accessorKey: 'member_number', header: 'رقم العضو' },
-        { accessorKey: 'type_case', header: 'نوع القضية' },
-        { accessorKey: 'caseNumber', header: 'رقم القضية' },
+        { accessorKey: 'issuingDepartment', header: 'دائرة اصدار القرار' },
+        { accessorKey: 'officeNumber', header: 'رقم الدائرة' },
+
         {
             header: 'تعديل',
             cell: (info) => (
@@ -118,15 +138,19 @@ const Page = () => {
                         defendantName={info.row.original.defendantName}
                         imprisonmentDuration={info.row.original.imprisonmentDuration}
                         startDate={new Date(info.row.original.startDate)}
-                        member_Location={info.row.original.member_location}
                         memberNumber={info.row.original.member_number}
                         type_case={info.row.original.type_case}
+                        year={info.row.original.year}
+                        issuingDepartment={info.row.original.issuingDepartment}
+                        investigationID={info.row.original.investigationID}
+                        officeNumber={info.row.original.officeNumber}
                     >
                         <img src={'/edit.svg'} width={24} height={24} alt="تعديل" />
                     </DialogEditCase>
                 </div>
             )
         },
+
     ], []);
 
     const table = useReactTable({
@@ -140,45 +164,90 @@ const Page = () => {
     const handleExport = async () => {
         try {
             const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet("Cases");
+            const worksheet = workbook.addWorksheet("القضايا");
+            
+            // تنسيق الأعمدة بالعربية
             worksheet.columns = [
                 { header: "رقم مسلسل", key: "id", width: 15 },
-                { header: "اسم المتهم", key: "defendantName", width: 20 },
-                { header: "مدة الحبس", key: "imprisonmentDuration", width: 15 },
-                { header: "بداية المدة", key: "startDate", width: 20 },
-                { header: "موعد التجديد", key: "renewalDate", width: 20 },
-                { header: "مكان التجديد", key: "member_location", width: 20 },
-                { header: "رقم العضو", key: "member_number", width: 15 },
-                { header: "نوع القضية", key: "type_case", width: 20 },
                 { header: "رقم القضية", key: "caseNumber", width: 20 },
+                { header: "السنة", key: "year", width: 20 },
+                { header: "نوع القضية", key: "type_case", width: 20 },
+                { header: "رقم حصر التحقيق", key: "investigationID", width: 20 },
+                { header: "اسم المتهم", key: "defendantName", width: 20 },
+                { header: "رقم العضو", key: "member_number", width: 15 },
+                { header: "بداية المدة", key: "startDate", width: 20 },
+                { header: "مدة الحبس", key: "imprisonmentDuration", width: 15 },
+                { header: "موعد التجديد", key: "renewalDate", width: 20 },
+                { header: "دائرة مصدر القرار", key: "issuingDepartment", width: 20 },
+                { header: "رقم الدائرة", key: "officeNumber", width: 20 },
             ];
-
+    
+            // تنسيق رأس الجدول
+            worksheet.getRow(1).font = {
+                bold: true,
+                color: { argb: 'FFFFFFFF' }
+            };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF2D9596' }
+            };
+    
+            // معالجة البيانات
             filteredData.forEach(item => {
                 const startDate = new Date(item.startDate);
                 const renewalDate = new Date(startDate);
-                renewalDate.setDate(startDate.getDate() + (item.imprisonmentDuration || 0) - 1);
+                
+                // حساب موعد التجديد بدقة
+                if (item.imprisonmentDuration) {
+                    renewalDate.setDate(startDate.getDate() + parseInt(item.imprisonmentDuration.toString() || "0") - 1);
+                }
+    
+                // تنسيق التواريخ الميلادية بالعربية
+                const gregorianDateOptions = {
+                    year: 'numeric' as const,
+                    month: '2-digit' as const,
+                    day: '2-digit' as const,
+                    numberingSystem: 'arab' as const
+                };
+    
                 worksheet.addRow({
                     ...item,
-                    startDate: startDate.toLocaleDateString("ar-EG"),
-                    renewalDate: renewalDate.toLocaleDateString("ar-EG"),
+                    startDate: startDate.toLocaleDateString('ar-EG', gregorianDateOptions),
+                    renewalDate: renewalDate.toLocaleDateString('ar-EG', gregorianDateOptions),
                 });
             });
-
+    
+            // تطبيق التنسيق على كافة الصفوف
+            worksheet.eachRow((row, rowNumber) => {
+                row.alignment = { vertical: 'middle', horizontal: 'right' };
+                if (rowNumber > 1) {
+                    row.font = { name: 'Arial Arabic', size: 12 };
+                }
+            });
+    
+            // تصدير الملف
             const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-            const url = URL.createObjectURL(blob);
+            const blob = new Blob([buffer], { 
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+            });
+            
+            const fileName = `القضايا_${new Date().toISOString().split('T')[0]}.xlsx`;
+            
             const link = document.createElement("a");
-            link.href = url;
-            link.download = "Cases.xlsx";
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
             link.click();
-            URL.revokeObjectURL(url);
-        } catch {
-            alert("فشل التصدير");
+            URL.revokeObjectURL(link.href);
+    
+        } catch (error) {
+            console.error('فشل التصدير:', error);
+            toast.error('فشل في تصدير الملف');
         }
     };
 
     return (
-        <div className="flex flex-col items-center min-h-screen p-4 bg-gray-50">
+        <div dir="rtl" className="flex flex-col items-center min-h-screen p-4 bg-gray-50">
             <div className="w-full max-w-6xl space-y-4">
                 <div className="flex flex-wrap gap-4 justify-between items-center bg-white p-4 rounded-lg shadow">
                     <div className="flex gap-4 flex-1">
@@ -196,8 +265,8 @@ const Page = () => {
                             className="border rounded-lg p-2 w-full max-w-xs focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-                    
-                    <button 
+
+                    <button
                         onClick={handleExport}
                         className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                     >
@@ -228,7 +297,7 @@ const Page = () => {
                                 {table.getHeaderGroups().map(headerGroup => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map(header => (
-                                            <TableHead 
+                                            <TableHead
                                                 key={header.id}
                                                 className="px-4 py-3 text-right font-semibold text-gray-700 border-b"
                                             >
@@ -238,17 +307,17 @@ const Page = () => {
                                     </TableRow>
                                 ))}
                             </TableHeader>
-                            
+
                             <TableBody>
                                 {table.getRowModel().rows.map(row => (
-                                    <TableRow 
+                                    <TableRow
                                         key={row.id}
                                         className="hover:bg-gray-50 transition-colors even:bg-gray-50"
                                     >
                                         {row.getVisibleCells().map(cell => (
-                                            <TableCell 
+                                            <TableCell
                                                 key={cell.id}
-                                                className="px-4 py-3 text-right border-b"
+                                                className="text-center p-3 border-t border-gray-100"
                                             >
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                             </TableCell>
@@ -265,6 +334,43 @@ const Page = () => {
                         )}
                     </div>
                 )}
+
+                <div className="flex justify-between items-center mt-4">
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:bg-gray-300"
+                        >
+                            السابق
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:bg-gray-300"
+                        >
+                            التالي
+                        </button>
+                    </div>
+
+                    <div className="text-gray-700">
+                        الصفحة {currentPage} من {totalPages} (إجمالي القضايا: {totalCases})
+                    </div>
+
+                    <select
+                        value={pageSize}
+                        onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setCurrentPage(1); // العودة إلى الصفحة الأولى عند تغيير حجم الصفحة
+                        }}
+                        className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value={10}>10 لكل صفحة</option>
+                        <option value={20}>20 لكل صفحة</option>
+                        <option value={50}>50 لكل صفحة</option>
+                        <option value={100}>100 لكل صفحة</option>
+                    </select>
+                </div>
             </div>
         </div>
     );

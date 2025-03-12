@@ -1,1 +1,0 @@
-import{j as e}from"./index-mz9mZwsC.js";function s(){return e.jsx("div",{className:"flex items-center justify-center h-[60vh]",children:e.jsx("h1",{className:" text-6xl",children:"الصفحة غير موجودة"})})}export{s as default};

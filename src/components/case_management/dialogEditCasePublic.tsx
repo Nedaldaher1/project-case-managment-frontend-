@@ -1,4 +1,3 @@
-'use client';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from '@/context/userContext';
-
+import { AnimatePresence, motion } from 'framer-motion';
 // تعريف نوع UpdatedCaseFields
 interface UpdatedCaseFields {
   id: number;
@@ -22,31 +21,64 @@ interface UpdatedCaseFields {
   defendantName?: string;
   startDate?: Date;
   imprisonmentDuration?: number;
-  member_location?: string;
+  issuingDepartment?: string;
   member_number?: string;
   type_case?: string;
+  year?: string;
+  investigationID?: string;
+  officeNumber?: string;
 }
 
-const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDuration, startDate, member_Location, case_Number }: DialogEditCasePublicProps) => {
+const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDuration, startDate, issuingDepartment, case_Number, year, investigationID, officeNumber }: DialogEditCasePublicProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [caseNumber, setCaseNumber] = useState(case_Number);
   const [accusedName, setAccusedName] = useState(defendantName);
   const [caseDate, setCaseDate] = useState<Date | null>(startDate ? new Date(startDate) : null);
   const [casePrisonDate, setCasePrisonDate] = useState<number | undefined>(imprisonmentDuration ? parseInt(imprisonmentDuration.toString()) : undefined);
-  const [memberLocation, setMemberLocation] = useState(member_Location);
+  const [issuingDepartmentOfCase, setIssuingDepartment] = useState(issuingDepartment);
+  const [yearOfCase, setYear] = useState(year);
+  const [investigationIDOfCase, setInvestigationID] = useState(investigationID);
   const [caseType, setcaseType] = useState(type_case);
+  const [officeNumberOfCase, setOfficeNumber] = useState(officeNumber);
   const { userData } = useAuth();
   const member_number = userData?.member_id;
 
+  const arabicNumbers: { [key: number]: string } = {
+    1: 'الأولى',
+    2: 'الثانية',
+    3: 'الثالثة',
+    4: 'الرابعة',
+    5: 'الخامسة',
+    6: 'السادسة',
+    7: 'السابعة',
+    8: 'الثامنة',
+    9: 'التاسعة',
+    10: 'العاشرة',
+    11: 'الحادية عشرة',
+    12: 'الثانية عشرة',
+    13: 'الثالثة عشرة',
+    14: 'الرابعة عشرة',
+    15: 'الخامسة عشرة',
+    16: 'السادسة عشرة',
+    17: 'السابعة عشرة',
+    18: 'الثامنة عشرة',
+    19: 'التاسعة عشرة',
+    20: 'العشرون',
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const updatedFields: UpdatedCaseFields = { id }; // استخدام النوع المخصص
+    const updatedFields: UpdatedCaseFields = { id, year: new Date().getFullYear().toString() }; // استخدام النوع المخصص
 
     if (caseNumber) updatedFields.caseNumber = caseNumber;
     if (accusedName) updatedFields.defendantName = accusedName;
     if (caseDate) updatedFields.startDate = caseDate;
     if (casePrisonDate) updatedFields.imprisonmentDuration = casePrisonDate;
-    if (memberLocation) updatedFields.member_location = memberLocation;
+    if (issuingDepartmentOfCase) updatedFields.issuingDepartment = issuingDepartmentOfCase;
     if (caseType) updatedFields.type_case = caseType;
+    if (investigationIDOfCase) updatedFields.investigationID = investigationIDOfCase;
+    if (yearOfCase) updatedFields.year = yearOfCase;
+    if (officeNumberOfCase) updatedFields.officeNumber = officeNumberOfCase;
     if (member_number) {
       updatedFields.member_number = member_number.toString();
     }
@@ -68,107 +100,222 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    switch (name) {
-      case 'caseNumber':
-        setCaseNumber(value);
-        break;
-      case 'accusedName':
-        setAccusedName(value);
-        break;
-      case 'caseDate':
-        setCaseDate(new Date(value));
-        break;
-      case 'casePrisonDate':
-        setCasePrisonDate(parseInt(value));
-        break;
-      case 'memberLocation':
-        setMemberLocation(value);
-        break;
-      default:
-        break;
-    }
-  };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent dir="rtl" className="bg-[#1B2431] text-white border-none">
-        <DialogHeader>
-          <DialogTitle>تعديل القضية</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex flex-col justify-center">
-          <div className="flex flex-col space-y-5 space-x-4">
-            <label htmlFor="caseNumber">رقم القضية</label>
-            <Input value={caseNumber} name="caseNumber" onChange={handleChange} type="text" min="1" placeholder="رقم القضية" className="bg-[#273142] text-white w-full" />
-          </div>
-          <div className="flex flex-col space-y-5 space-x-4">
-            <label htmlFor="accusedName">اسم المتهم</label>
-            <Input value={accusedName} name="accusedName" onChange={handleChange} type="text" placeholder="اسم المتهم" className="bg-[#273142] text-white w-full" />
-          </div>
-          <div className="flex flex-col space-y-5 space-x-4">
-            <label htmlFor="caseDate">مدة البداية</label>
-            <Input value={caseDate ? caseDate.toISOString().split('T')[0] : ''} name="caseDate" onChange={handleChange} type="date" placeholder="بداية الحبس" className="bg-[#273142] text-white w-full" />
-          </div>
-          <div className="flex flex-col space-y-5 space-x-4">
-            <label htmlFor="casePrisonDate">مدة الحبس</label>
-            <Input value={casePrisonDate} name="casePrisonDate" onChange={handleChange} type="number" min="1" placeholder="مدة الحبس" className="bg-[#273142] text-white w-full" />
-          </div>
-          <div dir="rtl" className="flex flex-col space-y-5 space-x-4">
-            <label className=" text-white text-sm" htmlFor="caseRenewalDate">مكان العضو</label>
-            <Select disabled value={member_number ? member_number.toString() : ''} >
-              <SelectTrigger className="bg-[#273142] text-white w-full" >
-                <SelectValue placeholder="رقم العضو" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1</SelectItem>
-                <SelectItem value="2">2</SelectItem>
-                <SelectItem value="3">3</SelectItem>
-                <SelectItem value="4">4</SelectItem>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="6">6</SelectItem>
-                <SelectItem value="7">7</SelectItem>
-                <SelectItem value="8">8</SelectItem>
-                <SelectItem value="9">9</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div dir="rtl" className="flex flex-col space-y-5 space-x-4">
-            <label className=" text-white text-sm" htmlFor="caseRenewalDate">مكان التجديد</label>
-            <Select value={memberLocation} onValueChange={(value) => setMemberLocation(value)}>
-              <SelectTrigger className="bg-[#273142] text-white w-full">
-                <SelectValue placeholder="مكان التجديد" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="جزئي">جزئي</SelectItem>
-                <SelectItem value="مستأنف">مستأنف</SelectItem>
-                <SelectItem value="جنايات">جنايات</SelectItem>
-                <SelectItem value="رئيس نيابة">رئيس نيابة</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div dir="rtl" className="flex flex-col space-y-5 space-x-4">
-            <label className=" text-white text-sm" htmlFor="caseRenewalDate">نوع القضية</label>
-            <Select dir="rtl" value={caseType} onValueChange={(value) => setcaseType(value)}>
-              <SelectTrigger className="bg-[#273142] text-white w-full">
-                <SelectValue placeholder="نوع القضية" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="جنحة ">جنحة </SelectItem>
-                <SelectItem value="جناية  ">جناية  </SelectItem>
-                <SelectItem value="اداري ">اداري </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" variant="default" className="bg-[#4741DE] hover:bg-[#6A68FF] self-center min-w-56">حفظ التعديلات</Button>
-        </form>
-        <DialogFooter className="mt-4"></DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AnimatePresence>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+              >
+                <DialogHeader>
+                  <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">
+                    تعديل بيانات القضية
+                  </h2>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* بيانات القضية الأساسية */}
+                  <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
+                    <legend className="px-2 text-xl font-semibold text-blue-600">
+                      بيانات القضية
+                    </legend>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 text-right">
+                          رقم القضية
+                        </label>
+                        <Input
+                          value={caseNumber}
+                          name="caseNumber"
+                          onChange={(e) => setCaseNumber(e.target.value)}
+                          className="w-full border-blue-200 rounded-xl bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700"> السنة</label>
+                        <Input
+                          type="number"
+                          value={yearOfCase}
+                          onChange={(e) => setYear(e.target.value)}
+                          className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 text-right">
+                          نوع القضية
+                        </label>
+                        <Select
+                          value={caseType}
+                          onValueChange={(value) => setcaseType(value)}
+                        >
+                          <SelectTrigger className="w-full border-blue-200 rounded-xl bg-white">
+                            <SelectValue placeholder="اختر النوع" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="جنحة">جنحة</SelectItem>
+                            <SelectItem value="جناية">جناية</SelectItem>
+                            <SelectItem value="اداري">اداري</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">رقم حصر التحقيق</label>
+                        <Input
+                          type="text"
+                          value={investigationIDOfCase}
+                          onChange={(e) => setInvestigationID(e.target.value)}
+                          className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 text-right">
+                          اسم المتهم
+                        </label>
+                        <Input
+                          value={accusedName}
+                          name="accusedName"
+                          onChange={(e) => setAccusedName(e.target.value)}
+                          className="w-full border-blue-200 rounded-xl bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 text-right">
+                          رقم العضو
+                        </label>
+                        <Select value={member_number?.toString()} disabled>
+                          <SelectTrigger className="w-full border-blue-200 rounded-xl bg-white">
+                            <SelectValue placeholder="رقم العضو" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[...Array(10)].map((_, i) => (
+                              <SelectItem key={i + 1} value={`${i + 1}`}>
+                                {i + 1}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+
+
+
+
+
+                    </div>
+                  </fieldset>
+
+                  {/* معلومات العضو والموقع */}
+                  <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
+                    <legend className="px-2 text-xl font-semibold text-blue-600">
+                      معلومات التجديد
+                    </legend>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 text-right">
+                          تاريخ البداية
+                        </label>
+                        <Input
+                          type="date"
+                          value={caseDate ? caseDate.toISOString().split('T')[0] : ''}
+                          onChange={(e) => setCaseDate(new Date(e.target.value))}
+                          className="w-full border-blue-200 rounded-xl bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 text-right">
+                          مدة الحبس (أيام)
+                        </label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={casePrisonDate}
+                          onChange={(e) => setCasePrisonDate(parseInt(e.target.value))}
+                          className="w-full border-blue-200 rounded-xl bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">دائرة مصدرة القرار</label>
+                        <Select
+                          value={issuingDepartment}
+                          onValueChange={setIssuingDepartment}
+                        >
+                          <SelectTrigger className="border-blue-200 focus:ring-2 focus:ring-indigo-500">
+                            <SelectValue placeholder="اختر الدائرة" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="جزئي">جزئي</SelectItem>
+                            <SelectItem value="مستأنف">مستأنف</SelectItem>
+                            <SelectItem value="جنايات">جنايات</SelectItem>
+                            <SelectItem value="رئيس نيابة">رئيس نيابة</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">رقم الدائرة</label>
+                        <Select
+                          value={officeNumber}
+                          onValueChange={setOfficeNumber}
+                        >
+                          <SelectTrigger className="border-blue-200 focus:ring-2 focus:ring-indigo-500">
+                            <SelectValue placeholder="اختر الرقم" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+                              <SelectItem key={num} value={arabicNumbers[num]}>
+                                {arabicNumbers[num]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                    </div>
+
+
+                  </fieldset>
+
+
+                  {/* أزرار الإجراءات */}
+                  <div className="flex justify-end gap-4">
+                    <Button
+                      type="button"
+                      onClick={() => setIsOpen(false)}
+                      variant="outline"
+                      className="px-6 py-2 border-gray-300"
+                    >
+                      إلغاء
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-indigo-600 hover:bg-indigo-700 px-6 py-2"
+                    >
+                      حفظ التغييرات
+                    </Button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Dialog>
+    </AnimatePresence>
   );
 };
 
