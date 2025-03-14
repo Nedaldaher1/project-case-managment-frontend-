@@ -29,7 +29,6 @@ const Page = () => {
     const [accusedName, setAccusedName] = useState('');
     const { userData } = useAuth();
     const member_number = userData?.member_id;
-    console.log(investigationID)
 
     // حالات جديدة للاستيراد
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -159,7 +158,6 @@ const Page = () => {
                     imprisonmentDuration: item['مدة الحبس'],
                     issuingDepartment: item['دائرة مصدر القرار'],
                     officeNumber: item['رقم الدائرة'],
-
                 }));
 
                     setIsProcessing(true);
@@ -208,7 +206,7 @@ const Page = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="  h-[70px] text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -412,8 +410,40 @@ const Page = () => {
                             </legend>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mt-4">
-                                {/* الدائرة مصدرة القرار */}
+
+
+                                {/* بداية المدة */}
                                 <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">بداية المدة</label>
+                                    <Input
+                                        type="date"
+                                        value={caseDate}
+                                        onChange={(e) => setCaseDate(e.target.value)}
+                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                </div>
+
+                                {/* مدة الحبس */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">مدة الحبس</label>
+                                    <Input
+                                        type="number"
+                                        value={casePrisonDate}
+                                        onChange={(e) => setCasePrisonDate(e.target.value)}
+                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                        min="1"
+                                    />
+                                </div>
+
+                                {/* موعد التجديد */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">موعد التجديد</label>
+                                    <div className="w-full px-4 py-2 border border-blue-200 rounded-lg bg-gray-50">
+                                        {caseRenewalDate || '--/--/----'}
+                                    </div>
+                                </div>
+                                                                {/* الدائرة مصدرة القرار */}
+                                                                <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700">الدائرة مصدرة القرار</label>
                                     <Select
                                         value={issuingDepartment}
@@ -449,37 +479,6 @@ const Page = () => {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
-
-                                {/* بداية المدة */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">بداية المدة</label>
-                                    <Input
-                                        type="date"
-                                        value={caseDate}
-                                        onChange={(e) => setCaseDate(e.target.value)}
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
-                                    />
-                                </div>
-
-                                {/* مدة الحبس */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">مدة الحبس</label>
-                                    <Input
-                                        type="number"
-                                        value={casePrisonDate}
-                                        onChange={(e) => setCasePrisonDate(e.target.value)}
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
-                                        min="1"
-                                    />
-                                </div>
-
-                                {/* موعد التجديد */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">موعد التجديد</label>
-                                    <div className="w-full px-4 py-2 border border-blue-200 rounded-lg bg-gray-50">
-                                        {caseRenewalDate || '--/--/----'}
-                                    </div>
                                 </div>
                             </div>
                         </fieldset>

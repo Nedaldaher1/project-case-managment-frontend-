@@ -1,5 +1,5 @@
 import { Route, Routes, Outlet } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, JSX } from 'react';
 import NavBar from '@/components/navbar/navbar'; // تأكد من استيراد NavBar
 import NavbarAdmin from '@/components/admin/SiderBarAdmin/SiderBarAdmin';
 import Footer from '@/components/footer/footer';
