@@ -1,1 +1,0 @@
-import{r as t,j as e}from"./index-oPn2WTdF.js";import{A as s}from"./aos-DDWURzuO.js";const c=()=>(t.useEffect(()=>{s.init()},[]),e.jsx("div",{className:"  flex items-center justify-center h-[60vh] ",children:e.jsx("h1",{className:" text-center text-6xl",children:"منظومة تيسير الاعمال داخل نيابات جنوب المنصورة الكلية"})}));export{c as default};

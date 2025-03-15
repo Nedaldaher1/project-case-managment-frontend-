@@ -21,7 +21,8 @@ interface NavbarProps {
 
 
 const Navbar = ({className}:NavbarProps) => {
-    const username = Cookies.get('username');
+    const {userData} = useAuth();
+    const username = userData?.username;
     const userContext = useAuth();
     const { isLoggedIn, logout } = userContext;
     const Navigate = useNavigate();

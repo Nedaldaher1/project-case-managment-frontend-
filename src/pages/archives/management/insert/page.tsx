@@ -111,14 +111,22 @@ const Insert = () => {
                 toast.success('تم إضافة الأرشيف بنجاح!');
             }
         } catch (error) {
-            toast.error('حدث خطأ أثناء الإضافة!');
+            if (error instanceof Error) {
+                if (axios.isAxiosError(error)) {
+                    toast.error(error.response?.data.message || error.message);
+                } else {
+                    toast.error('An unknown error occurred');
+                }
+            } else {
+                console.error('An unknown error occurred');
+            }
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <h1 className="h-[60px] text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                     إضافة الحرز
@@ -134,25 +142,8 @@ const Insert = () => {
                             </legend>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                                {/* مكتب النيابة */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700 text-right">مكتب النيابة</label>
-                                    <Select
-                                        value={prosecutionOfficeId}
-                                        onValueChange={setProsecutionOfficeId}
-                                    >
-                                        <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-                                            <SelectValue placeholder="اختر مكتب النيابة" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {offices.map((office) => (
-                                                <SelectItem key={office.id} value={office.id}>
-                                                    {office.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+
+
 
                                 {/* مسلسل */}
                                 <div className="space-y-2">
@@ -194,8 +185,10 @@ const Insert = () => {
                                         min="0"
                                     />
                                 </div>
+
+                                {/* نوع القضية */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700 text-right"> نوع القضية لرقم القضية</label>
+                                    <label className="block text-sm font-medium text-gray-700 text-right"> نوع القضية  </label>
                                     <Select
                                         value={typeCaseNumber}
                                         onValueChange={setTypeCaseNumber}
@@ -220,7 +213,6 @@ const Insert = () => {
                                     </Select>
                                 </div>
 
-
                                 {/* السنة */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">السنة</label>
@@ -232,7 +224,6 @@ const Insert = () => {
 
                                     />
                                 </div>
-
                                 {/* التهمة */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">التهمة</label>
@@ -269,6 +260,8 @@ const Insert = () => {
 
                                     />
                                 </div>
+
+                                {/* نوع القضية  للرقم الكلي*/}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right"> نوع القضية لرقم الكلي</label>
                                     <Select
@@ -294,6 +287,34 @@ const Insert = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
+
+
+
+
+                                {/* مكتب النيابة */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">مكتب النيابة</label>
+                                    <Select
+                                        value={prosecutionOfficeId}
+                                        onValueChange={setProsecutionOfficeId}
+                                    >
+                                        <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                            <SelectValue placeholder="اختر مكتب النيابة" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {offices.map((office) => (
+                                                <SelectItem key={office.id} value={office.id}>
+                                                    {office.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+
+
+
+
 
                             </div>
                         </fieldset>

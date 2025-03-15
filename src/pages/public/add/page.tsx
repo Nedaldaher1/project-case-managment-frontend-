@@ -104,8 +104,15 @@ const Page = () => {
             setOfficeNumber('');
             setYear('');
         } catch (error) {
-            toast.error('فشلت عملية إضافة القضية');
-            console.error(error);
+            if (error instanceof Error) {
+                if (axios.isAxiosError(error)) {
+                    toast.error(error.response?.data.message || error.message);
+                } else {
+                    toast.error('An unknown error occurred');
+                }
+            } else {
+                console.error('An unknown error occurred');
+            }
         }
     };
 

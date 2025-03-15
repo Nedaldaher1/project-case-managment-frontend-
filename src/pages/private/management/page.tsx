@@ -99,6 +99,15 @@ const Page = () => {
             )
         },
         {
+            accessorKey: 'caseType',
+            header: 'نوع القضية',
+            cell: ({ getValue }) => (
+                <DialogShowContact contact={getValue() as string}>
+                    <p>{getValue() as string}</p>
+                </DialogShowContact>
+            )
+        },
+        {
             accessorKey: 'investigationID',
             header: 'رقم حصر التحقيق',
             cell: ({ getValue }) => (
@@ -453,6 +462,7 @@ const Page = () => {
                 <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                         <div className="flex flex-wrap gap-4">
+                            
                             <Select value={memberNumber} onValueChange={setMemberNumber}>
                                 <SelectTrigger className="w-40">
                                     <SelectValue placeholder="رقم العضو" />
@@ -481,7 +491,7 @@ const Page = () => {
                                     setIsReadyForDecision('');
                                 }}
                             >
-                                مسح الفلاتر
+                                مسح التصنيفات
                             </Button>
                         </div>
 

@@ -88,6 +88,8 @@ const Page = () => {
             setTechnicalReports('');
             setReportType('');
             setReadyForAction('');
+            setOfficerQuestion('');
+            setActionOther('');
 
             if (req.data.success) {
                 toast.success('تم إضافة القضية بنجاح');
@@ -95,39 +97,19 @@ const Page = () => {
                 toast.error('فشلت عملية إضافة القضية');
             }
         } catch (error) {
-            toast.error('فشلت عملية إضافة القضية');
-            console.error(error);
+            if (error instanceof Error) {
+                if (axios.isAxiosError(error)) {
+                    toast.error(error.response?.data.message || error.message);
+                } else {
+                    toast.error('An unknown error occurred');
+                }
+            } else {
+                console.error('An unknown error occurred');
+            }
         }
     };
 
-    const convertArabicDate = (dateString: string) => {
-        const arabicToLatinMap: { [key: string]: string } = {
-            '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
-            '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
-        };
 
-        const normalizedDate = dateString
-            .split('')
-            .map(char => arabicToLatinMap[char] || char)
-            .join('')
-            .replace(/[^0-9/]/g, '') // إزالة الأحرف غير الرقمية
-            .replace(/\s/g, ''); // إزالة المسافات
-
-        const parts = normalizedDate.split('/');
-
-        if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p)))) {
-            throw new Error('صيغة التاريخ غير صالحة');
-        }
-
-        const [day, month, year] = parts;
-        const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-
-        if (isNaN(new Date(formattedDate).getTime())) {
-            throw new Error('تاريخ غير صالح');
-        }
-
-        return formattedDate;
-    };
 
     const handleFileUpload = async (file: File) => {
         const reader = new FileReader();
