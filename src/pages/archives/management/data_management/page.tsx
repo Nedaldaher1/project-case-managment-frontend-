@@ -287,7 +287,7 @@ const ProsecutionTable = () => {
     }
 
     return (
-        <div className="max-w-[1500px] mx-auto p-4">
+        <div className=" mx-auto p-4">
             <div className="flex flex-wrap gap-4 mb-6 items-center justify-end">
                 <motion.div
                     initial={{ x: -50 }}

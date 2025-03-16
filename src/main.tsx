@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-// import { BrowserRouter as Router } from 'react-router-dom'; // استيراد Router
-import { HashRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom'; // استيراد Router
+// import { HashRouter as Router } from 'react-router-dom';
 
 import { AuthProvider } from './context/userContext';
 import { QueryClientProvider } from 'react-query';

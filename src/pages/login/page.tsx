@@ -73,92 +73,127 @@ const Login = () => {
   });
 
   return (
-    <div className='flex items-center justify-center h-[80vh]'>
+<div className="flex items-center justify-center min-h-screen p-4 bg-gray-50">
       {!isLoggedIn && (
-        <div className='w-[856px] h-[587px] rounded-2xl flex bg-[#F6F5F7]'>
-          {/* الجانب الأيسر (الثابت) */}
-          <div className='w-[418px] h-[587px] bg-[#45369f] rounded-s-2xl flex items-center justify-center'>
-            <h1 className='text-white text-center font-[Cairo] text-[96px] leading-[150px] font-bold w-[201px]'>
+        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl flex flex-col md:flex-row" 
+             style={{ height: '80vh', maxHeight: '600px' }}>
+          
+          {/* Left Section */}
+          <div className="md:w-1/2 bg-[#45369f] rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none 
+                          flex items-center justify-center p-4 flex-1">
+            <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold text-center font-[Cairo]">
               مرحباً بك
             </h1>
           </div>
 
-          {/* الجانب الأيمن (النموذج) */}
-          <div className='flex flex-col flex-1 relative'>
-            {/* الشعار */}
-            <div className='absolute top-4 right-4'>
-              <img src='/logo.png' alt='logo' width={186} height={77} />
+          {/* Right Section */}
+          <div className="md:w-1/2 p-6 relative flex-1 flex flex-col">
+            {/* Logo */}
+            <div className="absolute top-4 right-4">
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="w-20 md:w-24 lg:w-32" 
+              />
             </div>
 
-            {/* النموذج */}
-            <div className='flex flex-col items-center justify-center h-full space-y-4'>
+            {/* Form Container */}
+            <div className="flex-1 flex flex-col items-center justify-center">
               {!is2FARequired ? (
-                // نموذج تسجيل الدخول
-                <form onSubmit={handleLoginSubmit} className='flex flex-col items-center space-y-4'>
-                  <div dir='rtl'>
+                // Login Form
+                <form onSubmit={handleLoginSubmit} className="w-full max-w-md space-y-6">
+                  {/* Username Field */}
+                  <div dir="rtl" className="space-y-2">
                     <Input
-                      className='border border-black w-[375px]'
-                      type='text'
-                      placeholder='اسم المستخدم'
+                      className="w-full py-3 px-4 border-2 border-gray-200 rounded-lg focus:border-[#45369f]"
+                      placeholder="اسم المستخدم"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                     />
                     {fieldErrors.username && (
-                      <span className='text-red-500 text-sm'>{fieldErrors.username}</span>
+                      <p className="text-red-500 text-sm">{fieldErrors.username}</p>
                     )}
                   </div>
 
-                  <div dir='rtl'>
+                  {/* Password Field */}
+                  <div dir="rtl" className="space-y-2">
                     <Input
-                      className='border border-black w-[375px]'
-                      type='password'
-                      placeholder='كلمة المرور'
+                      className="w-full py-3 px-4 border-2 border-gray-200 rounded-lg focus:border-[#45369f]"
+                      type="password"
+                      placeholder="كلمة المرور"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     {fieldErrors.password && (
-                      <span className='text-red-500 text-sm'>{fieldErrors.password}</span>
+                      <p className="text-red-500 text-sm">{fieldErrors.password}</p>
                     )}
                   </div>
 
-                  {error && <span className='text-red-500 text-sm'>{error}</span>}
+                  {/* Error Message */}
+                  {error && (
+                    <p className="text-red-500 text-sm text-center">{error}</p>
+                  )}
 
-                  <Button
-                    type='submit'
-                    className='w-[252px] bg-[#45369f] hover:bg-[#5643bd]'
+                  {/* Submit Button */}
+                  <Button 
+                    type="submit" 
+                    className="w-full py-3 bg-[#45369f] hover:bg-[#5847b5] text-lg"
                   >
                     تسجيل الدخول
                   </Button>
                 </form>
               ) : (
-                // نموذج التحقق الثنائي (2FA)
+                // 2FA Form
                 <Form {...form}>
-                  <form onSubmit={handle2FASubmit} className="w-2/3 space-y-6">
+                  <form onSubmit={handle2FASubmit} className="w-full max-w-md space-y-8">
                     <FormField
                       control={form.control}
                       name="pin"
                       render={({ field }) => (
-                        <FormItem className=' flex flex-col items-center justify-center text-center'>
-                          <FormLabel>التحقق الثنائي (2FA)</FormLabel>
+                        <FormItem className="space-y-4 w-full">
+                          <FormLabel className="block text-center text-xl font-semibold text-gray-700">
+                            التحقق الثنائي (2FA)
+                          </FormLabel>
+                          
                           <FormControl>
-                            <InputOTP maxLength={6} {...field}>
-                              <InputOTPGroup>
-                                {[...Array(6)].map((_, index) => (
-                                  <InputOTPSlot key={index} index={index} />
-                                ))}
-                              </InputOTPGroup>
-                            </InputOTP>
+                            <div className="flex justify-center w-full">
+                              <InputOTP 
+                                maxLength={6} 
+                                {...field}
+                                className="gap-2 md:gap-3 w-full justify-between"
+                              >
+                                <InputOTPGroup className="w-full justify-between">
+                                  {[...Array(6)].map((_, index) => (
+                                    <InputOTPSlot 
+                                      key={index} 
+                                      index={index}
+                                      className="w-12 h-12 border-2 border-gray-200 text-lg flex-1"
+                                    />
+                                  ))}
+                                </InputOTPGroup>
+                              </InputOTP>
+                            </div>
                           </FormControl>
-                          <FormDescription>
+
+                          <FormDescription className="text-center text-gray-500">
                             أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة
                           </FormDescription>
-                          <FormMessage>
-                            {isUnauthorized && 'الرمز غير صحيح'}
-                          </FormMessage>
+
+                          {isUnauthorized && (
+                            <FormMessage className="text-center text-red-500">
+                              الرمز غير صحيح
+                            </FormMessage>
+                          )}
+
+                          <Button 
+                            type="submit" 
+                            className="w-full py-3 bg-[#45369f] hover:bg-[#5847b5] text-lg"
+                          >
+                            تحقق
+                          </Button>
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className='w-full'>تحقق</Button>
                   </form>
                 </Form>
               )}

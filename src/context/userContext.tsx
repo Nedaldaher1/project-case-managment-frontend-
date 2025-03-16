@@ -110,12 +110,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       onSuccess: (data) => {
         if ((data as { status: number }).status === 200) {
           Cookies.set('uuid', tempUserData?.id || '');
+          Cookies.set('token', (data as { data: { token: string } }).data.token);
           setUserData(tempUserData);
           setIsLoggedIn(true);
           setIs2FARequired(false);
           setTempUserData(null); // هنا يتم تحديث الحالة لإزالة البيانات من localStorage
           navigate('/');
-          console.log(tempUserData)
+          console.log(data)
           // window.location.reload();
         }
       },
