@@ -1,6 +1,6 @@
 import { Route, Routes, Outlet } from 'react-router-dom';
 import { Suspense, lazy, JSX } from 'react';
-import NavBar from '@/components/navbar/navbar'; // تأكد من استيراد NavBar
+import NavBar from '@/components/navbar/navbar';
 import NavbarAdmin from '@/components/admin/SiderBarAdmin/SiderBarAdmin';
 import Footer from '@/components/footer/footer';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -20,40 +20,37 @@ const Archives = lazy(() => import('@/pages/archives/home/page'));
 const ArchivesManagement = lazy(() => import('@/pages/archives/management/page'));
 const ArchiveInsert = lazy(() => import('@/pages/archives/management/insert/page'));
 const ArchivesDataManagement = lazy(() => import('@/pages/archives/management/data_management/page'));
-const UnauthorizedPage = lazy(() => import('@/pages/unauthorized/page')); // تأكد من إنشاء هذه الصفحة
+const UnauthorizedPage = lazy(() => import('@/pages/unauthorized/page'));
 
 const App = () => {
     const { isLoggedIn, userData } = useAuth();
     const isAdmin = userData?.role === 'admin';
     const isEditor = userData?.role === 'editor';
     
-    // مكون حماية للصلاحيات
     const RoleProtectedRoute = ({ children }: { children: JSX.Element }) => {
         if (!isAdmin && !isEditor) {
-            return <UnauthorizedPage />; // توجيه إلى صفحة غير مصرح به إذا لم يكن المستخدم admin أو editor
+            return <UnauthorizedPage />;
         }
         return children;
     };
 
     return (
-        <SidebarProvider className=''>
-            <div className={`${isAdmin ? 'grid grid-rows-[1fr_auto] grid-cols-[auto_1fr]' : ''} w-screen min-h-screen`}>
-                {/* عرض NavBarAdmin للمشرفين و NavBar للآخرين */}
-                {isAdmin ? <NavbarAdmin /> : <NavBar />}
+        <SidebarProvider>
+            <div className={`${isLoggedIn && isAdmin ? 'grid grid-rows-[1fr_auto] grid-cols-[auto_1fr]' : ''} w-screen min-h-screen`}>
+                {/* عرض الناف بار فقط عند تسجيل الدخول */}
+                {isLoggedIn && (isAdmin ? <NavbarAdmin /> : <NavBar />)}
                 
-                {/* المحتوى الرئيسي */}
-                <main className={`${isAdmin ? 'col-auto' : ''} w-full h-full`}>
-                    {isAdmin && <SidebarTrigger />}
+                <main className={`${isLoggedIn && isAdmin ? 'col-auto' : ''} w-full h-full`}>
+                    {isLoggedIn && isAdmin && <SidebarTrigger />}
                     <Suspense fallback={<div>Loading...</div>}>
                         <Routes>
-                            {/* مسارات عامة */}
+                            {/* مسارات لا تتطلب تسجيل دخول */}
                             <Route path="/login" element={!isLoggedIn ? <Login /> : <Home />} />
                             
                             {/* مسارات محمية بتسجيل الدخول */}
                             <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
                                 <Route path="/" element={<Home />} />
                                 
-                                {/* مسارات عامة بعد التسجيل */}
                                 <Route path="/case/public/*" element={<Outlet />}>
                                     <Route path="add" element={<AddCasePublic />} />
                                     <Route path="management" element={<ManagementCasePrivate />} />
@@ -66,7 +63,6 @@ const App = () => {
                                     </Route>
                                 </Route>
 
-                                {/* مسارات خاصة (محمية بالصلاحيات) */}
                                 <Route path="/case/private/*" element={
                                     <RoleProtectedRoute>
                                         <Outlet />
@@ -78,19 +74,18 @@ const App = () => {
                                 </Route>
                             </Route>
 
-                            {/* صفحة غير مصرح بها */}
                             <Route path="/unauthorized" element={<UnauthorizedPage />} />
-                            
-                            {/* صفحة 404 */}
                             <Route path="*" element={<NotFoundPage />} />
                         </Routes>
                     </Suspense>
                 </main>
 
-                {/* تذييل الصفحة */}
-                <footer className={`${isAdmin ? 'col-span-2' : ''}`}>
-                    <Footer />
-                </footer>
+                {/* التذييل يظهر فقط عند تسجيل الدخول */}
+                {isLoggedIn && (
+                    <footer className={`${isAdmin ? 'col-span-2' : ''}`}>
+                        <Footer />
+                    </footer>
+                )}
             </div>
         </SidebarProvider>
     );
