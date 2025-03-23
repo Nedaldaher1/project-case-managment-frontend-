@@ -30,6 +30,11 @@ import ExcelJS from "exceljs";
 import { useAuth } from "@/context/userContext";
 import { Progress } from "@/components/ui/progress";
 import { AnimatePresence, motion } from 'framer-motion';
+import { AbilityContext } from '@/context/AbilityContext';
+import { useAbility, Can } from '@casl/react';
+import { useSearchParams } from "react-router-dom";
+import { UserRole } from '@/types/user';
+
 import { X } from "lucide-react";
 
 interface Case {
@@ -43,7 +48,6 @@ interface Case {
     witnessQuestion: string;
     technicalReports: string;
     caseReferral: string;
-    isReadyForDecision: boolean;
     actionOther: string;
     year: string;
     investigationID: string;
@@ -68,16 +72,23 @@ const Page = () => {
         total: 0,
         totalPages: 1,
     });
-    const [memberNumber, setMemberNumber] = useState<string>('');
-    const [isReadyForDecision, setIsReadyForDecision] = useState<string>('');
-    const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+    const [usernames, setUsernames] = useState<string[]>([]);
+    const [username, setUsername] = useState<string>('');
+    const [accusedName, setAccusedName] = useState<string>('');
+    const [caseReferral, setCaseReferral] = useState<string>('');
     const [exportModalOpen, setExportModalOpen] = useState(false);
     const [exportProgress, setExportProgress] = useState(0);
     const [isExporting, setIsExporting] = useState(false);
-    
-    const { userData } = useAuth();
+    const { userData, token } = useAuth();
+    const [searchParams] = useSearchParams();
+    const type = searchParams.get('type');
     const role = userData?.role;
     const uuid = userData?.id;
+    const isAdmin = userData?.role === UserRole.ADMIN;
+    const ability = useAbility(AbilityContext);
+
+
+
 
     const columns = useMemo<ColumnDef<Case>[]>(() => [
         {
@@ -202,21 +213,11 @@ const Page = () => {
             header: "إجراءات أخرى"
         },
         {
-            accessorKey: 'isReadyForDecision',
+            accessorKey: 'caseReferral',
             header: 'جاهزة للتصرف',
-            cell: ({ row }) => {
-                const hasPending = [
-                    row.original.defendantQuestion,
-                    row.original.officerQuestion,
-                    row.original.victimQuestion,
-                    row.original.witnessQuestion,
-                    row.original.technicalReports,
-                ].some(q => q?.includes('حتى الآن'));
-                
-                return hasPending ? 'لا' : 'نعم';
-            }
         },
         {
+            accessorKey: "تعديل",
             header: 'تعديل',
             cell: ({ row }) => (
                 <div className="flex justify-center">
@@ -231,23 +232,21 @@ const Page = () => {
         }
     ], []);
 
-    const fetchData = async (page: number, pageSize: number) => {
+    const fetchAllData = async (page: number, pageSize: number) => {
         try {
             const params = {
                 page,
                 pageSize,
-                memberNumber,
-                isReadyForDecision: isReadyForDecision === 'نعم' 
-                    ? true 
-                    : isReadyForDecision === 'لا' 
-                    ? false 
-                    : undefined
+                caseReferral,
+                username,
+                accusedName,
+                type
             };
 
             const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases`, {
                 params,
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                    Authorization: token ? `Bearer ${token}` : '',
                 }
             });
 
@@ -263,14 +262,7 @@ const Page = () => {
 
             setData(cases.map((c: Case) => ({
                 ...c,
-                isReadyForDecision: !!(
-                    c.defendantQuestion &&
-                    c.officerQuestion &&
-                    c.victimQuestion &&
-                    c.witnessQuestion &&
-                    c.technicalReports &&
-                    c.caseReferral
-                )
+
             })));
 
             setPagination(paginationData);
@@ -279,52 +271,100 @@ const Page = () => {
         }
     };
 
-    useEffect(() => {
-        if (role === 'admin' || role === 'editor') {
-            setIsAuthorized(true);
-            fetchData(pagination.page, pagination.pageSize);
-        } else {
-            setIsAuthorized(false);
+    const fetchData = async (page: number, pageSize: number) => {
+        try {
+            // تنظيف قيمة type وتحويلها لرقم
+
+            const params = {
+                page,
+                pageSize,
+                caseReferral,
+                username,
+                type, // استخدام القيمة المنظفة
+                accusedName
+            };
+
+            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/${uuid}`, {
+                params,
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                }
+            });
+            // إضافة قيم افتراضية للبيانات
+            const responseData = response.data || {};
+            const cases = responseData.data || [];
+            const paginationData = responseData.pagination || {
+                page: 1,
+                pageSize: 10,
+                total: 0,
+                totalPages: 1
+            };
+
+            setData(cases.map((c: Case) => ({
+                ...c,
+
+            })));
+
+            setPagination(paginationData);
+        } catch (error) {
+            console.error("Error fetching data:", error);
         }
-    }, [role, pagination.page, pagination.pageSize, memberNumber, isReadyForDecision]);
+    };
+
+    const getAllUsernames = async () => {
+        try {
+
+            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/auth/get/all/username`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                }
+            });
+            setUsernames(response.data.usernames);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    }
+
 
     const handleExport = async () => {
         setIsExporting(true);
         try {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('القضايا');
-            
-            worksheet.columns = columns.map(col => ({
+
+            // 1. تصفية الأعمدة لإزالة عمود التعديل
+            const filteredColumns = columns.filter(col => {
+                const accessor = (
+                    'accessorKey' in col
+                        ? col.accessorKey
+                        : (col as any).accessor
+                )?.toString();
+                return accessor !== 'تعديل'; // أو المعرف الذي تستخدمه لعمود التعديل
+            });
+
+            // 2. استخدام الأعمدة المصفاة
+            worksheet.columns = filteredColumns.map(col => ({
                 header: col.header?.toString() || '',
                 key: (
-                    'accessorKey' in col 
-                    ? (col.accessorKey as string) 
-                    : (col as any).accessor
+                    'accessorKey' in col
+                        ? (col.accessorKey as string)
+                        : (col as any).accessor
                 )?.toString() || '',
                 width: 25
             }));
 
             let currentPage = 1;
             let totalExported = 0;
-            
+
             while (currentPage <= (pagination?.totalPages || 1)) {
-                const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases`, {
-                    params: {
-                        page: currentPage,
-                        pageSize: 100,
-                        memberNumber,
-                        isReadyForDecision: isReadyForDecision === 'نعم' ? true : false
-                    }
+                data.forEach((caseData: Case) => {
+                    // 3. إنشاء كائن بيانات بدون عمود التعديل
+                    const rowData: Partial<Case> = { ...caseData };
+                    delete (rowData as any).تعديل; // استبدل 'تعديل' بالاسم الفعلي للخاصية
+
+                    worksheet.addRow(rowData);
                 });
-
-                const responseData = response.data || {};
-                const cases = responseData.data || [];
-
-                cases.forEach((caseData: Case) => {
-                    worksheet.addRow(caseData);
-                });
-
-                totalExported += cases.length;
+                totalExported += data.length;
                 setExportProgress((totalExported / (pagination?.total || 1)) * 100);
                 currentPage++;
             }
@@ -336,7 +376,7 @@ const Page = () => {
             a.href = url;
             a.download = `القضايا_${new Date().toISOString()}.xlsx`;
             a.click();
-            
+
         } catch (error) {
             console.error('Export error:', error);
         } finally {
@@ -344,6 +384,76 @@ const Page = () => {
             setExportModalOpen(false);
         }
     };
+
+    const handleExportFull = async () => {
+            try {
+                const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/all/full`, {
+                    params: {
+                        type,
+                    },
+                    headers: {
+                        Authorization: token ? `Bearer ${token}` : '',
+                    }
+                });
+                const data: Case[] = res.data.data;
+                console.log(data);
+                setIsExporting(true);
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('القضايا');
+    
+                // 1. تصفية الأعمدة لإزالة عمود التعديل
+                const filteredColumns = columns.filter(col => {
+                    const accessor = (
+                        'accessorKey' in col
+                            ? col.accessorKey
+                            : (col as any).accessor
+                    )?.toString();
+                    return accessor !== 'تعديل'; // أو المعرف الذي تستخدمه لعمود التعديل
+                });
+    
+                // 2. استخدام الأعمدة المصفاة
+                worksheet.columns = filteredColumns.map(col => ({
+                    header: col.header?.toString() || '',
+                    key: (
+                        'accessorKey' in col
+                            ? (col.accessorKey as string)
+                            : (col as any).accessor
+                    )?.toString() || '',
+                    width: 25
+                }));
+    
+                let currentPage = 1;
+                let totalExported = 0;
+    
+                while (currentPage <= (pagination?.totalPages || 1)) {
+                    data.forEach((caseData: Case) => {
+                        // 3. إنشاء كائن بيانات بدون عمود التعديل
+                        const rowData: Partial<Case> = { ...caseData };
+                        delete (rowData as any).تعديل; // استبدل 'تعديل' بالاسم الفعلي للخاصية
+    
+                        worksheet.addRow(rowData);
+                    });
+                    totalExported += data.length;
+                    setExportProgress((totalExported / (pagination?.total || 1)) * 100);
+                    currentPage++;
+                }
+    
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `القضايا_${new Date().toISOString()}.xlsx`;
+                a.click();
+    
+            } catch (error) {
+                console.error('Export error:', error);
+            } finally {
+                setIsExporting(false);
+                setExportModalOpen(false);
+            }
+     }
+    
 
     const table = useReactTable({
         data,
@@ -357,13 +467,13 @@ const Page = () => {
         pageCount: pagination?.totalPages || 1,
         manualPagination: true,
         onPaginationChange: (updater) => {
-            const newPagination = typeof updater === 'function' 
+            const newPagination = typeof updater === 'function'
                 ? updater({
                     pageIndex: (pagination?.page || 1) - 1,
                     pageSize: pagination?.pageSize || 10
-                }) 
+                })
                 : updater;
-            
+
             if (typeof newPagination.pageSize === 'number') {
                 setPagination(prev => ({
                     ...(prev || {
@@ -391,27 +501,41 @@ const Page = () => {
         getPaginationRowModel: getPaginationRowModel(),
     });
 
-    if (!isAuthorized) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-gradient-to-b from-blue-50 to-indigo-50">
-                <p className="text-2xl text-red-500">غير مصرح لك بالوصول إلى هذه الصفحة</p>
-            </div>
-        );
-    }
+
+
+
+    // تعديل useEffect الرئيسي
+    useEffect(() => {
+        if (isAdmin) {
+            fetchAllData(pagination.page, pagination.pageSize);
+            getAllUsernames();
+        } else {
+            fetchData(pagination.page, pagination.pageSize);
+        }
+    }, [role, pagination.page, pagination.pageSize, caseReferral, username, accusedName]);
+
 
     return (
         <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className=" h-[70px] text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        إدارة القضايا
+                        إدارة قضايا الاعضاء
                     </h1>
-                    <Button
+                  <div className="flex gap-4">
+                  <Button
                         onClick={() => setExportModalOpen(true)}
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                     >
                         تصدير إلى Excel
                     </Button>
+                    <Button
+                        onClick={handleExportFull}
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                        📥 تصدير الكل Excel
+                    </Button>
+                  </div>
                 </div>
 
                 <AnimatePresence>
@@ -462,19 +586,21 @@ const Page = () => {
                 <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                         <div className="flex flex-wrap gap-4">
-                            
-                            <Select value={memberNumber} onValueChange={setMemberNumber}>
-                                <SelectTrigger className="w-40">
-                                    <SelectValue placeholder="رقم العضو" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.from({ length: 10 }, (_, i) => (
-                                        <SelectItem key={i+1} value={`${i+1}`}>{i+1}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Can I="manage" a="admin" ability={ability}>
+                                <Select value={username} onValueChange={setUsername}>
+                                    <SelectTrigger className="w-40">
+                                        <SelectValue placeholder=" اسماء المستخدمين" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {usernames.map(username => (
+                                            <SelectItem key={username} value={username}>{username}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </Can>
 
-                            <Select value={isReadyForDecision} onValueChange={setIsReadyForDecision}>
+
+                            <Select value={caseReferral} onValueChange={setCaseReferral}>
                                 <SelectTrigger className="w-40">
                                     <SelectValue placeholder="جاهزة للتصرف" />
                                 </SelectTrigger>
@@ -484,11 +610,20 @@ const Page = () => {
                                 </SelectContent>
                             </Select>
 
-                            <Button 
+                            <input
+                                type="text"
+                                value={accusedName}
+                                onChange={(e) => setAccusedName(e.target.value)}
+                                placeholder="اسم المتهم"
+                                className="border border-gray-200 rounded-md p-2 w-40"
+                            />
+
+                            <Button
                                 variant="outline"
                                 onClick={() => {
-                                    setMemberNumber('');
-                                    setIsReadyForDecision('');
+                                    setUsername('');
+                                    setCaseReferral('');
+                                    setAccusedName('');
                                 }}
                             >
                                 مسح التصنيفات
@@ -561,7 +696,7 @@ const Page = () => {
                         <div className="text-gray-500 text-sm">
                             عرض {data.length} من أصل {pagination?.total || 0} قضية
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="outline"
@@ -578,11 +713,11 @@ const Page = () => {
                             >
                                 السابق
                             </Button>
-                            
+
                             <span className="px-4">
                                 الصفحة {pagination?.page || 1} من {pagination?.totalPages || 1}
                             </span>
-                            
+
                             <Button
                                 variant="outline"
                                 onClick={() => setPagination(prev => ({

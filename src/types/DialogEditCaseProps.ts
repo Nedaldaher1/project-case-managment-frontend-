@@ -29,7 +29,6 @@ export interface DialogEditCasePriavteProps {
     witnessQuestion: string;
     technicalReports: string;
     caseReferral: string;
-    isReadyForDecision: boolean;
     actionOther: string;
 
 }

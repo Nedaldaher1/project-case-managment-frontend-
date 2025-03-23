@@ -12,6 +12,7 @@ interface UserData {
   username: string;
   role: string;
   member_id: string;
+  officesAvailable: Array<JSON>;
 }
 
 interface AuthContextType {
@@ -26,6 +27,7 @@ interface AuthContextType {
   fieldErrors: { username: string; password: string };
   isUnauthorized: boolean;
   setStatusLoggedIn: () => void;
+  token: string;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -40,6 +42,7 @@ const AuthContext = createContext<AuthContextType>({
   fieldErrors: { username: '', password: '' },
   isUnauthorized: false,
   setStatusLoggedIn: () => {},
+  token: '', 
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -60,6 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({ username: '', password: '' });
   const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const [token, setJwt] = useState(Cookies.get('token') || '');
 
   // حفظ tempUserData في localStorage عند تغييرها
   useEffect(() => {
@@ -92,7 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           username: data.user.username,
           role: data.user.role,
           member_id: data.user.member_id,
+          officesAvailable: data.user.officesAvailable,
         };
+        console.log(data)
         setTempUserData(user);
         setIs2FARequired(true);
         setError('');
@@ -116,6 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIs2FARequired(false);
           setTempUserData(null); // هنا يتم تحديث الحالة لإزالة البيانات من localStorage
           navigate('/');
+          window.location.reload();
           console.log(data)
           // window.location.reload();
         }
@@ -163,7 +170,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userData');
     deleteAllCookies();
-    navigate('/login');
+    navigate('/');
     window.location.reload();
   };
 
@@ -185,6 +192,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         fieldErrors,
         isUnauthorized,
         setStatusLoggedIn,
+        token
       }}
     >
       {children}

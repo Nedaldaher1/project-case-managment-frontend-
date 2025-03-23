@@ -1,16 +1,23 @@
 
+import { Backpack, Home, User, Search, Settings, IdCard } from "lucide-react";
 
-export const links =[
+export const links = [
     {
         name: 'الارشيف الالكتروني للأحراز',
-        linkTo: '/case/public/archives'
+        linkTo: '/archives',
+        I: "view",
+        a: "ElectronicArchive"
     },
     {
         name: 'تجديد حبس المتهمين',
-        linkTo: '/case/public/home'
+        linkTo: '/case/defendants',
+        I: "view",
+        a: "CaseSystem"
     },
     {
         name: 'قضايا الاعضاء',
-        linkTo: '/case/private/home'
+        linkTo: '/case/members',
+        I: "view",
+        a: "CaseSystem"
     }
 ]

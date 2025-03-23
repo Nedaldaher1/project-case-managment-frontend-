@@ -40,7 +40,7 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
   const [investigationIDOfCase, setInvestigationID] = useState(investigationID);
   const [caseType, setcaseType] = useState(type_case);
   const [officeNumberOfCase, setOfficeNumber] = useState(officeNumber);
-  const { userData } = useAuth();
+  const { userData,token } = useAuth();
   const member_number = userData?.member_id;
 
   const arabicNumbers: { [key: number]: string } = {
@@ -88,8 +88,11 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
         if (!import.meta.env.VITE_REACT_APP_API_URL) {
           throw new Error('API URL is not defined');
         }
-        const res = await axios.put(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/edit`, updatedFields);
-        console.log(res);
+        const res = await axios.put(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/edit`, updatedFields,{
+          headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+        }
+        });
         toast.success('تم التحديث بنجاح!');
       } catch (error) {
         toast.error('فشلت عملية التحديث');

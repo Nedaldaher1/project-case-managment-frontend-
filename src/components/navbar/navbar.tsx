@@ -14,6 +14,8 @@ import {
 import { links } from '@/data/navbarName';
 import { useAuth } from '@/context/userContext';
 import { logoutSession } from '@/api/authApi';
+import { AbilityContext } from '@/context/AbilityContext';
+import { Can, useAbility } from '@casl/react';
 
 interface NavbarProps {
     className?: string;
@@ -24,6 +26,7 @@ const Navbar = ({ className }: NavbarProps) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const isMobile = useMediaQuery({ maxWidth: 768 });
     const navigate = useNavigate();
+    const ability = useAbility(AbilityContext);
 
     const handleLogout = () => {
         logout();
@@ -32,7 +35,7 @@ const Navbar = ({ className }: NavbarProps) => {
     };
 
     return (
-        <nav  dir='rtl' className={`${className} bg-gray-100 py-4 px-6 shadow-sm relative z-50`}>
+        <nav dir='rtl' className={`${className} bg-gray-100 py-4 px-6 shadow-sm relative z-50`}>
             <div className="max-w-7xl mx-auto">
                 {/* تصميم سطح المكتب */}
                 {!isMobile ? (
@@ -42,15 +45,21 @@ const Navbar = ({ className }: NavbarProps) => {
                         </Link>
 
                         <div className="col-span-6">
-                            <div className="grid grid-cols-3 gap-4 text-center">
-                                {links.slice(0, 3).map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        to={item.linkTo}
-                                        className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                                    >
-                                        <span className="font-medium text-gray-700">{item.name}</span>
-                                    </Link>
+                            <div className="flex  items-center  justify-center gap-4 text-center">
+                                {links.slice(0, 3).map((item, index) => (   
+                                    <Can key={index} I={item.I} a={item.a} ability={ability}>
+                                        {(allowed) => allowed && (
+                                            <Link
+                                                key={index}
+                                                to={item.linkTo}
+                                                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                                            >
+                                                <span className="font-medium text-gray-700">{item.name}</span>
+                                            </Link>
+                                        )}
+
+                                    </Can>
+
                                 ))}
                             </div>
                         </div>
@@ -72,7 +81,7 @@ const Navbar = ({ className }: NavbarProps) => {
                                 <DropdownMenuContent className="min-w-[200px]">
                                     <DropdownMenuLabel>{userData?.username}</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
+                                    <DropdownMenuItem
                                         onClick={handleLogout}
                                         className="text-red-600 cursor-pointer"
                                     >
@@ -138,7 +147,7 @@ const Navbar = ({ className }: NavbarProps) => {
                                                     </div>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent className="w-full">
-                                                    <DropdownMenuItem 
+                                                    <DropdownMenuItem
                                                         onClick={handleLogout}
                                                         className="text-red-600"
                                                     >

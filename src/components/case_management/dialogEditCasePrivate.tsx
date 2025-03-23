@@ -26,18 +26,17 @@ interface UpdatedCaseFields {
     witnessQuestion?: string;
     technicalReports?: string;
     caseReferral?: string;
-    isReadyForDecision?: boolean;
     actionOther?: string;
     year?: number;
     caseType?: string;
     investigationID?: string;
     accusedName?: string;
-    reportType?: string;    
+    reportType?: string;
 }
 
-const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision, actionOther }: DialogEditCasePriavteProps) => {
+const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, actionOther }: DialogEditCasePriavteProps) => {
     const [case_Number, setCaseNumber] = useState(caseNumber);
-    const { userData } = useAuth();
+    const { userData, token } = useAuth();
     const [accusationOfCase, setAccusation] = useState(accusation);
     const [defendant_Question, setDefendantQuestion] = useState(defendantQuestion);
     const [officer_Question, setOfficerQuestion] = useState(officerQuestion);
@@ -49,10 +48,14 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
     const [caseType, setCaseType] = useState('');
     const [investigationID, setInvestigationID] = useState('');
     const [accusedName, setAccusedName] = useState('');
-    const [isReadyFor_Decision, setIsReadyForDecision] = useState(isReadyForDecision);
     const [reportType, setReportType] = useState('');
     const [action_Other, setActionOther] = useState(actionOther);
     const [isOpen, setIsOpen] = useState(false);
+    const reportOptions = [
+        'تم',
+        'لايوجد',
+        'حتى الآن',
+    ];
     const member_number = userData?.member_id;
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -75,14 +78,17 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
         if (reportType) updatedFields.reportType = reportType;
         if (caseRe_ferral) updatedFields.caseReferral = caseRe_ferral;
         if (action_Other) updatedFields.actionOther = action_Other;
-        updatedFields.isReadyForDecision = isReadyFor_Decision;
 
         if (Object.keys(updatedFields).length > 1) {
             try {
                 if (!import.meta.env.VITE_REACT_APP_API_URL) {
                     throw new Error('API URL is not defined');
                 }
-                const res = await axios.put(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/edit`, updatedFields);
+                const res = await axios.put(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/edit`, updatedFields, {
+                    headers: {
+                        Authorization: token ? `Bearer ${token}` : '',
+                    }
+                });
                 toast.success('تم التحديث بنجاح!');
             } catch (error) {
                 toast.error('فشلت عملية التحديث');
@@ -93,7 +99,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
         }
     };
 
- 
+
 
     return (
         <AnimatePresence>
@@ -135,7 +141,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                     type="text"
                                                     value={case_Number}
                                                     onChange={(e) => setCaseNumber(e.target.value)}
-                                                     
+
                                                 />
                                             </div>
 
@@ -146,7 +152,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                     type="number"
                                                     value={year}
                                                     onChange={(e) => setYear(Number(e.target.value))}
-                                                     
+
                                                 />
                                             </div>
 
@@ -156,7 +162,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                 <Select
                                                     value={caseType}
                                                     onValueChange={setCaseType}
-                                                     
+
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="اختر النوع" />
@@ -176,7 +182,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                     type="text"
                                                     value={investigationID}
                                                     onChange={(e) => setInvestigationID(e.target.value)}
-                                                     
+
                                                 />
                                             </div>
 
@@ -186,7 +192,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                     type="text"
                                                     value={accusationOfCase}
                                                     onChange={(e) => setAccusation(e.target.value)}
-                                                     
+
                                                 />
                                             </div>
 
@@ -224,7 +230,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                 <Select
                                                     value={defendant_Question}
                                                     onValueChange={setDefendantQuestion}
-                                                     
+
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="اختر الحالة" />
@@ -243,7 +249,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                 <Select
                                                     value={victim_Question}
                                                     onValueChange={setVictimQuestion}
-                                                     
+
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="اختر الحالة" />
@@ -262,7 +268,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                 <Select
                                                     value={witness_Question}
                                                     onValueChange={setWitnessQuestion}
-                                                     
+
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="اختر الحالة" />
@@ -280,7 +286,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                 <Select
                                                     value={officer_Question}
                                                     onValueChange={setOfficerQuestion}
-                                                     
+
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="اختر الحالة" />
@@ -298,7 +304,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                 <Select
                                                     value={technical_Reports}
                                                     onValueChange={setTechnicalReports}
-                                                     
+
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="اختر الحالة" />
@@ -316,12 +322,19 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                 <div className="space-y-2">
                                                     <label className="block text-sm font-medium text-gray-700">نوع التقرير</label>
 
+
                                                     <Input
                                                         type="text"
+                                                        list="reportTypes" // إضافة ارتباط مع الـ datalist
                                                         value={reportType}
                                                         onChange={(e) => setReportType(e.target.value)}
-                                                         required={technicalReports === 'حتى الآن'}
+                                                        required={technicalReports === 'حتى الآن'}
                                                     />
+                                                    <datalist id="reportTypes">
+                                                        {reportOptions.map((option) => (
+                                                            <option key={option} value={option} />
+                                                        ))}
+                                                    </datalist>
 
                                                 </div>
                                             )}
@@ -332,7 +345,7 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                 <Select
                                                     value={actionOther}
                                                     onValueChange={setActionOther}
-                                                     
+
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="اختر الحالة" />

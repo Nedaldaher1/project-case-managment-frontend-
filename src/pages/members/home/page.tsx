@@ -3,11 +3,12 @@ import { useAuth } from "@/context/userContext";
 import { Link } from 'react-router-dom';
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { } from "react-router-dom";
+
 
 const Home = () => {
     const [loading, setLoading] = useState(true);
     const { token, userData } = useAuth();
+
     
     // تحويل البيانات إلى مصفوفة آمنة مع قيمة افتراضية
     const officesAvailable: { id: string; name: string }[] = 
@@ -41,7 +42,7 @@ const Home = () => {
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-16 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <h1 className="h-[100px] text-4xl md:text-6xl font-bold text-center mb-16 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent animate-gradient-x">
-                    نظام الأرشيف الإلكتروني للأحراز
+                نظام قضايا الاعضاء  
                 </h1>
 
                 {loading ? (

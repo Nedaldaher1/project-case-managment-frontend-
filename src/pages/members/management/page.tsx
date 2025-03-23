@@ -32,7 +32,7 @@ const Management = () => {
 
                 {/* قسم الإدخال */}
                 <Link 
-                    to={`insert?type=${type}`} 
+                    to={`add?type=${type}`} 
                     className="relative group h-72 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:scale-105 shadow-xl bg-white/40 backdrop-blur-lg border-2 border-blue-200/40 hover:border-blue-300/60"
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-100/70 via-blue-200/50 to-blue-400/40 opacity-90 transition-opacity duration-500 group-hover:opacity-100" />

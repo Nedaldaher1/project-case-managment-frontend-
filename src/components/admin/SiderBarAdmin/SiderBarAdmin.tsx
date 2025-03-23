@@ -22,41 +22,11 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {useAuth} from "@/context/userContext"
 import {Img} from 'react-image'
 import {logoutSession} from '@/api/authApi'
+import { navBarAdminItem } from "@/data/navBarAdmin";
 
 
 // Menu items.
-const items = [
-  {
-    title: "الصفحة الرئيسية",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "تجديد المتهمين",
-    url: "/case/public/home",
-    icon: Search,
-  },
-  {
-    title: "قضايا العضو",
-    url: "/case/private/home",
-    icon: IdCard,
-  },
-  {
-    title: "قائمة المستخدمين",
-    url: "/dashboard/users",
-    icon: User,
-  },
-  {
-    title: "ادارة النسخ الاحتياطية",
-    url: "/dashboard/backups",
-    icon: Backpack,
-  },
-  {
-    title: "اعدادات",
-    url: "/settings",
-    icon: Settings,
-  },
-];
+
 
 const SiderBarAdmin = () => {
 
@@ -72,12 +42,11 @@ const SiderBarAdmin = () => {
           <SidebarGroupLabel>قائمة الادارة</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {navBarAdminItem.map((item,index) => (
+                <SidebarMenuItem key={index}>
                   <SidebarMenuButton asChild>
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
+                    <Link to={item.linkTo || "/"}>
+                      <span>{item.name}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

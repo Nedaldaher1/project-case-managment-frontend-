@@ -2,8 +2,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
@@ -28,7 +26,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import ExcelJS from "exceljs";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/userContext";
 
 interface ProsecutionData {
     id: string;
@@ -60,24 +60,14 @@ interface ApiResponse {
 
 const PAGE_SIZE = 20;
 
-const offices = [
-    { id: "1", name: "النيابة الكلية" },
-    { id: "2", name: "نيابة قسم اول المنصورة الجزئية" },
-    { id: "3", name: "نيابة قسم ثاني المنصورة الجزئية" },
-    { id: "4", name: "نيابة مركز المنصورة الجزئية" },
-    { id: "5", name: "نيابة طلخا الجزئية" },
-    { id: "6", name: "نيابة السنبلاوين الجزئية" },
-    { id: "7", name: "نيابة اجا الجزئية" },
-    { id: "8", name: "نيابة قسم ميت غمر الجزئية" },
-    { id: "9", name: "نيابة تمي الامديد الجزئية" },
-    { id: "10", name: "نيابة مركز ميت غمر الجزئية" }
-];
+
 
 const ProsecutionTable = () => {
     const [data, setData] = useState<ProsecutionData[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { token } = useAuth();
     const [searchParams] = useSearchParams();
     const type = searchParams.get('type');
 
@@ -86,6 +76,8 @@ const ProsecutionTable = () => {
     const [debouncedCaseNumber, setDebouncedCaseNumber] = useState('');
     const [debouncedItemNumber, setDebouncedItemNumber] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(10);
+    const [accusedName, setAccusedName] = useState('');
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingData, setEditingData] = useState<ProsecutionData | null>(null);
@@ -121,6 +113,9 @@ const ProsecutionTable = () => {
                     limit: PAGE_SIZE,
                     numberCase: caseNum,
                     itemNumber: itemNum
+                },
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
                 }
             });
 
@@ -153,7 +148,12 @@ const ProsecutionTable = () => {
         try {
             const response = await axios.put(
                 `${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/update/${editingData.id}`,
-                editingData
+                editingData,
+                {
+                    headers: {
+                        Authorization: token ? `Bearer ${token}` : '',
+                    }
+                }
             );
 
             if (response.data.success) {
@@ -200,12 +200,12 @@ const ProsecutionTable = () => {
         { accessorKey: 'serialNumber', header: 'المسلسل' },
         { accessorKey: 'itemNumber', header: 'رقم الأشياء' },
         { accessorKey: 'numberCase', header: 'رقم القضية' },
-        { accessorKey: 'typeCaseNumber', header: 'نوع القضية ' },
+        { accessorKey: 'typeCaseNumber', header: 'نوع القضية' },
         { accessorKey: 'year', header: 'السنة' },
         { accessorKey: 'charge', header: 'التهمة' },
         { accessorKey: 'seizureStatement', header: 'بيان الحرز' },
         { accessorKey: 'totalNumber', header: 'الرقم الكلي' },
-        { accessorKey: 'typeCaseTotalNumber', header: 'نوع القضية ' },
+        { accessorKey: 'typeCaseTotalNumber', header: 'نوع القضية للرقم الكلي' },
         { accessorKey: 'roomNumber', header: 'رقم الغرفة' },
         { accessorKey: 'referenceNumber', header: 'رقم الاستاند' },
         { accessorKey: 'shelfNumber', header: 'رقم الرف' },
@@ -248,18 +248,109 @@ const ProsecutionTable = () => {
         setItemNumberSearch('');
     };
 
-    const exportToExcel = () => {
+    const exportToExcel = async () => {
         if (data.length === 0) {
             toast.error('لا توجد بيانات للتصدير');
             return;
         }
+    
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('القضايا');
+    
+            // 1. تصفية الأعمدة لإزالة عمود الإجراءات باستخدام ID
+            const filteredColumns = columns.filter(col => 
+                col.id !== 'actions'
+            );
+    
+            // 2. تعيين الأعمدة المصفاة
+            worksheet.columns = filteredColumns.map(col => ({
+                header: col.header?.toString() || '',
+                key: (
+                    'accessorKey' in col 
+                        ? (col.accessorKey as string)
+                        : (col as any).accessor
+                )?.toString() || '',
+                width: 25
+            }));
+    
+            // 3. إضافة البيانات مرة واحدة بدون تكرار
+            data.forEach((archives: ProsecutionData) => {
+                const rowData = { ...archives };
+                worksheet.addRow(rowData);
+            });
+    
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `القضايا_${new Date().toISOString()}.xlsx`;
+            a.click();
+    
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.error('فشل في التصدير: ' + (error as Error).message);
+        }
+    };
 
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'بيانات الحرز');
-        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-        const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        saveAs(blob, 'بيانات_الحرز.xlsx');
+    const exportToExcelFull = async () => {
+        const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/all/full`, {
+            params: {
+                type,
+            },
+            headers: {
+                Authorization: token ? `Bearer ${token}` : '',
+            }
+        });
+        const data = res.data.prosecutionData;
+        if (data.length === 0) {
+            toast.error('لا توجد بيانات للتصدير');
+            return;
+        }
+    
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('القضايا');
+    
+            // 1. تصفية الأعمدة لإزالة عمود الإجراءات باستخدام ID
+            const filteredColumns = columns.filter(col => 
+                col.id !== 'actions'
+            );
+    
+            // 2. تعيين الأعمدة المصفاة
+            worksheet.columns = filteredColumns.map(col => ({
+                header: col.header?.toString() || '',
+                key: (
+                    'accessorKey' in col 
+                        ? (col.accessorKey as string)
+                        : (col as any).accessor
+                )?.toString() || '',
+                width: 25
+            }));
+    
+            // 3. إضافة البيانات مرة واحدة بدون تكرار
+            data.forEach((archives: ProsecutionData) => {
+                const rowData = { ...archives };
+                worksheet.addRow(rowData);
+            });
+    
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `القضايا_${new Date().toISOString()}.xlsx`;
+            a.click();
+    
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.error('فشل في التصدير: ' + (error as Error).message);
+        }
     };
 
     if (isLoading) {
@@ -330,6 +421,14 @@ const ProsecutionTable = () => {
                         className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
                     >
                         📥 تصدير إلى Excel
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={exportToExcelFull}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                    >
+                        📥 تصدير الكل Excel
                     </motion.button>
                 </div>
             </div>

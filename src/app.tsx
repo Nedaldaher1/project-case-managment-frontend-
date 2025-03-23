@@ -1,77 +1,114 @@
-import { Route, Routes, Outlet } from 'react-router-dom';
+import { Route, Routes, Outlet, Navigate } from 'react-router-dom';
 import { Suspense, lazy, JSX } from 'react';
 import NavBar from '@/components/navbar/navbar';
 import NavbarAdmin from '@/components/admin/SiderBarAdmin/SiderBarAdmin';
 import Footer from '@/components/footer/footer';
 import ProtectedRoute from './routes/ProtectedRoute';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from './context/userContext';
+import { UserRole } from '@/types/user';
+import { AbilityContext } from '@/context/AbilityContext';
+import { Can, useAbility } from '@casl/react';
 
+import { Actions, Subjects } from '@/ability/ability';
+
+// Lazy-loaded components
 const Login = lazy(() => import('./pages/login/page'));
 const NotFoundPage = lazy(() => import('@/pages/404/not-found'));
-const AddCasePublic = lazy(() => import('@/pages/public/add/page'));
-const ManagementCasePublic = lazy(() => import('@/pages/private/management/page'));
-const HomePagePublic = lazy(() => import('@/pages/public/home/page'));
-const AddCasePrivate = lazy(() => import('@/pages/private/add/page'));
-const HomePagePrivate = lazy(() => import('@/pages/private/home/page'));
-const ManagementCasePrivate = lazy(() => import('@/pages/public/management/page'));
+const AddCaseDefendants = lazy(() => import('@/pages/defendants/management/add/page'));
+const HomePageDefendants = lazy(() => import('@/pages/defendants/home/page'));
+const AddCaseMembers = lazy(() => import('@/pages/members/management/add/page'));
+const HomePageMembers = lazy(() => import('@/pages/members/home/page'));
+const ManagementCaseMembers = lazy(() => import('@/pages/members/management/data_management/page'));
+const ManagementCaseDefendants = lazy(() => import('@/pages/defendants/management/data_management/page'));
 const Home = lazy(() => import('@/pages/homePage'));
 const Archives = lazy(() => import('@/pages/archives/home/page'));
 const ArchivesManagement = lazy(() => import('@/pages/archives/management/page'));
 const ArchiveInsert = lazy(() => import('@/pages/archives/management/insert/page'));
 const ArchivesDataManagement = lazy(() => import('@/pages/archives/management/data_management/page'));
 const UnauthorizedPage = lazy(() => import('@/pages/unauthorized/page'));
+const HomePageDefendantsManagement = lazy(() => import('@/pages/defendants/management/page'));
+const HomePageMembersManagement = lazy(() => import('@/pages/defendants/management/page'));
 
 const App = () => {
     const { isLoggedIn, userData } = useAuth();
-    const isAdmin = userData?.role === 'admin';
-    const isEditor = userData?.role === 'editor';
-    
-    const RoleProtectedRoute = ({ children }: { children: JSX.Element }) => {
-        if (!isAdmin && !isEditor) {
-            return <UnauthorizedPage />;
+    const isAdmin = userData?.role === UserRole.ADMIN;
+    const ability = useAbility(AbilityContext);
+
+    const RoleProtectedRoute = ({
+        children,
+        action,
+        subject
+    }: {
+        children: JSX.Element;
+        action: Actions;  // تغيير النوع إلى Actions
+        subject: Subjects; // تغيير النوع إلى Subjects
+    }) => {
+        if (!ability?.can(action, subject)) {
+            return <Navigate to="/unauthorized" replace />;
         }
         return children;
     };
 
     return (
         <SidebarProvider>
-            <div className={`${isLoggedIn && isAdmin ? 'grid grid-rows-[1fr_auto] grid-cols-[auto_1fr]' : ''} w-screen min-h-screen`}>
-                {/* عرض الناف بار فقط عند تسجيل الدخول */}
+            <div className={`${isLoggedIn && userData?.role === UserRole.ADMIN ? 'grid grid-rows-[1fr_auto] grid-cols-[auto_1fr]' : ''} w-screen min-h-screen`}>
+
+                {/* Conditional Navbar */}
                 {isLoggedIn && (isAdmin ? <NavbarAdmin /> : <NavBar />)}
-                
-                <main className={`${isLoggedIn && isAdmin ? 'col-auto' : ''} w-full h-full`}>
-                    {isLoggedIn && isAdmin && <SidebarTrigger />}
+
+                <main className={`${isLoggedIn && userData?.role === UserRole.ADMIN ? 'col-auto' : ''} w-full h-full`}>
+                    {isLoggedIn && userData?.role === UserRole.ADMIN && (
+                        <Can I="manage" a="all" ability={ability}>
+                            {(allowed) => allowed && <SidebarTrigger />}
+                        </Can>
+                    )}
+
                     <Suspense fallback={<div>Loading...</div>}>
                         <Routes>
                             {/* مسارات لا تتطلب تسجيل دخول */}
                             <Route path="/login" element={!isLoggedIn ? <Login /> : <Home />} />
-                            
+
                             {/* مسارات محمية بتسجيل الدخول */}
                             <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
                                 <Route path="/" element={<Home />} />
-                                
-                                <Route path="/case/public/*" element={<Outlet />}>
-                                    <Route path="add" element={<AddCasePublic />} />
-                                    <Route path="management" element={<ManagementCasePrivate />} />
-                                    <Route path="home" element={<HomePagePublic />} />
-                                    <Route path="archives/*" element={<Outlet />}>
-                                        <Route index element={<Archives />} />
-                                        <Route path="management" element={<ArchivesManagement />} />
-                                        <Route path="management/insert" element={<ArchiveInsert />} />
-                                        <Route path="management/data" element={<ArchivesDataManagement />} />
-                                    </Route>
-                                </Route>
 
-                                <Route path="/case/private/*" element={
-                                    <RoleProtectedRoute>
+                                {/* Defendants Case Routes */}
+                                <Route path="case/defendants/*" element={
+                                    <RoleProtectedRoute action="view" subject="CaseSystem">
                                         <Outlet />
                                     </RoleProtectedRoute>
                                 }>
-                                    <Route path="management" element={<ManagementCasePublic />} />
-                                    <Route path="add" element={<AddCasePrivate />} />
-                                    <Route path="home" element={<HomePagePrivate />} />
+                                    <Route path="management/add" element={<AddCaseDefendants />} />
+                                    <Route path="management/data" element={<ManagementCaseDefendants />} />
+                                    <Route path="management" element={<HomePageDefendantsManagement />} />
+                                    <Route path="*" element={<HomePageDefendants />} />
                                 </Route>
+
+                                {/* Members Case Routes */}
+                                <Route path="/case/members/*" element={
+                                    <RoleProtectedRoute action="view" subject="CaseSystem">
+                                        <Outlet />
+                                    </RoleProtectedRoute>
+                                }>
+                                    <Route path="management/data" element={<ManagementCaseMembers />} />
+                                    <Route path="management/add" element={<AddCaseMembers />} />
+                                    <Route path="management" element={<HomePageMembersManagement />} />
+                                    <Route path="*"  element={<HomePageMembers />} />
+                                </Route>
+
+                                {/* Archive Routes */}
+                                <Route path="archives/*" element={
+                                    <RoleProtectedRoute action="view" subject="ElectronicArchive">
+                                        <Outlet />
+                                    </RoleProtectedRoute>
+                                }>
+                                    <Route index element={<Archives />} />
+                                    <Route path="management" element={<ArchivesManagement />} />
+                                    <Route path="management/insert" element={<ArchiveInsert />} />
+                                    <Route path="management/data" element={<ArchivesDataManagement />} />
+                                </Route>
+
                             </Route>
 
                             <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -80,11 +117,15 @@ const App = () => {
                     </Suspense>
                 </main>
 
-                {/* التذييل يظهر فقط عند تسجيل الدخول */}
+                {/* Conditional Footer */}
                 {isLoggedIn && (
-                    <footer className={`${isAdmin ? 'col-span-2' : ''}`}>
-                        <Footer />
-                    </footer>
+                    <Can I="view" a="all" ability={ability}>
+                        {(allowed) => allowed && (
+                            <footer className={`${userData?.role === UserRole.ADMIN ? 'col-span-2' : ''}`}>
+                                <Footer />
+                            </footer>
+                        )}
+                    </Can>
                 )}
             </div>
         </SidebarProvider>

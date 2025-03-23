@@ -8,8 +8,8 @@ import { read, utils } from 'xlsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Progress } from "@/components/ui/progress";
 import { X } from "lucide-react"; // استيراد أيقونة الإغلاق
+import { useSearchParams } from "react-router-dom";
 
-import Cookies from "js-cookie";
 import { useAuth } from "@/context/userContext";
 import {
     Select,
@@ -26,9 +26,11 @@ const Page = () => {
     const [caseType, setCaseType] = useState('');
     const [investigationID, setInvestigationID] = useState('');
     const [accusedName, setAccusedName] = useState('');
-    const { userData } = useAuth();
+    const { userData, token } = useAuth();
+    const [searchParams] = useSearchParams();
     const member_number = userData?.member_id;
-    const id = userData?.id;
+    const type = searchParams.get('type');
+    const userID = userData?.id;
 
     // الإجراءات
     const [defendantStatus, setDefendantStatus] = useState('');
@@ -40,7 +42,10 @@ const Page = () => {
     const [officerQuestion, setOfficerQuestion] = useState('');
     const [actionOther, setActionOther] = useState('');
     const [accusation, setAccusation] = useState('');
-
+    const [prosecutionOfficeId, setProsecutionOfficeId] = useState('');
+    const officesAvailable: { id: string; name: string }[] =
+        (userData?.officesAvailable as { id: string; name: string }[] | undefined) || [];
+    const username = userData?.username;
 
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -50,6 +55,11 @@ const Page = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [showResults, setShowResults] = useState(false); // حالة لعرض النتائج
     
+    const reportOptions = [
+        'تم',
+        'لايوجد',
+        'حتى الآن',
+    ];
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -73,7 +83,13 @@ const Page = () => {
                 technicalReports,
                 ...(technicalReports === 'حتى الآن' && { reportType }),
                 readyForAction,
-                userId: id
+                userID,
+                prosecutionOfficeId,
+                username
+            }, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                }
             });
 
             // Clear form
@@ -119,17 +135,18 @@ const Page = () => {
                 const workbook = read(data, { type: 'array' });
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = utils.sheet_to_json(worksheet);
-    
+
                 // تحويل البيانات مع التحقق من الحقول المطلوبة
                 const cases = jsonData.map((item: any) => {
                     // التحقق من الحقول الأساسية
                     if (!item['رقم القضية'] || !item['اسم المتهم'] || !item['رقم العضو']) {
                         throw new Error('بيانات ناقصة في أحد الصفوف');
                     }
-    
+
                     return {
                         caseNumber: item['رقم القضية'],
                         year: item['السنة'],
+                        caseType: item['نوع القضية'],
                         investigationID: item['رقم حصر التحقيق'],
                         accusedName: item['اسم المتهم'],
                         accusation: item['التهمة'],
@@ -141,14 +158,16 @@ const Page = () => {
                         technicalReports: item['التقارير الفنية'],
                         reportType: item['نوع التقرير'],
                         actionOther: item['إجراءات أخرى'],
-                        userId: id
+                        prosecutionOfficeId: type,
+                        userID,
+                        username
                     };
                 });
-    
+
                 setIsProcessing(true);
                 let success = 0;
                 let errors = 0;
-    
+
                 for (let i = 0; i < cases.length; i++) {
                     try {
                         await axios.post(
@@ -156,7 +175,7 @@ const Page = () => {
                             cases[i],
                             {
                                 headers: {
-                                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                                    Authorization: token ? `Bearer ${token}` : '',
                                 }
                             }
                         );
@@ -169,14 +188,14 @@ const Page = () => {
                             console.error(`خطأ في الصف ${i + 1}:`, error);
                         }
                     }
-    
+
                     setUploadProgress((i + 1) / cases.length * 100);
                     setSuccessCount(success);
                     setErrorCount(errors);
-    
+
                     await new Promise(resolve => setTimeout(resolve, 100)); // تقليل التأخير
                 }
-    
+
                 setIsProcessing(false);
                 setShowResults(true);
                 setSelectedFile(null);
@@ -392,6 +411,28 @@ const Page = () => {
                                         disabled
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 text-right">النيابة</label>
+                                        <Select
+                                            value={prosecutionOfficeId}
+                                            onValueChange={(value) => setProsecutionOfficeId(value)}
+                                        >
+                                            <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                                <SelectValue placeholder="اختر النيابة">
+                                                    {officesAvailable.find(office => office.id === prosecutionOfficeId)?.name}
+                                                </SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {officesAvailable.map((office) => (
+                                                    <SelectItem key={office.id} value={String(office.id)}>
+                                                        {office.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                             </div>
                         </fieldset>
 
@@ -501,10 +542,16 @@ const Page = () => {
 
                                         <Input
                                             type="text"
+                                            list="reportTypes" // إضافة ارتباط مع الـ datalist
                                             value={reportType}
                                             onChange={(e) => setReportType(e.target.value)}
                                             required={technicalReports === 'حتى الآن'}
                                         />
+                                        <datalist id="reportTypes">
+                                            {reportOptions.map((option) => (
+                                                <option key={option} value={option} />
+                                            ))}
+                                        </datalist>
 
                                     </div>
                                 )}
@@ -528,26 +575,6 @@ const Page = () => {
                                     </Select>
                                 </div>
 
-
-
-
-                                {/* جاهزة للتصرف */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">جاهزة للتصرف</label>
-                                    <Select
-                                        value={readyForAction}
-                                        onValueChange={setReadyForAction}
-                                        required
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="اختر الحالة" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="نعم">نعم</SelectItem>
-                                            <SelectItem value="لا">لا</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                             </div>
                         </fieldset>
 

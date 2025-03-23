@@ -1,27 +1,28 @@
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { faHouse, faUser, faCalendar, faBell, faBriefcase, faGear, faHandcuffs, faGlobe } from '@fortawesome/free-solid-svg-icons';
-
-export const navBarAdminItem = ['الصفحة الرئيسية', 'قائمة المستخدمين', 'قائمة الجلسات', 'تجديد المتهمين', 'قضايا العضو' , 'اعدادات',  'الأحداث'];
 
 
 
+export const navBarAdminItem = [
+    {
+        name: "الصفحة الرئيسية",
+        url: "/",
+    },
+    {
+        name: 'الارشيف الالكتروني للأحراز',
+        linkTo: '/archives',
 
-export const navBarAdminIcons: IconProp[] = [
 
-    faHouse,
+    },
+    {
+        name: 'تجديد حبس المتهمين',
+        linkTo: '/case/defendants',
 
-    faUser,
 
-    faCalendar,
+    },
+    {
+        name: 'قضايا الاعضاء',
+        linkTo: '/case/members',
 
-    faBell,
+    }
+]
 
-    faBriefcase,
-
-    faGear,
-
-    faHandcuffs,
-
-    faGlobe
-
-];

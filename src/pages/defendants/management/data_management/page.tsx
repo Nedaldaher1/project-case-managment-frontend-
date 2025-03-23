@@ -18,6 +18,11 @@ import {
 import ExcelJS from "exceljs";
 import DialogEditCase from "@/components/case_management/dialogEditCasePublic";
 import toast from 'react-hot-toast';
+import { useAuth } from '@/context/userContext';
+import { useSearchParams } from "react-router-dom";
+import { useAbility } from '@casl/react';
+import { AbilityContext } from '@/context/AbilityContext';
+
 
 const Page = () => {
     interface Case {
@@ -45,13 +50,43 @@ const Page = () => {
     const [dateFilter, setDateFilter] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
-    const [renewalDate, setRenewalDate] = useState("");
+    const [searchParams] = useSearchParams();
+    const ability = useAbility(AbilityContext);
+    const type = searchParams.get('type');
+    const { token, userData } = useAuth();
+    const uuid = userData?.id;
 
-    const getData = async (page: number = 1) => {
+    const fetchData = async (page: number = 1, pageSize: number = 10) => {
+        try {
+            setIsLoading(true);
+            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/${uuid}`, {
+                params: { page, pageSize, type },
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                }
+            });
+
+            const { cases, total, totalPages } = response.data;
+            setData(response.data.data);
+            setFilteredData(response.data.data);
+            setTotalPages(totalPages);
+            setTotalCases(total);
+            setError("");
+        } catch (error) {
+            setError((error as any).response.data.error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchAllData = async (page: number = 1, pageSize: number = 10) => {
         try {
             setIsLoading(true);
             const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases`, {
-                params: { page, pageSize },
+                params: { page, pageSize, type },
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                }
             });
 
             const { cases, total, totalPages } = response.data;
@@ -61,14 +96,19 @@ const Page = () => {
             setTotalCases(total);
             setError("");
         } catch (error) {
-            setError("فشل في جلب البيانات");
+            setError((error as any).response.data.error);
         } finally {
             setIsLoading(false);
         }
-    };
+    }
 
     useEffect(() => {
-        getData(currentPage);
+        if (!ability.can('view', 'CaseSystem')) {
+            fetchAllData(currentPage, pageSize);
+        }
+        fetchData(currentPage, pageSize);
+
+
     }, [currentPage, pageSize]);
 
     useEffect(() => {
@@ -118,7 +158,6 @@ const Page = () => {
                     const startDate = new Date(info.row.original.startDate);
                     const renewalDate = new Date(startDate);
                     renewalDate.setDate(startDate.getDate() + (info.row.original.imprisonmentDuration || 0) - 1);
-                    setRenewalDate(renewalDate.toLocaleDateString('ar-EG'));
                     return renewalDate.toLocaleDateString('ar-EG');
                 } catch {
                     return "تاريخ غير صحيح";
@@ -165,7 +204,7 @@ const Page = () => {
         try {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet("القضايا");
-            
+
             // تنسيق الأعمدة بالعربية
             worksheet.columns = [
                 { header: "رقم مسلسل", key: "id", width: 15 },
@@ -181,7 +220,7 @@ const Page = () => {
                 { header: "دائرة مصدر القرار", key: "issuingDepartment", width: 20 },
                 { header: "رقم الدائرة", key: "officeNumber", width: 20 },
             ];
-    
+
             // تنسيق رأس الجدول
             worksheet.getRow(1).font = {
                 bold: true,
@@ -192,17 +231,17 @@ const Page = () => {
                 pattern: 'solid',
                 fgColor: { argb: 'FF2D9596' }
             };
-    
+
             // معالجة البيانات
             filteredData.forEach(item => {
                 const startDate = new Date(item.startDate);
                 const renewalDate = new Date(startDate);
-                
+
                 // حساب موعد التجديد بدقة
                 if (item.imprisonmentDuration) {
                     renewalDate.setDate(startDate.getDate() + parseInt(item.imprisonmentDuration.toString() || "0") - 1);
                 }
-    
+
                 // تنسيق التواريخ الميلادية بالعربية
                 const gregorianDateOptions = {
                     year: 'numeric' as const,
@@ -210,14 +249,14 @@ const Page = () => {
                     day: '2-digit' as const,
                     numberingSystem: 'arab' as const
                 };
-    
+
                 worksheet.addRow({
                     ...item,
                     startDate: startDate.toLocaleDateString('ar-EG', gregorianDateOptions),
                     renewalDate: renewalDate.toLocaleDateString('ar-EG', gregorianDateOptions),
                 });
             });
-    
+
             // تطبيق التنسيق على كافة الصفوف
             worksheet.eachRow((row, rowNumber) => {
                 row.alignment = { vertical: 'middle', horizontal: 'right' };
@@ -225,21 +264,123 @@ const Page = () => {
                     row.font = { name: 'Arial Arabic', size: 12 };
                 }
             });
-    
+
             // تصدير الملف
             const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { 
-                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+            const blob = new Blob([buffer], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             });
-            
+
             const fileName = `القضايا_${new Date().toISOString().split('T')[0]}.xlsx`;
-            
+
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = fileName;
             link.click();
             URL.revokeObjectURL(link.href);
-    
+
+        } catch (error) {
+            console.error('فشل التصدير:', error);
+            toast.error('فشل في تصدير الملف');
+        }
+    };
+
+    const handleExportFull = async () => {
+        try {
+
+            const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/all/full`, {
+                params: {
+                    type,
+                },
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                }
+            });
+            const data: Case[] = res.data.data;
+            // if (data.length === 0) {
+            //     toast.error('لا توجد بيانات للتصدير');
+            //     return;
+            // }
+
+            console.log(data);
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet("القضايا");
+
+            // تنسيق الأعمدة بالعربية
+            worksheet.columns = [
+                { header: "رقم مسلسل", key: "id", width: 15 },
+                { header: "رقم القضية", key: "caseNumber", width: 20 },
+                { header: "السنة", key: "year", width: 20 },
+                { header: "نوع القضية", key: "type_case", width: 20 },
+                { header: "رقم حصر التحقيق", key: "investigationID", width: 20 },
+                { header: "اسم المتهم", key: "defendantName", width: 20 },
+                { header: "رقم العضو", key: "member_number", width: 15 },
+                { header: "بداية المدة", key: "startDate", width: 20 },
+                { header: "مدة الحبس", key: "imprisonmentDuration", width: 15 },
+                { header: "موعد التجديد", key: "renewalDate", width: 20 },
+                { header: "دائرة مصدر القرار", key: "issuingDepartment", width: 20 },
+                { header: "رقم الدائرة", key: "officeNumber", width: 20 },
+            ];
+
+            // تنسيق رأس الجدول
+            worksheet.getRow(1).font = {
+                bold: true,
+                color: { argb: 'FFFFFFFF' }
+            };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF2D9596' }
+            };
+
+            // معالجة البيانات
+            data.forEach(item => {
+                const startDate = new Date(item.startDate);
+                const renewalDate = new Date(startDate);
+
+                // حساب موعد التجديد بدقة
+                if (item.imprisonmentDuration) {
+                    renewalDate.setDate(startDate.getDate() + parseInt(item.imprisonmentDuration.toString() || "0") - 1);
+                }
+
+                // تنسيق التواريخ الميلادية بالعربية
+                const gregorianDateOptions = {
+                    year: 'numeric' as const,
+                    month: '2-digit' as const,
+                    day: '2-digit' as const,
+                    numberingSystem: 'arab' as const
+                };
+
+                worksheet.addRow({
+                    ...item,
+                    startDate: startDate.toLocaleDateString('ar-EG', gregorianDateOptions),
+                    renewalDate: renewalDate.toLocaleDateString('ar-EG', gregorianDateOptions),
+                });
+            });
+
+            // تطبيق التنسيق على كافة الصفوف
+            worksheet.eachRow((row, rowNumber) => {
+                row.alignment = { vertical: 'middle', horizontal: 'right' };
+                if (rowNumber > 1) {
+                    row.font = { name: 'Arial Arabic', size: 12 };
+                }
+            });
+
+            // تصدير الملف
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            });
+
+            const fileName = `القضايا_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(link.href);
+
         } catch (error) {
             console.error('فشل التصدير:', error);
             toast.error('فشل في تصدير الملف');
@@ -274,6 +415,12 @@ const Page = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
+                    </button>
+                    <button
+                        onClick={handleExportFull}
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                        📥 تصدير الكل Excel
                     </button>
                 </div>
 

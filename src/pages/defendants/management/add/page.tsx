@@ -1,6 +1,8 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Progress } from "@/components/ui/progress";
@@ -27,8 +29,14 @@ const Page = () => {
     const [year, setYear] = useState('');
     const [investigationID, setInvestigationID] = useState('');
     const [accusedName, setAccusedName] = useState('');
-    const { userData } = useAuth();
+    const [searchParams] = useSearchParams();
+    const { token, userData } = useAuth();
+    const [prosecutionOfficeId, setProsecutionOfficeId] = useState('');
+    const officesAvailable: { id: string; name: string }[] =
+        (userData?.officesAvailable as { id: string; name: string }[] | undefined) || [];
+    const type = searchParams.get('type');
     const member_number = userData?.member_id;
+    const userID = userData?.id;
 
     // حالات جديدة للاستيراد
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -91,8 +99,17 @@ const Page = () => {
                 member_number,
                 officeNumber,
                 year,
-                investigationID
-            });
+                investigationID,
+                prosecutionOfficeId,
+                userID
+            }, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                }
+            }
+
+
+            );
             toast.success('تم إضافة القضية بنجاح');
             setCaseNumber('');
             setAccusedName('');
@@ -165,9 +182,11 @@ const Page = () => {
                     imprisonmentDuration: item['مدة الحبس'],
                     issuingDepartment: item['دائرة مصدر القرار'],
                     officeNumber: item['رقم الدائرة'],
+                    userID,
+                    prosecutionOfficeId: type
                 }));
 
-                    setIsProcessing(true);
+                setIsProcessing(true);
                 let success = 0;
                 let errors = 0;
 
@@ -177,7 +196,11 @@ const Page = () => {
                             throw new Error('تاريخ غير صالح في الصف ' + (i + 1));
                         }
 
-                        await axios.post(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/add`, cases[i]);
+                        await axios.post(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/add`, cases[i], {
+                            headers: {
+                                Authorization: token ? `Bearer ${token}` : '',
+                            }
+                        });
                         success++;
                     } catch (error) {
                         errors++;
@@ -407,6 +430,28 @@ const Page = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                <div className="space-y-2">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700 text-right">النيابة</label>
+                                        <Select
+                                            value={prosecutionOfficeId}
+                                            onValueChange={(value) => setProsecutionOfficeId(value)}
+                                        >
+                                            <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                                <SelectValue placeholder="اختر النيابة">
+                                                    {officesAvailable.find(office => office.id === prosecutionOfficeId)?.name}
+                                                </SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {officesAvailable.map((office) => (
+                                                    <SelectItem key={office.id} value={String(office.id)}>
+                                                        {office.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                             </div>
                         </fieldset>
 
@@ -449,8 +494,8 @@ const Page = () => {
                                         {caseRenewalDate || '--/--/----'}
                                     </div>
                                 </div>
-                                                                {/* الدائرة مصدرة القرار */}
-                                                                <div className="space-y-2">
+                                {/* الدائرة مصدرة القرار */}
+                                <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700">الدائرة مصدرة القرار</label>
                                     <Select
                                         value={issuingDepartment}
