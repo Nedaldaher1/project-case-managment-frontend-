@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { DialogEditCasePublicProps } from "@/types/DialogEditCaseProps";
 import axios from "axios";
 import { useState } from "react";
+import TypeCase from "../defendants/typeCase";
 import toast from 'react-hot-toast';
 import {
   Select,
@@ -19,6 +20,7 @@ interface UpdatedCaseFields {
   id: number;
   caseNumber?: string;
   defendantName?: string;
+  defendantNameAnother?: string;
   startDate?: Date;
   imprisonmentDuration?: number;
   issuingDepartment?: string;
@@ -32,7 +34,8 @@ interface UpdatedCaseFields {
 const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDuration, startDate, issuingDepartment, case_Number, year, investigationID, officeNumber }: DialogEditCasePublicProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [caseNumber, setCaseNumber] = useState(case_Number);
-  const [accusedName, setAccusedName] = useState(defendantName);
+  const [defendantNameOfCase, setDefendantName] = useState(defendantName);
+  const [defendantNameAnother, setDefendantNameAnother] = useState(defendantName);
   const [caseDate, setCaseDate] = useState<Date | null>(startDate ? new Date(startDate) : null);
   const [casePrisonDate, setCasePrisonDate] = useState<number | undefined>(imprisonmentDuration ? parseInt(imprisonmentDuration.toString()) : undefined);
   const [issuingDepartmentOfCase, setIssuingDepartment] = useState(issuingDepartment);
@@ -41,7 +44,6 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
   const [caseType, setcaseType] = useState(type_case);
   const [officeNumberOfCase, setOfficeNumber] = useState(officeNumber);
   const { userData,token } = useAuth();
-  const member_number = userData?.member_id;
 
   const arabicNumbers: { [key: number]: string } = {
     1: 'الأولى',
@@ -71,7 +73,8 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
     const updatedFields: UpdatedCaseFields = { id, year: new Date().getFullYear().toString() }; // استخدام النوع المخصص
 
     if (caseNumber) updatedFields.caseNumber = caseNumber;
-    if (accusedName) updatedFields.defendantName = accusedName;
+    if (defendantNameOfCase) updatedFields.defendantName = defendantNameOfCase ;
+    if (defendantNameAnother) updatedFields.defendantNameAnother = defendantNameAnother;
     if (caseDate) updatedFields.startDate = caseDate;
     if (casePrisonDate) updatedFields.imprisonmentDuration = casePrisonDate;
     if (issuingDepartmentOfCase) updatedFields.issuingDepartment = issuingDepartmentOfCase;
@@ -79,9 +82,7 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
     if (investigationIDOfCase) updatedFields.investigationID = investigationIDOfCase;
     if (yearOfCase) updatedFields.year = yearOfCase;
     if (officeNumberOfCase) updatedFields.officeNumber = officeNumberOfCase;
-    if (member_number) {
-      updatedFields.member_number = member_number.toString();
-    }
+
 
     if (Object.keys(updatedFields).length > 1) { // Check if at least one field is filled
       try {
@@ -160,22 +161,10 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 text-right">
-                          نوع القضية
-                        </label>
-                        <Select
+                      <TypeCase
                           value={caseType}
-                          onValueChange={(value) => setcaseType(value)}
-                        >
-                          <SelectTrigger className="w-full border-blue-200 rounded-xl bg-white">
-                            <SelectValue placeholder="اختر النوع" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="جنحة">جنحة</SelectItem>
-                            <SelectItem value="جناية">جناية</SelectItem>
-                            <SelectItem value="اداري">اداري</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          onValueChange={setcaseType}
+                        />
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">رقم حصر التحقيق</label>
@@ -191,35 +180,23 @@ const ModalEditCase = ({ children, id, type_case, defendantName, imprisonmentDur
                           اسم المتهم
                         </label>
                         <Input
-                          value={accusedName}
-                          name="accusedName"
-                          onChange={(e) => setAccusedName(e.target.value)}
+                          value={defendantNameOfCase}
+                          name="defendantName"
+                          onChange={(e) => setDefendantName(e.target.value)}
                           className="w-full border-blue-200 rounded-xl bg-white"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 text-right">
-                          رقم العضو
+                          اسم المتهم الثاني
                         </label>
-                        <Select value={member_number?.toString()} disabled>
-                          <SelectTrigger className="w-full border-blue-200 rounded-xl bg-white">
-                            <SelectValue placeholder="رقم العضو" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[...Array(10)].map((_, i) => (
-                              <SelectItem key={i + 1} value={`${i + 1}`}>
-                                {i + 1}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Input
+                          value={defendantNameAnother}
+                          name="defendantName"
+                          onChange={(e) => setDefendantNameAnother(e.target.value)}
+                          className="w-full border-blue-200 rounded-xl bg-white"
+                        />
                       </div>
-
-
-
-
-
-
                     </div>
                   </fieldset>
 

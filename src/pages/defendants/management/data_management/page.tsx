@@ -54,24 +54,26 @@ const Page = () => {
     const ability = useAbility(AbilityContext);
     const type = searchParams.get('type');
     const { token, userData } = useAuth();
-    const uuid = userData?.id;
+    const usernameParams = userData?.username;
 
-    const fetchData = async (page: number = 1, pageSize: number = 10) => {
-        try {
-            setIsLoading(true);
-            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/${uuid}`, {
-                params: { page, pageSize, type },
-                headers: {
-                    Authorization: token ? `Bearer ${token}` : '',
-                }
-            });
 
-            const { cases, total, totalPages } = response.data;
+    const fetchData = async (pageNumber: number = 1, pageSizeParam: number = 10) => {
+            try {
+                setIsLoading(true);
+                const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/${usernameParams}`, {
+                    params: { page: pageNumber, pageSize: pageSizeParam, type },
+                    headers: {
+                        Authorization: token ? `Bearer ${token}` : '',
+                    }
+                });
+
+            const { total, totalPages } = response.data.pagination;
             setData(response.data.data);
             setFilteredData(response.data.data);
             setTotalPages(totalPages);
             setTotalCases(total);
             setError("");
+            console.log(response.data);
         } catch (error) {
             setError((error as any).response.data.error);
         } finally {
@@ -144,7 +146,8 @@ const Page = () => {
             accessorKey: 'investigationID', header: 'رقم حصر التحقيق'
         },
         { accessorKey: 'defendantName', header: 'اسم المتهم' },
-        { accessorKey: 'member_number', header: 'رقم العضو' },
+        { accessorKey: 'defendantNameAnother', header: 'اسم المتهم الثاني' },
+        { accessorKey: 'username', header: 'اسم المستخدم' },
         {
             accessorKey: 'startDate',
             header: 'بداية المدة',
@@ -213,7 +216,8 @@ const Page = () => {
                 { header: "نوع القضية", key: "type_case", width: 20 },
                 { header: "رقم حصر التحقيق", key: "investigationID", width: 20 },
                 { header: "اسم المتهم", key: "defendantName", width: 20 },
-                { header: "رقم العضو", key: "member_number", width: 15 },
+                { header: "اسم المتهم الثاني", key: "defendantNameAnother", width: 20 },
+                { header: "اسم المستخدم", key: "username", width: 20 },
                 { header: "بداية المدة", key: "startDate", width: 20 },
                 { header: "مدة الحبس", key: "imprisonmentDuration", width: 15 },
                 { header: "موعد التجديد", key: "renewalDate", width: 20 },
@@ -315,7 +319,8 @@ const Page = () => {
                 { header: "نوع القضية", key: "type_case", width: 20 },
                 { header: "رقم حصر التحقيق", key: "investigationID", width: 20 },
                 { header: "اسم المتهم", key: "defendantName", width: 20 },
-                { header: "رقم العضو", key: "member_number", width: 15 },
+                { header: "اسم المتهم الثاني", key: "defendantNameAnother", width: 20 },
+                { header: "اسم المستخدم", key: "username", width: 20 },
                 { header: "بداية المدة", key: "startDate", width: 20 },
                 { header: "مدة الحبس", key: "imprisonmentDuration", width: 15 },
                 { header: "موعد التجديد", key: "renewalDate", width: 20 },

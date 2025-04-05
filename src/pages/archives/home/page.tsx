@@ -38,8 +38,8 @@ const Home = () => {
     }, [token, userData]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-16 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
+        <div className=" bg-gradient-to-b from-blue-50 to-indigo-50 py-16 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto min-h-screen">
                 <h1 className="h-[100px] text-4xl md:text-6xl font-bold text-center mb-16 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent animate-gradient-x">
                     نظام الأرشيف الإلكتروني للأحراز
                 </h1>

@@ -48,6 +48,8 @@ const Insert = () => {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [successCount, setSuccessCount] = useState(0);
     const [errorCount, setErrorCount] = useState(0);
+    const [notEditCount, setNotEditCount] = useState(0);
+    const [hasEditCount, setHasEditCount] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [showResults, setShowResults] = useState(false); // حالة لعرض النتائج
@@ -105,6 +107,7 @@ const Insert = () => {
                 }
             );
 
+
             if (response.data.success) {
                 setSerialNumber('');
                 setProsecutionOfficeId('');
@@ -124,6 +127,7 @@ const Insert = () => {
                 setTypeCaseTotalNumber('');
                 setTypeCaseNumber('');
                 toast.success('تم إضافة الأرشيف بنجاح!');
+
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -174,10 +178,12 @@ const Insert = () => {
                 setIsProcessing(true);
                 let success = 0;
                 let errors = 0;
+                let notEdit = 0;
+                let hasEdit = 0;
 
                 for (let i = 0; i < cases.length; i++) {
                     try {
-                        await axios.post(
+                        const res = await axios.post(
                             `${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/create`,
                             cases[i],
                             {
@@ -186,7 +192,15 @@ const Insert = () => {
                                 }
                             }
                         );
-                        success++;
+                        if (res.status === 202) {
+                            notEdit++;
+                        }
+                        if (res.status === 201) {
+                            hasEdit++;
+                        }
+                        if (res.status == 200) {
+                            success++;
+                        }
                     } catch (error) {
                         errors++;
                         if (axios.isAxiosError(error)) {
@@ -199,6 +213,9 @@ const Insert = () => {
                     setUploadProgress((i + 1) / cases.length * 100);
                     setSuccessCount(success);
                     setErrorCount(errors);
+                    setNotEditCount(notEdit);
+                    setHasEditCount(hasEdit);
+
 
                     await new Promise(resolve => setTimeout(resolve, 100)); // تقليل التأخير
                 }
@@ -206,7 +223,7 @@ const Insert = () => {
                 setIsProcessing(false);
                 setShowResults(true);
                 setSelectedFile(null);
-                toast.success(`تم استيراد ${success} قضية بنجاح مع ${errors} أخطاء`);
+                toast.success(`البيانات التي تمت إضافتها: ${success}, البيانات التي لم يتم تعديلها أو كانت موجودة مسبقًا: ${notEdit}, الأخطاء: ${errors}`);
             } catch (error) {
                 if (error instanceof Error) {
                     toast.error(error.message || 'حدث خطأ في معالجة الملف');
@@ -289,6 +306,8 @@ const Insert = () => {
                                                 <Progress value={uploadProgress} className="h-3" />
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="text-green-600">الناجحة: {successCount}</div>
+                                                    <div className="text-yellow-600">لم يتم التعديل: {notEditCount}</div>
+                                                    <div className="text-blue-600">تم التعديل: {hasEditCount}</div>
                                                     <div className="text-red-600">خطأ: {errorCount}</div>
                                                 </div>
                                                 <Button

@@ -57,7 +57,7 @@ const App = () => {
                 {/* Conditional Navbar */}
                 {isLoggedIn && (isAdmin ? <NavbarAdmin /> : <NavBar />)}
 
-                <main className={`${isLoggedIn && userData?.role === UserRole.ADMIN ? 'col-auto' : ''} w-full h-full`}>
+                <main className={`${isLoggedIn && userData?.role === UserRole.ADMIN ? 'col-auto' : ''}`}>
                     {isLoggedIn && userData?.role === UserRole.ADMIN && (
                         <Can I="manage" a="all" ability={ability}>
                             {(allowed) => allowed && <SidebarTrigger />}
@@ -94,7 +94,7 @@ const App = () => {
                                     <Route path="management/data" element={<ManagementCaseMembers />} />
                                     <Route path="management/add" element={<AddCaseMembers />} />
                                     <Route path="management" element={<HomePageMembersManagement />} />
-                                    <Route path="*"  element={<HomePageMembers />} />
+                                    <Route path="*" element={<HomePageMembers />} />
                                 </Route>
 
                                 {/* Archive Routes */}
@@ -119,13 +119,7 @@ const App = () => {
 
                 {/* Conditional Footer */}
                 {isLoggedIn && (
-                    <Can I="view" a="all" ability={ability}>
-                        {(allowed) => allowed && (
-                            <footer className={`${userData?.role === UserRole.ADMIN ? 'col-span-2' : ''}`}>
-                                <Footer />
-                            </footer>
-                        )}
-                    </Can>
+                        <Footer />
                 )}
             </div>
         </SidebarProvider>

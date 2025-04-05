@@ -136,3 +136,13 @@ export const verifyToken2FA = async (token: string, uuid: string) => {
         return error;
     }
 };
+
+export const getDataUsers = async (role:string) => {
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/auth/get/all/username/${role}`);
+        const data = response.data.usernames || []
+        return data;
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+};

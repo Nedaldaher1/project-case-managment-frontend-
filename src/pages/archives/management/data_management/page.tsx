@@ -73,8 +73,12 @@ const ProsecutionTable = () => {
 
     const [caseNumberSearch, setCaseNumberSearch] = useState('');
     const [itemNumberSearch, setItemNumberSearch] = useState('');
+    const [year, setYear] = useState('');
     const [debouncedCaseNumber, setDebouncedCaseNumber] = useState('');
     const [debouncedItemNumber, setDebouncedItemNumber] = useState('');
+    const [debouncedYear, setDebouncedYear] = useState(null as string | null);
+    console.log('debouncedYear:', year);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
     const [accusedName, setAccusedName] = useState('');
@@ -85,22 +89,30 @@ const ProsecutionTable = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedCaseNumber(caseNumberSearch);
-        }, 300);
+        }, 1000);
         return () => clearTimeout(timer);
     }, [caseNumberSearch]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedItemNumber(itemNumberSearch);
-        }, 300);
+        }, 1000);
         return () => clearTimeout(timer);
     }, [itemNumberSearch]);
 
     useEffect(() => {
-        setCurrentPage(1);
-    }, [debouncedCaseNumber, debouncedItemNumber]);
+        const timer = setTimeout(() => {
+            console.log('year:', year);
+            setDebouncedYear(year);
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [year]);
 
-    const fetchData = useCallback(async (page: number, caseNum: string, itemNum: string) => {
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedCaseNumber, debouncedItemNumber , debouncedYear]);
+
+    const fetchData = useCallback(async (page: number, caseNum: string, itemNum: string , year:string) => {
         setIsLoading(true);
         try {
             if (!import.meta.env.VITE_REACT_APP_API_URL) {
@@ -112,7 +124,8 @@ const ProsecutionTable = () => {
                     page,
                     limit: PAGE_SIZE,
                     numberCase: caseNum,
-                    itemNumber: itemNum
+                    itemNumber: itemNum,
+                    year
                 },
                 headers: {
                     Authorization: token ? `Bearer ${token}` : '',
@@ -133,8 +146,8 @@ const ProsecutionTable = () => {
     }, [type]);
 
     useEffect(() => {
-        fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber);
-    }, [currentPage, debouncedCaseNumber, debouncedItemNumber, fetchData]);
+        fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '' );
+    }, [currentPage, debouncedCaseNumber, debouncedItemNumber,debouncedYear,fetchData]);
 
     const handleEdit = (data: ProsecutionData) => {
         setEditingData(data);
@@ -180,7 +193,7 @@ const ProsecutionTable = () => {
 
                 // إعادة جلب البيانات للتأكد من المزامنة
                 setTimeout(() => {
-                    fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber);
+                    fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '');
                 }, 500);
             }
         } catch (error) {
@@ -253,43 +266,43 @@ const ProsecutionTable = () => {
             toast.error('لا توجد بيانات للتصدير');
             return;
         }
-    
+
         try {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('القضايا');
-    
+
             // 1. تصفية الأعمدة لإزالة عمود الإجراءات باستخدام ID
-            const filteredColumns = columns.filter(col => 
+            const filteredColumns = columns.filter(col =>
                 col.id !== 'actions'
             );
-    
+
             // 2. تعيين الأعمدة المصفاة
             worksheet.columns = filteredColumns.map(col => ({
                 header: col.header?.toString() || '',
                 key: (
-                    'accessorKey' in col 
+                    'accessorKey' in col
                         ? (col.accessorKey as string)
                         : (col as any).accessor
                 )?.toString() || '',
                 width: 25
             }));
-    
+
             // 3. إضافة البيانات مرة واحدة بدون تكرار
             data.forEach((archives: ProsecutionData) => {
                 const rowData = { ...archives };
                 worksheet.addRow(rowData);
             });
-    
+
             const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { 
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `القضايا_${new Date().toISOString()}.xlsx`;
             a.click();
-    
+
         } catch (error) {
             console.error('Export error:', error);
             toast.error('فشل في التصدير: ' + (error as Error).message);
@@ -310,43 +323,43 @@ const ProsecutionTable = () => {
             toast.error('لا توجد بيانات للتصدير');
             return;
         }
-    
+
         try {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('القضايا');
-    
+
             // 1. تصفية الأعمدة لإزالة عمود الإجراءات باستخدام ID
-            const filteredColumns = columns.filter(col => 
+            const filteredColumns = columns.filter(col =>
                 col.id !== 'actions'
             );
-    
+
             // 2. تعيين الأعمدة المصفاة
             worksheet.columns = filteredColumns.map(col => ({
                 header: col.header?.toString() || '',
                 key: (
-                    'accessorKey' in col 
+                    'accessorKey' in col
                         ? (col.accessorKey as string)
                         : (col as any).accessor
                 )?.toString() || '',
                 width: 25
             }));
-    
+
             // 3. إضافة البيانات مرة واحدة بدون تكرار
             data.forEach((archives: ProsecutionData) => {
                 const rowData = { ...archives };
                 worksheet.addRow(rowData);
             });
-    
+
             const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { 
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `القضايا_${new Date().toISOString()}.xlsx`;
             a.click();
-    
+
         } catch (error) {
             console.error('Export error:', error);
             toast.error('فشل في التصدير: ' + (error as Error).message);
@@ -400,8 +413,18 @@ const ProsecutionTable = () => {
                         value={itemNumberSearch}
                         onChange={(e) => setItemNumberSearch(e.target.value)}
                         min={'0'}
-
                     />
+
+                    <input
+                        type="text"
+                        placeholder="ابحث  بالسنة..."
+                        className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                        value={year}
+                        onChange={(e) => setYear(e.target.value)}
+                        min={'0'}
+                    />
+
+
                 </motion.div>
 
                 <div className="flex gap-3">
@@ -498,19 +521,8 @@ const ProsecutionTable = () => {
             </motion.div>
 
             <div className="flex items-center justify-end gap-4 mt-6">
-                <motion.button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 flex items-center gap-2"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                >
-                    ← السابق
-                </motion.button>
 
-                <span className="text-gray-600 font-medium">
-                    الصفحة {currentPage} من {Math.ceil(totalCount / PAGE_SIZE)}
-                </span>
+
 
                 <motion.button
                     onClick={() => setCurrentPage(p => p + 1)}
@@ -519,8 +531,23 @@ const ProsecutionTable = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
-                    التالي →
+                    ← التالي
                 </motion.button>
+
+                <span className="text-gray-600 font-medium">
+                    الصفحة {currentPage} من {Math.ceil(totalCount / PAGE_SIZE)}
+                </span>
+
+                <motion.button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 flex items-center gap-2"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                >
+                    السابق →
+                </motion.button>
+
             </div>
 
             {/* مودال التعديل */}

@@ -2,11 +2,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-
+import { getDataUsers } from "@/api/authApi";
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Progress } from "@/components/ui/progress";
 import { read, utils } from 'xlsx';
+import TypeCase from "@/components/defendants/typeCase";
+import { useAuth } from '@/context/userContext';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from "lucide-react"; // استيراد أيقونة الإغلاق
 import {
     Select,
     SelectContent,
@@ -14,10 +18,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useAuth } from '@/context/userContext';
-import { AnimatePresence, motion } from 'framer-motion';
-import { X } from "lucide-react"; // استيراد أيقونة الإغلاق
-
 const Page = () => {
     const [caseNumber, setCaseNumber] = useState('');
     const [caseDate, setCaseDate] = useState('');
@@ -28,15 +28,18 @@ const Page = () => {
     const [officeNumber, setOfficeNumber] = useState('');
     const [year, setYear] = useState('');
     const [investigationID, setInvestigationID] = useState('');
-    const [accusedName, setAccusedName] = useState('');
+    const [defendantName, setDefendantName] = useState('');
+    const [defendantNameAnother, setdefendantNameAnother] = useState('');
+    const [usernameData, setUsernameData] = useState<[]>([]);
+    const [username, setUsername] = useState('');
+
     const [searchParams] = useSearchParams();
     const { token, userData } = useAuth();
     const [prosecutionOfficeId, setProsecutionOfficeId] = useState('');
-    const officesAvailable: { id: string; name: string }[] =
-        (userData?.officesAvailable as { id: string; name: string }[] | undefined) || [];
+    const officesAvailable: { id: string; name: string }[] = (userData?.officesAvailable as { id: string; name: string }[] | undefined) || [];
     const type = searchParams.get('type');
+    const role = userData?.role;
     const member_number = userData?.member_id;
-    const userID = userData?.id;
 
     // حالات جديدة للاستيراد
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -70,19 +73,6 @@ const Page = () => {
         20: 'العشرون',
     };
 
-    useEffect(() => {
-        if (caseDate && casePrisonDate) {
-            const startDate = new Date(caseDate);
-            startDate.setDate(startDate.getDate() + parseInt(casePrisonDate, 10) - 1);
-            const formattedDate = startDate.toLocaleDateString('ar-EG', {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric'
-            });
-            setCaseRenewalDate(formattedDate);
-        }
-    }, [caseDate, casePrisonDate]);
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
@@ -91,7 +81,8 @@ const Page = () => {
             }
             await axios.post(`${import.meta.env.VITE_REACT_APP_API_URL}/api/public/cases/add`, {
                 caseNumber,
-                defendantName: accusedName,
+                defendantName,
+                defendantNameAnother,
                 startDate: caseDate,
                 imprisonmentDuration: casePrisonDate,
                 issuingDepartment,
@@ -101,7 +92,7 @@ const Page = () => {
                 year,
                 investigationID,
                 prosecutionOfficeId,
-                userID
+                username
             }, {
                 headers: {
                     Authorization: token ? `Bearer ${token}` : '',
@@ -112,7 +103,7 @@ const Page = () => {
             );
             toast.success('تم إضافة القضية بنجاح');
             setCaseNumber('');
-            setAccusedName('');
+            setDefendantName('');
             setCaseDate('');
             setCasePrisonDate('');
             setCaseRenewalDate('');
@@ -177,13 +168,13 @@ const Page = () => {
                     type_case: item['نوع القضية'],
                     investigationID: item['رقم حصر التحقيق'],
                     defendantName: item['اسم المتهم'],
-                    member_number: item['رقم العضو'],
+                    defendantNameAnother: item['اسم المتهم الثاني'],
+                    username: item['اسم المستخدم'],
+                    prosecutionOfficeId: type,
                     startDate: convertArabicDate(item['بداية المدة']),
                     imprisonmentDuration: item['مدة الحبس'],
                     issuingDepartment: item['دائرة مصدر القرار'],
                     officeNumber: item['رقم الدائرة'],
-                    userID,
-                    prosecutionOfficeId: type
                 }));
 
                 setIsProcessing(true);
@@ -235,6 +226,31 @@ const Page = () => {
         reader.readAsArrayBuffer(file);
     };
 
+    useEffect(() => {
+        if (caseDate && casePrisonDate) {
+            const startDate = new Date(caseDate);
+            startDate.setDate(startDate.getDate() + parseInt(casePrisonDate, 10) - 1);
+            const formattedDate = startDate.toLocaleDateString('ar-EG', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+            });
+            setCaseRenewalDate(formattedDate);
+        }
+    }, [caseDate, casePrisonDate]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await getDataUsers(role as string);
+                setUsernameData(response);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        fetchData();
+    }, []);
     return (
         <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
@@ -378,20 +394,7 @@ const Page = () => {
 
                                 {/* نوع القضية */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">نوع القضية</label>
-                                    <Select
-                                        value={caseType}
-                                        onValueChange={setCaseType}
-                                    >
-                                        <SelectTrigger className="border-blue-200 focus:ring-2 focus:ring-indigo-500">
-                                            <SelectValue placeholder="اختر النوع" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="جنحة">جنحة</SelectItem>
-                                            <SelectItem value="جناية">جناية</SelectItem>
-                                            <SelectItem value="اداري">اداري</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <TypeCase onValueChange={setCaseType} value={caseType} />
                                 </div>
 
                                 {/* رقم حصر التحقيق */}
@@ -410,23 +413,37 @@ const Page = () => {
                                     <label className="block text-sm font-medium text-gray-700">اسم المتهم</label>
                                     <Input
                                         type="text"
-                                        value={accusedName}
-                                        onChange={(e) => setAccusedName(e.target.value)}
+                                        value={defendantName}
+                                        onChange={(e) => setDefendantName(e.target.value)}
+                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                </div>
+                                {/* اسم المتهم الثاني*/}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">اسم المتهم الثاني</label>
+                                    <Input
+                                        type="text"
+                                        value={defendantNameAnother}
+                                        onChange={(e) => setdefendantNameAnother(e.target.value)}
                                         className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
                                     />
                                 </div>
 
-                                {/* رقم العضو */}
+                                {/*المستخدمين*/}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">رقم العضو</label>
-                                    <Select disabled value={(member_number ?? '').toString()}>
+                                    <label className="block text-sm font-medium text-gray-700">المستخدمين</label>
+                                    <Select onValueChange={(value) => setUsername(value)}>
                                         <SelectTrigger className="border-blue-200 focus:ring-2 focus:ring-indigo-500">
-                                            <SelectValue placeholder="رقم العضو" />
+                                            <SelectValue placeholder="المستخدمين" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-                                                <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                                            ))}
+                                            {
+                                                usernameData.map((user) => (
+                                                    <SelectItem key={user} value={user}>
+                                                        {user}
+                                                    </SelectItem>
+                                                ))
+                                            }
                                         </SelectContent>
                                     </Select>
                                 </div>
