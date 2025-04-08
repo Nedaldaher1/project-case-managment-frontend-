@@ -14,7 +14,9 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from '@/context/userContext';
-
+import OffcierName from "@/components/members/officerName";
+import ActionType from "@/components/members/actionType";
+import TypeCase from "../defendants/typeCase";
 interface UpdatedCaseFields {
     id: string;
     caseNumber?: string;
@@ -32,9 +34,12 @@ interface UpdatedCaseFields {
     investigationID?: string;
     accusedName?: string;
     reportType?: string;
+    officerName?: string;
+    actionType?: string;
+
 }
 
-const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, actionOther }: DialogEditCasePriavteProps) => {
+const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports , reportType, actionOther , actionType, officerName }: DialogEditCasePriavteProps) => {
     const [case_Number, setCaseNumber] = useState(caseNumber);
     const { userData, token } = useAuth();
     const [accusationOfCase, setAccusation] = useState(accusation);
@@ -43,12 +48,13 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
     const [victim_Question, setVictimQuestion] = useState(victimQuestion);
     const [witness_Question, setWitnessQuestion] = useState(witnessQuestion);
     const [technical_Reports, setTechnicalReports] = useState(technicalReports);
-    const [caseRe_ferral, setCaseReferral] = useState(caseReferral);
     const [year, setYear] = useState(0);
     const [caseType, setCaseType] = useState('');
     const [investigationID, setInvestigationID] = useState('');
     const [accusedName, setAccusedName] = useState('');
-    const [reportType, setReportType] = useState('');
+    const [reportTypeOfCase, setReportType] = useState(reportType);
+    const [oficer_name, setOfficerName] = useState(officerName);
+    const [action_type, setActionType] = useState(actionType);
     const [action_Other, setActionOther] = useState(actionOther);
     const [isOpen, setIsOpen] = useState(false);
     const reportOptions = [
@@ -72,12 +78,13 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
 
         if (defendant_Question) updatedFields.defendantQuestion = defendant_Question;
         if (officer_Question) updatedFields.officerQuestion = officer_Question;
+        if (oficer_name) updatedFields.officerName = oficer_name;
         if (victim_Question) updatedFields.victimQuestion = victim_Question;
         if (witness_Question) updatedFields.witnessQuestion = witness_Question;
         if (technical_Reports) updatedFields.technicalReports = technical_Reports;
-        if (reportType) updatedFields.reportType = reportType;
-        if (caseRe_ferral) updatedFields.caseReferral = caseRe_ferral;
+        if (reportTypeOfCase) updatedFields.reportType = reportTypeOfCase;
         if (action_Other) updatedFields.actionOther = action_Other;
+        if (action_type) updatedFields.actionType = action_type;
 
         if (Object.keys(updatedFields).length > 1) {
             try {
@@ -215,6 +222,10 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                     disabled
                                                 />
                                             </div>
+
+                                            <div className="space-y-2">
+                                                <TypeCase value={caseType} onValueChange={setCaseType} />
+                                            </div>
                                         </div>
                                     </fieldset>
 
@@ -298,6 +309,16 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                     </SelectContent>
                                                 </Select>
                                             </div>
+
+
+                                            {
+                                                officerQuestion === 'حتى الآن' && (
+                                                    <div className="space-y-2">
+                                                        <OffcierName value={oficer_name} onValueChange={setOfficerName} officerQuestion={officerQuestion} />
+                                                    </div>
+                                                )
+                                            }
+
                                             {/* تقارير فنية */}
                                             <div className="space-y-2">
                                                 <label className="block text-sm font-medium text-gray-700">تقارير فنية</label>
@@ -318,23 +339,16 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                             </div>
 
                                             {/* نوع التقرير (يظهر فقط إذا كانت التقارير الفنية "حتى الآن") */}
-                                            {technical_Reports === 'حتى الآن' && (
+                                            {technicalReports === 'حتى الآن' && (
                                                 <div className="space-y-2">
                                                     <label className="block text-sm font-medium text-gray-700">نوع التقرير</label>
 
-
                                                     <Input
                                                         type="text"
-                                                        list="reportTypes" // إضافة ارتباط مع الـ datalist
-                                                        value={reportType}
+                                                        value={reportTypeOfCase}
                                                         onChange={(e) => setReportType(e.target.value)}
                                                         required={technicalReports === 'حتى الآن'}
                                                     />
-                                                    <datalist id="reportTypes">
-                                                        {reportOptions.map((option) => (
-                                                            <option key={option} value={option} />
-                                                        ))}
-                                                    </datalist>
 
                                                 </div>
                                             )}
@@ -357,11 +371,13 @@ const ModalEditCase = ({ children, caseID, caseNumber, accusation, defendantQues
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-
-
-
-
-
+                                            {/* نوع الاجراءات */}
+                                            {actionOther === 'حتى الآن' && (
+                                                <div className="space-y-2">
+                                                    <ActionType value={action_type} onValueChange={setActionType} actionOther={actionOther} />
+                                                </div>
+                                            )}
+                                            {/* جاهزة للتصرف */}
                                         </div>
                                     </fieldset>
                                     <div className="flex justify-end gap-4">

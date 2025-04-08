@@ -429,12 +429,12 @@ const Page = () => {
                                     />
                                 </div>
 
-                                {/*المستخدمين*/}
+                                {/*الاعضاء*/}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">المستخدمين</label>
+                                    <label className="block text-sm font-medium text-gray-700">الاعضاء</label>
                                     <Select onValueChange={(value) => setUsername(value)}>
                                         <SelectTrigger className="border-blue-200 focus:ring-2 focus:ring-indigo-500">
-                                            <SelectValue placeholder="المستخدمين" />
+                                            <SelectValue placeholder="الاعضاء" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {
@@ -488,8 +488,11 @@ const Page = () => {
                                         type="date"
                                         value={caseDate}
                                         onChange={(e) => setCaseDate(e.target.value)}
+                                        min="2022-01-01"
+                                        max="2027-12-31"
                                         className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
                                     />
+
                                 </div>
 
                                 {/* مدة الحبس */}

@@ -35,7 +35,7 @@ const SiderBarAdmin = () => {
   const username = Cookies.get('username');
 
   return (
-    <Sidebar className="row-span-2">
+    <Sidebar className=" row-span-1 bg-red-600  " style={{ width: "250px"}}>
       <SidebarContent>
         <Img src="/logo.png" alt="logo" className="w-[200px] h-[100px] mx-auto" />
         <SidebarGroup>

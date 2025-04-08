@@ -1,5 +1,6 @@
 'use client';
 import { useState, useMemo, useEffect } from "react";
+import { Input } from "@/components/ui/input";
 import {
     Table,
     TableBody,
@@ -53,6 +54,8 @@ interface Case {
     investigationID: string;
     accusedName: string;
     reportType: string;
+    actionType: string; // Added property
+    officerName?: string; // Added property
 }
 
 interface Pagination {
@@ -74,13 +77,14 @@ const Page = () => {
     });
     const [usernames, setUsernames] = useState<string[]>([]);
     const [username, setUsername] = useState<string>('');
-    const [accusedName, setAccusedName] = useState<string>('');
     const [caseReferral, setCaseReferral] = useState<string>('');
     const [exportModalOpen, setExportModalOpen] = useState(false);
     const [exportProgress, setExportProgress] = useState(0);
     const [isExporting, setIsExporting] = useState(false);
     const { userData, token } = useAuth();
     const [searchParams] = useSearchParams();
+    const [year, setYear] = useState<string>('');
+    const [caseNumber, setCaseNumber] = useState<string>('');
     const type = searchParams.get('type');
     const role = userData?.role;
     const uuid = userData?.id;
@@ -191,6 +195,15 @@ const Page = () => {
             )
         },
         {
+            accessorKey: 'officerName',
+            header: 'اسم الضابط',
+            cell: ({ getValue }) => (
+                <DialogShowContact contact={getValue() as string}>
+                    <p>{getValue() as string}</p>
+                </DialogShowContact>
+            )
+        },
+        {
             accessorKey: 'technicalReports',
             header: 'التقارير الفنية',
             cell: ({ getValue }) => (
@@ -213,6 +226,15 @@ const Page = () => {
             header: "إجراءات أخرى"
         },
         {
+            accessorKey: 'actionType',
+            header: 'نوع الإجراء',
+            cell: ({ getValue }) => (
+                <DialogShowContact contact={getValue() as string}>
+                    <p>{getValue() as string}</p>
+                </DialogShowContact>
+            )
+        },
+        {
             accessorKey: 'caseReferral',
             header: 'جاهزة للتصرف',
         },
@@ -224,6 +246,7 @@ const Page = () => {
                     <DialogEditCase
                         caseID={Number(row.original.id)}
                         {...row.original}
+                        officerName={row.original.officerName || 'N/A'}
                     >
                         <img src="/edit.svg" alt="edit" className="w-6 h-6" />
                     </DialogEditCase>
@@ -238,8 +261,9 @@ const Page = () => {
                 page,
                 pageSize,
                 caseReferral,
+                year,
+                caseNumber,
                 username,
-                accusedName,
                 type
             };
 
@@ -267,24 +291,34 @@ const Page = () => {
 
             setPagination(paginationData);
         } catch (error) {
-            console.error("Error fetching data:", error);
+            if ((error as any).response.status === 404) {
+                setData([]);
+                setPagination({
+                    page: 1,
+                    pageSize: 10,
+                    total: 0,
+                    totalPages: 1,
+                });
+                return;
+            }
+            console.error("Error fetching data:", (error as any).response.status);
         }
     };
 
     const fetchData = async (page: number, pageSize: number) => {
         try {
-            // تنظيف قيمة type وتحويلها لرقم
-
             const params = {
                 page,
                 pageSize,
                 caseReferral,
+                year,
+                caseNumber,
                 username,
                 type, // استخدام القيمة المنظفة
-                accusedName
+
             };
 
-            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/${uuid}`, {
+            const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/${userData?.username}`, {
                 params,
                 headers: {
                     Authorization: token ? `Bearer ${token}` : '',
@@ -307,7 +341,17 @@ const Page = () => {
 
             setPagination(paginationData);
         } catch (error) {
-            console.error("Error fetching data:", error);
+            if ((error as any).response.status === 404) {
+                setData([]);
+                setPagination({
+                    page: 1,
+                    pageSize: 10,
+                    total: 0,
+                    totalPages: 1,
+                });
+                return;
+            }
+            console.error("Error fetching data:", (error as any).response.status);
         }
     };
 
@@ -386,74 +430,74 @@ const Page = () => {
     };
 
     const handleExportFull = async () => {
-            try {
-                const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/all/full`, {
-                    params: {
-                        type,
-                    },
-                    headers: {
-                        Authorization: token ? `Bearer ${token}` : '',
-                    }
-                });
-                const data: Case[] = res.data.data;
-                console.log(data);
-                setIsExporting(true);
-                const workbook = new ExcelJS.Workbook();
-                const worksheet = workbook.addWorksheet('القضايا');
-    
-                // 1. تصفية الأعمدة لإزالة عمود التعديل
-                const filteredColumns = columns.filter(col => {
-                    const accessor = (
-                        'accessorKey' in col
-                            ? col.accessorKey
-                            : (col as any).accessor
-                    )?.toString();
-                    return accessor !== 'تعديل'; // أو المعرف الذي تستخدمه لعمود التعديل
-                });
-    
-                // 2. استخدام الأعمدة المصفاة
-                worksheet.columns = filteredColumns.map(col => ({
-                    header: col.header?.toString() || '',
-                    key: (
-                        'accessorKey' in col
-                            ? (col.accessorKey as string)
-                            : (col as any).accessor
-                    )?.toString() || '',
-                    width: 25
-                }));
-    
-                let currentPage = 1;
-                let totalExported = 0;
-    
-                while (currentPage <= (pagination?.totalPages || 1)) {
-                    data.forEach((caseData: Case) => {
-                        // 3. إنشاء كائن بيانات بدون عمود التعديل
-                        const rowData: Partial<Case> = { ...caseData };
-                        delete (rowData as any).تعديل; // استبدل 'تعديل' بالاسم الفعلي للخاصية
-    
-                        worksheet.addRow(rowData);
-                    });
-                    totalExported += data.length;
-                    setExportProgress((totalExported / (pagination?.total || 1)) * 100);
-                    currentPage++;
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/private/cases/all/full`, {
+                params: {
+                    type,
+                },
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
                 }
-    
-                const buffer = await workbook.xlsx.writeBuffer();
-                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `القضايا_${new Date().toISOString()}.xlsx`;
-                a.click();
-    
-            } catch (error) {
-                console.error('Export error:', error);
-            } finally {
-                setIsExporting(false);
-                setExportModalOpen(false);
+            });
+            const data: Case[] = res.data.data;
+            console.log(data);
+            setIsExporting(true);
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('القضايا');
+
+            // 1. تصفية الأعمدة لإزالة عمود التعديل
+            const filteredColumns = columns.filter(col => {
+                const accessor = (
+                    'accessorKey' in col
+                        ? col.accessorKey
+                        : (col as any).accessor
+                )?.toString();
+                return accessor !== 'تعديل'; // أو المعرف الذي تستخدمه لعمود التعديل
+            });
+
+            // 2. استخدام الأعمدة المصفاة
+            worksheet.columns = filteredColumns.map(col => ({
+                header: col.header?.toString() || '',
+                key: (
+                    'accessorKey' in col
+                        ? (col.accessorKey as string)
+                        : (col as any).accessor
+                )?.toString() || '',
+                width: 25
+            }));
+
+            let currentPage = 1;
+            let totalExported = 0;
+
+            while (currentPage <= (pagination?.totalPages || 1)) {
+                data.forEach((caseData: Case) => {
+                    // 3. إنشاء كائن بيانات بدون عمود التعديل
+                    const rowData: Partial<Case> = { ...caseData };
+                    delete (rowData as any).تعديل; // استبدل 'تعديل' بالاسم الفعلي للخاصية
+
+                    worksheet.addRow(rowData);
+                });
+                totalExported += data.length;
+                setExportProgress((totalExported / (pagination?.total || 1)) * 100);
+                currentPage++;
             }
-     }
-    
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `القضايا_${new Date().toISOString()}.xlsx`;
+            a.click();
+
+        } catch (error) {
+            console.error('Export error:', error);
+        } finally {
+            setIsExporting(false);
+            setExportModalOpen(false);
+        }
+    }
+
 
     const table = useReactTable({
         data,
@@ -512,9 +556,9 @@ const Page = () => {
         } else {
             fetchData(pagination.page, pagination.pageSize);
         }
-    }, [role, pagination.page, pagination.pageSize, caseReferral, username, accusedName]);
+    }, [role, pagination.page, pagination.pageSize, caseReferral, username, year, caseNumber]);
 
-
+    console.log("data", data);
     return (
         <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
@@ -522,20 +566,20 @@ const Page = () => {
                     <h1 className=" h-[70px] text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                         إدارة قضايا الاعضاء
                     </h1>
-                  <div className="flex gap-4">
-                  <Button
-                        onClick={() => setExportModalOpen(true)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                    >
-                        تصدير إلى Excel
-                    </Button>
-                    <Button
-                        onClick={handleExportFull}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                    >
-                        📥 تصدير الكل Excel
-                    </Button>
-                  </div>
+                    <div className="flex gap-4">
+                        <Button
+                            onClick={() => setExportModalOpen(true)}
+                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                        >
+                            تصدير إلى Excel
+                        </Button>
+                        <Button
+                            onClick={handleExportFull}
+                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                        >
+                            📥 تصدير الكل Excel
+                        </Button>
+                    </div>
                 </div>
 
                 <AnimatePresence>
@@ -589,7 +633,7 @@ const Page = () => {
                             <Can I="manage" a="admin" ability={ability}>
                                 <Select value={username} onValueChange={setUsername}>
                                     <SelectTrigger className="w-40">
-                                        <SelectValue placeholder=" اسماء المستخدمين" />
+                                        <SelectValue placeholder=" اسماء الاعضاء" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {usernames.map(username => (
@@ -610,24 +654,38 @@ const Page = () => {
                                 </SelectContent>
                             </Select>
 
-                            <input
-                                type="text"
-                                value={accusedName}
-                                onChange={(e) => setAccusedName(e.target.value)}
-                                placeholder="اسم المتهم"
-                                className="border border-gray-200 rounded-md p-2 w-40"
-                            />
 
+                            <Select value={year} onValueChange={setYear}>
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="السنة" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="2023">2023</SelectItem>
+                                    <SelectItem value="2024">2024</SelectItem>
+                                    <SelectItem value="2025">2025</SelectItem>
+                                    <SelectItem value="2026">2026</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Input
+                                value={caseNumber}
+                                onChange={(e) => setCaseNumber(e.target.value)}
+                                placeholder="رقم القضية"
+                                className="w-40"
+
+                            />
                             <Button
                                 variant="outline"
                                 onClick={() => {
                                     setUsername('');
                                     setCaseReferral('');
-                                    setAccusedName('');
+                                    setYear('');
+                                    setCaseNumber('');
                                 }}
                             >
                                 مسح التصنيفات
                             </Button>
+
                         </div>
 
                         <div className="flex items-center gap-4">

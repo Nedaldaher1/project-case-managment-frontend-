@@ -102,7 +102,6 @@ const ProsecutionTable = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            console.log('year:', year);
             setDebouncedYear(year);
         }, 1000);
         return () => clearTimeout(timer);
@@ -110,9 +109,9 @@ const ProsecutionTable = () => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [debouncedCaseNumber, debouncedItemNumber , debouncedYear]);
+    }, [debouncedCaseNumber, debouncedItemNumber, debouncedYear]);
 
-    const fetchData = useCallback(async (page: number, caseNum: string, itemNum: string , year:string) => {
+    const fetchData = useCallback(async (page: number, caseNum: string, itemNum: string, year: string) => {
         setIsLoading(true);
         try {
             if (!import.meta.env.VITE_REACT_APP_API_URL) {
@@ -146,8 +145,8 @@ const ProsecutionTable = () => {
     }, [type]);
 
     useEffect(() => {
-        fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '' );
-    }, [currentPage, debouncedCaseNumber, debouncedItemNumber,debouncedYear,fetchData]);
+        fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '');
+    }, [currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear, fetchData]);
 
     const handleEdit = (data: ProsecutionData) => {
         setEditingData(data);
@@ -393,67 +392,81 @@ const ProsecutionTable = () => {
     return (
         <div className=" mx-auto p-4">
             <div className="flex flex-wrap gap-4 mb-6 items-center justify-end">
+
                 <motion.div
                     initial={{ x: -50 }}
                     animate={{ x: 0 }}
-                    className="flex gap-3"
+                    className="flex  justify-between gap-3 w-full  "
                 >
-                    <input
-                        type="number"
-                        placeholder="ابحث برقم القضية..."
-                        className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
-                        value={caseNumberSearch}
-                        onChange={(e) => setCaseNumberSearch(e.target.value)}
-                        min={'0'}
-                    />
-                    <input
-                        type="number"
-                        placeholder="ابحث برقم الأشياء..."
-                        className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
-                        value={itemNumberSearch}
-                        onChange={(e) => setItemNumberSearch(e.target.value)}
-                        min={'0'}
-                    />
+                       <select
+                        value={totalPages}
+                        onChange={(e) => {
+                            setTotalPages(Number(e.target.value));
+                        }}
+                        className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value={10}>10 لكل صفحة</option>
+                        <option value={20}>20 لكل صفحة</option>
+                        <option value={50}>50 لكل صفحة</option>
+                        <option value={100}>100 لكل صفحة</option>
+                    </select>
+                    <div className=" flex  gap-4">
+                        <input
+                            type="number"
+                            placeholder="ابحث برقم القضية..."
+                            className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                            value={caseNumberSearch}
+                            onChange={(e) => setCaseNumberSearch(e.target.value)}
+                            min={'0'}
+                        />
+                        <input
+                            type="number"
+                            placeholder="ابحث برقم الأشياء..."
+                            className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                            value={itemNumberSearch}
+                            onChange={(e) => setItemNumberSearch(e.target.value)}
+                            min={'0'}
+                        />
 
-                    <input
-                        type="text"
-                        placeholder="ابحث  بالسنة..."
-                        className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
-                        min={'0'}
-                    />
+                        <input
+                            type="text"
+                            placeholder="ابحث  بالسنة..."
+                            className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                            value={year}
+                            onChange={(e) => setYear(e.target.value)}
+                            min={'0'}
+                        />
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={clearFilters}
+                            className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                            🗑️ مسح التصنيفات
+                        </motion.button>
 
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={exportToExcel}
+                            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                        >
+                            📥 تصدير إلى Excel
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={exportToExcelFull}
+                            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                        >
+                            📥 تصدير الكل Excel
+                        </motion.button>
+                    </div>
+                    
 
                 </motion.div>
 
-                <div className="flex gap-3">
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={clearFilters}
-                        className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                        🗑️ مسح التصنيفات
-                    </motion.button>
 
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={exportToExcel}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-                    >
-                        📥 تصدير إلى Excel
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={exportToExcelFull}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-                    >
-                        📥 تصدير الكل Excel
-                    </motion.button>
-                </div>
             </div>
 
             <motion.div
@@ -731,6 +744,7 @@ const ProsecutionTable = () => {
                                                     <SelectItem value="اقتصادية">اقتصادية</SelectItem>
                                                 </SelectContent>
                                             </Select>
+
                                         </div>
                                     </div>
                                 </fieldset>

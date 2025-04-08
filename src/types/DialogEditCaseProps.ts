@@ -30,6 +30,9 @@ export interface DialogEditCasePriavteProps {
     technicalReports: string;
     caseReferral: string;
     actionOther: string;
+    actionType: string;
+    officerName: string;
+    reportType: string;
 
 }
 
