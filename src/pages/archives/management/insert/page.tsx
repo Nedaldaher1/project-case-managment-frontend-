@@ -8,6 +8,7 @@ import { X } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { useSearchParams } from 'react-router-dom'
+import InputStatusEvidence from "@/components/archives/inputStatusEvidence";
 import {
     Select,
     SelectContent,
@@ -607,21 +608,7 @@ const Insert = () => {
 
                                 {/* حالة الحرز */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700 text-right">حالة الحرز</label>
-                                    <Select
-                                        value={statusEvidence}
-                                        onValueChange={setStatusEvidence}
-                                    >
-                                        <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-                                            <SelectValue placeholder="اختر حالة الحرز" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="على ذمة التحقيق">على ذمة التحقيق</SelectItem>
-                                            <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
-                                            <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
-                                            <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <InputStatusEvidence value={statusEvidence} onValueChange={setStatusEvidence} />
                                 </div>
                             </div>
                         </fieldset>

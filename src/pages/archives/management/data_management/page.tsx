@@ -29,6 +29,7 @@ import {
 import ExcelJS from "exceljs";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/userContext";
+import InputStatusEvidence from "@/components/archives/inputStatusEvidence";
 
 interface ProsecutionData {
     id: string;
@@ -58,7 +59,6 @@ interface ApiResponse {
     total: number;
 }
 
-const PAGE_SIZE = 20;
 
 
 
@@ -70,6 +70,7 @@ const ProsecutionTable = () => {
     const { token } = useAuth();
     const [searchParams] = useSearchParams();
     const type = searchParams.get('type');
+    const [statusEvidence, setStatusEvidence] = useState('');
 
     const [caseNumberSearch, setCaseNumberSearch] = useState('');
     const [itemNumberSearch, setItemNumberSearch] = useState('');
@@ -77,11 +78,9 @@ const ProsecutionTable = () => {
     const [debouncedCaseNumber, setDebouncedCaseNumber] = useState('');
     const [debouncedItemNumber, setDebouncedItemNumber] = useState('');
     const [debouncedYear, setDebouncedYear] = useState(null as string | null);
-    console.log('debouncedYear:', year);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
-    const [accusedName, setAccusedName] = useState('');
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingData, setEditingData] = useState<ProsecutionData | null>(null);
@@ -109,9 +108,9 @@ const ProsecutionTable = () => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [debouncedCaseNumber, debouncedItemNumber, debouncedYear]);
+    }, [debouncedCaseNumber, debouncedItemNumber, debouncedYear, totalPages]);
 
-    const fetchData = useCallback(async (page: number, caseNum: string, itemNum: string, year: string) => {
+    const fetchData = useCallback(async (page: number, caseNum: string, itemNum: string, year: string, statusEvidence: string) => {
         setIsLoading(true);
         try {
             if (!import.meta.env.VITE_REACT_APP_API_URL) {
@@ -121,9 +120,10 @@ const ProsecutionTable = () => {
                 params: {
                     type,
                     page,
-                    limit: PAGE_SIZE,
+                    limit: totalPages,
                     numberCase: caseNum,
                     itemNumber: itemNum,
+                    statusEvidence,
                     year
                 },
                 headers: {
@@ -142,11 +142,11 @@ const ProsecutionTable = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [type]);
+    }, [type, totalPages]);
 
     useEffect(() => {
-        fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '');
-    }, [currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear, fetchData]);
+        fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '', statusEvidence);
+    }, [currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear, totalPages, statusEvidence, fetchData]);
 
     const handleEdit = (data: ProsecutionData) => {
         setEditingData(data);
@@ -192,7 +192,7 @@ const ProsecutionTable = () => {
 
                 // إعادة جلب البيانات للتأكد من المزامنة
                 setTimeout(() => {
-                    fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '');
+                    fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '', statusEvidence);
                 }, 500);
             }
         } catch (error) {
@@ -245,13 +245,21 @@ const ProsecutionTable = () => {
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        pageCount: Math.ceil(totalCount / PAGE_SIZE),
+        pageCount: Math.ceil(totalCount / totalPages),
         manualPagination: true,
         state: {
             pagination: {
                 pageIndex: currentPage - 1,
-                pageSize: PAGE_SIZE
+                pageSize: totalPages // يجب أن تكون هذه القيمة متزامنة مع totalPages
             }
+        },
+        // أضف هذه الخاصية لتحديث الحالة عند تغيير pageSize
+        onPaginationChange: (updater) => {
+            const newPagination = updater instanceof Function
+                ? updater(table.getState().pagination)
+                : updater;
+            setCurrentPage(newPagination.pageIndex + 1);
+            setTotalPages(newPagination.pageSize);
         }
     });
 
@@ -398,10 +406,11 @@ const ProsecutionTable = () => {
                     animate={{ x: 0 }}
                     className="flex  justify-between gap-3 w-full  "
                 >
-                       <select
+                    <select
                         value={totalPages}
                         onChange={(e) => {
-                            setTotalPages(Number(e.target.value));
+                            // سيتم التعامل مع التغيير عبر onPaginationChange في useReactTable
+                            table.setPageSize(Number(e.target.value));
                         }}
                         className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
                     >
@@ -411,6 +420,24 @@ const ProsecutionTable = () => {
                         <option value={100}>100 لكل صفحة</option>
                     </select>
                     <div className=" flex  gap-4">
+                        <Select
+                            value={statusEvidence}
+                            onValueChange={setStatusEvidence}
+                            dir="rtl"
+
+                        >
+                            <SelectTrigger className="  h-full p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                            >
+                                <SelectValue placeholder="اختر حالة الحرز" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="على ذمة التحقيق">على ذمة التحقيق</SelectItem>
+                                <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
+                                <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
+                                <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
+                            </SelectContent>
+                        </Select>
+
                         <input
                             type="number"
                             placeholder="ابحث برقم القضية..."
@@ -462,7 +489,7 @@ const ProsecutionTable = () => {
                             📥 تصدير الكل Excel
                         </motion.button>
                     </div>
-                    
+
 
                 </motion.div>
 
@@ -539,7 +566,7 @@ const ProsecutionTable = () => {
 
                 <motion.button
                     onClick={() => setCurrentPage(p => p + 1)}
-                    disabled={currentPage * PAGE_SIZE >= totalCount}
+                    disabled={currentPage * totalPages >= totalCount}
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 flex items-center gap-2"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -548,7 +575,7 @@ const ProsecutionTable = () => {
                 </motion.button>
 
                 <span className="text-gray-600 font-medium">
-                    الصفحة {currentPage} من {Math.ceil(totalCount / PAGE_SIZE)}
+                    الصفحة {currentPage} من {Math.ceil(totalCount / totalPages)}
                 </span>
 
                 <motion.button
