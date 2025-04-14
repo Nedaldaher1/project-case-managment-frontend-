@@ -4,12 +4,17 @@ import NavBar from '@/components/navbar/navbar';
 import NavbarAdmin from '@/components/admin/SiderBarAdmin/SiderBarAdmin';
 import Footer from '@/components/footer/footer';
 import ProtectedRoute from './routes/ProtectedRoute';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from './context/userContext';
 import { UserRole } from '@/types/user';
 import { AbilityContext } from '@/context/AbilityContext';
 import { Can, useAbility } from '@casl/react';
 import { Actions, Subjects } from '@/ability/ability';
+import DarkModeToggle from '@/components/common/toggle_dark';
+import { selectDarkMode } from '@/store/darkModeSlice';
+import { useSelector } from 'react-redux';
+import ArchivesLayout from './layout/ArchivesLayout';
+
+
 
 // Lazy-loaded components
 const Login = lazy(() => import('./pages/login/page'));
@@ -33,6 +38,7 @@ const App = () => {
     const { isLoggedIn, userData } = useAuth();
     const isAdmin = userData?.role === UserRole.ADMIN;
     const ability = useAbility(AbilityContext);
+    const isDarkMode = useSelector(selectDarkMode);
 
     const RoleProtectedRoute = ({
         children,
@@ -49,77 +55,81 @@ const App = () => {
         return children;
     };
 
+
+
     return (
-        <SidebarProvider>
-            <div className={`${isLoggedIn && isAdmin ? 'flex min-h-screen' : ''} w-screen`}>
+        <div className={`${isLoggedIn && isAdmin ? 'flex min-h-screen' : ''}  `}>
 
-                {/* Conditional Navbar */}
-                {isLoggedIn && (isAdmin ? <NavbarAdmin /> : <NavBar />)}
+            {/* Conditional Navbar */}
+            {isLoggedIn && (isAdmin ? <NavbarAdmin /> : <NavBar />)}
 
 
-                    <main className={`${isAdmin ? '' : ''}   p-4 transition-all w-full`}>
-                        {isLoggedIn && isAdmin && (
-                            <Can I="manage" a="all" ability={ability}>
-                                {(allowed) => allowed && <SidebarTrigger />}
-                            </Can>
-                        )}
+            <main className={`${isAdmin ? '' : ''} ${isDarkMode ? 'bg-gray-900' : ''} transition-all w-full`}>
+                <div className='fixed bottom-10  right-20 z-50 flex items-center gap-4'>
+                    <DarkModeToggle />
+                </div>
 
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <Routes>
-                                <Route path="/login" element={!isLoggedIn ? <Login /> : <Home />} />
 
-                                <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
-                                    <Route path="/" element={<Home />} />
+                <Suspense fallback={<div>Loading...</div>}>
+                    <Routes>
+                        <Route path="/login" element={!isLoggedIn ? <Login /> : <Home />} />
 
-                                    {/* Defendants Case Routes */}
-                                    <Route path="case/defendants/*" element={
-                                        <RoleProtectedRoute action="view" subject="CaseSystem">
-                                            <Outlet />
-                                        </RoleProtectedRoute>
-                                    }>
-                                        <Route path="management/add" element={<AddCaseDefendants />} />
-                                        <Route path="management/data" element={<ManagementCaseDefendants />} />
-                                        <Route path="management" element={<HomePageDefendantsManagement />} />
-                                        <Route path="*" element={<HomePageDefendants />} />
-                                    </Route>
+                        <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                            <Route path="/" element={<Home />} />
 
-                                    {/* Members Case Routes */}
-                                    <Route path="/case/members/*" element={
-                                        <RoleProtectedRoute action="view" subject="CaseSystem">
-                                            <Outlet />
-                                        </RoleProtectedRoute>
-                                    }>
-                                        <Route path="management/data" element={<ManagementCaseMembers />} />
-                                        <Route path="management/add" element={<AddCaseMembers />} />
-                                        <Route path="management" element={<HomePageMembersManagement />} />
-                                        <Route path="*" element={<HomePageMembers />} />
-                                    </Route>
+                            {/* Defendants Case Routes */}
+                            <Route path="case/defendants/*" element={
+                                <RoleProtectedRoute action="view" subject="CaseSystem">
+                                    <ArchivesLayout />
+                                </RoleProtectedRoute>
+                            }>
+                                <Route path="management/add" element={<AddCaseDefendants />} />
+                                <Route path="management/data" element={<ManagementCaseDefendants />} />
+                                <Route path="management" element={<HomePageDefendantsManagement />} />
+                                <Route path="*" element={<HomePageDefendants />} />
+                            </Route>
 
-                                    {/* Archive Routes */}
-                                    <Route path="archives/*" element={
-                                        <RoleProtectedRoute action="view" subject="ElectronicArchive">
-                                            <Outlet />
-                                        </RoleProtectedRoute>
-                                    }>
-                                        <Route index element={<Archives />} />
-                                        <Route path="management" element={<ArchivesManagement />} />
-                                        <Route path="management/insert" element={<ArchiveInsert />} />
-                                        <Route path="management/data" element={<ArchivesDataManagement />} />
-                                    </Route>
+                            {/* Members Case Routes */}
+                            <Route path="/case/members/*" element={
+                                <RoleProtectedRoute action="view" subject="CaseSystem">
+                                    <ArchivesLayout />
+                                    </RoleProtectedRoute>
+                            }>
+                                <Route path="management/data" element={<ManagementCaseMembers />} />
+                                <Route path="management/add" element={<AddCaseMembers />} />
+                                <Route path="management" element={<HomePageMembersManagement />} />
+                                <Route path="*" element={<HomePageMembers />} />
+                            </Route>
 
-                                </Route>
+                            {/* Archive Routes */}
+                            <Route
+                                path="archives/*"
+                                element={
+                                    <RoleProtectedRoute action="view" subject="ElectronicArchive">
+                                        <>
+                                            <ArchivesLayout /> {/* استبدل Outlet بالمكون الجديد */}
+                                        </>
+                                    </RoleProtectedRoute>
+                                }
+                            >
+                                <Route index element={<Archives />} />
+                                <Route path="management" element={<ArchivesManagement />} />
+                                <Route path="management/insert" element={<ArchiveInsert />} />
+                                <Route path="management/data" element={<ArchivesDataManagement />} />
+                            </Route>
 
-                                <Route path="/unauthorized" element={<UnauthorizedPage />} />
-                                <Route path="*" element={<NotFoundPage />} />
-                            </Routes>
-                        </Suspense>
-                    </main>
+                        </Route>
 
-                    {/* Conditional Footer */}
-                    {isLoggedIn && !isAdmin && <Footer />}
-                
-            </div>
-        </SidebarProvider>
+                        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                        <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                </Suspense>
+            </main>
+
+            {/* Conditional Footer */}
+            {isLoggedIn && !isAdmin && <Footer />}
+
+        </div>
     );
 }
 

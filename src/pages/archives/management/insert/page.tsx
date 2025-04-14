@@ -21,7 +21,6 @@ import { read, utils } from 'xlsx';
 
 
 const Insert = () => {
-    const [serialNumber, setSerialNumber] = useState('');
     const [prosecutionOfficeId, setProsecutionOfficeId] = useState('');
     const [itemNumber, setItemNumber] = useState('');
     const [totalNumber, setTotalNumber] = useState('');
@@ -63,7 +62,6 @@ const Insert = () => {
         setIsSubmitting(true);
 
         if (
-            Number(serialNumber) < 0 ||
             Number(itemNumber) < 0 ||
             Number(totalNumber) < 0 ||
             Number(roomNumber) < 0 ||
@@ -83,7 +81,6 @@ const Insert = () => {
             const response = await axios.post(
                 `${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/create`,
                 {
-                    serialNumber: Number(serialNumber),
                     itemNumber: Number(itemNumber),
                     charge,
                     seizureStatement,
@@ -110,7 +107,6 @@ const Insert = () => {
 
 
             if (response.data.success) {
-                setSerialNumber('');
                 setProsecutionOfficeId('');
                 setItemNumber('');
                 setTotalNumber('');
@@ -157,7 +153,6 @@ const Insert = () => {
                 const cases = jsonData.map((item: any) => {
                     // التحقق من الحقول الأساسية
                     return {
-                        serialNumber: item['المسلسل'],
                         itemNumber: item['رقم الأشياء'],
                         numberCase: item['رقم القضية'],
                         typeCaseNumber: item['نوع القضية'],
@@ -361,19 +356,7 @@ const Insert = () => {
 
 
 
-                                {/* مسلسل */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700 text-right">مسلسل</label>
-                                    <input
-                                        type="number"
-                                        value={serialNumber}
-                                        onChange={(e) => setSerialNumber(e.target.value)}
-                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                                        min="0"
-                                        required
-
-                                    />
-                                </div>
+                             
 
                                 {/* رقم الأشياء */}
                                 <div className="space-y-2">

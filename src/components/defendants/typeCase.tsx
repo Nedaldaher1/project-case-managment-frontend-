@@ -5,11 +5,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-const TypeCase = ({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) => {
+import { selectDarkMode } from '@/store/darkModeSlice';
+import { useSelector } from 'react-redux';
 
+
+const TypeCase = ({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) => {
+    const isDarkMode = useSelector(selectDarkMode);
     return(
         <>
-        <label className="block text-sm font-medium text-gray-700">نوع القضية</label>
+        <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>نوع القضية</label>
         <Select
             value={value}
             onValueChange={onValueChange}

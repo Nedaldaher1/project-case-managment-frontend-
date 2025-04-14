@@ -22,6 +22,9 @@ const inputStatusEvidence = ({ value, onValueChange }: { value: string; onValueC
                     <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
                     <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
                     <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
+                    <SelectItem value="تم البيع">تم البيع </SelectItem>
+                    <SelectItem value="تم التسليم"> تم التسليم</SelectItem>
+                    <SelectItem value="تم الاعدام">تم الإعدام</SelectItem>
                 </SelectContent>
             </Select>
         </>

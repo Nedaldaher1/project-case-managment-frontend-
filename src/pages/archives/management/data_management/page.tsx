@@ -4,6 +4,10 @@ import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { selectDarkMode } from '@/store/darkModeSlice';
+import { useSelector } from 'react-redux';
+import { Input } from "@/components/ui/input";
+import InputStatusEvidence from "@/components/archives/inputStatusEvidence";
 import {
     Table,
     TableBody,
@@ -29,7 +33,6 @@ import {
 import ExcelJS from "exceljs";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/userContext";
-import InputStatusEvidence from "@/components/archives/inputStatusEvidence";
 
 interface ProsecutionData {
     id: string;
@@ -50,7 +53,6 @@ interface ProsecutionData {
     statusEvidence: string;
     typeCaseTotalNumber: string;
     typeCaseNumber: string;
-    // تأكد من وجود جميع الحقول المطلوبة
 }
 
 interface ApiResponse {
@@ -64,6 +66,7 @@ interface ApiResponse {
 
 const ProsecutionTable = () => {
     const [data, setData] = useState<ProsecutionData[]>([]);
+    console.log('data', data);
     const [totalCount, setTotalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -78,13 +81,14 @@ const ProsecutionTable = () => {
     const [debouncedCaseNumber, setDebouncedCaseNumber] = useState('');
     const [debouncedItemNumber, setDebouncedItemNumber] = useState('');
     const [debouncedYear, setDebouncedYear] = useState(null as string | null);
+    const [actionType, setActionType] = useState('action-taken');
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingData, setEditingData] = useState<ProsecutionData | null>(null);
-
+    const isDarkMode = useSelector(selectDarkMode);
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedCaseNumber(caseNumberSearch);
@@ -108,7 +112,7 @@ const ProsecutionTable = () => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [debouncedCaseNumber, debouncedItemNumber, debouncedYear, totalPages]);
+    }, [debouncedCaseNumber, debouncedItemNumber, debouncedYear, actionType, totalPages]);
 
     const fetchData = useCallback(async (page: number, caseNum: string, itemNum: string, year: string, statusEvidence: string) => {
         setIsLoading(true);
@@ -124,7 +128,8 @@ const ProsecutionTable = () => {
                     numberCase: caseNum,
                     itemNumber: itemNum,
                     statusEvidence,
-                    year
+                    year,
+                    actionType
                 },
                 headers: {
                     Authorization: token ? `Bearer ${token}` : '',
@@ -142,11 +147,11 @@ const ProsecutionTable = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [type, totalPages]);
+    }, [type, totalPages, actionType]);
 
     useEffect(() => {
         fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '', statusEvidence);
-    }, [currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear, totalPages, statusEvidence, fetchData]);
+    }, [currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear, totalPages, statusEvidence, actionType, fetchData]);
 
     const handleEdit = (data: ProsecutionData) => {
         setEditingData(data);
@@ -160,21 +165,23 @@ const ProsecutionTable = () => {
         try {
             const response = await axios.put(
                 `${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/update/${editingData.id}`,
-                editingData,
+                 {
+                    ...editingData,
+                    actionType,
+                 },
+                
                 {
                     headers: {
                         Authorization: token ? `Bearer ${token}` : '',
+                    },
+                    params: {
+                        type,
+                        id: editingData.id,
                     }
                 }
             );
 
             if (response.data.success) {
-                // التحقق من وجود البيانات المحدثة بشكل صحيح
-                if (!response.data.updatedData) {
-                    throw new Error('البيانات المحدثة غير موجودة');
-                }
-
-                // تحديث الحالة مع البيانات الجديدة
                 setData(prev => prev.map(item =>
                     item.id === editingData.id ? response.data.updatedData : item
                 ));
@@ -266,60 +273,27 @@ const ProsecutionTable = () => {
     const clearFilters = () => {
         setCaseNumberSearch('');
         setItemNumberSearch('');
+        setYear('');
+        setStatusEvidence('');
+        setDebouncedCaseNumber('');
+        setDebouncedItemNumber('');
+        setDebouncedYear(null);
+        
     };
 
-    const exportToExcel = async () => {
-        if (data.length === 0) {
-            toast.error('لا توجد بيانات للتصدير');
-            return;
-        }
 
-        try {
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('القضايا');
-
-            // 1. تصفية الأعمدة لإزالة عمود الإجراءات باستخدام ID
-            const filteredColumns = columns.filter(col =>
-                col.id !== 'actions'
-            );
-
-            // 2. تعيين الأعمدة المصفاة
-            worksheet.columns = filteredColumns.map(col => ({
-                header: col.header?.toString() || '',
-                key: (
-                    'accessorKey' in col
-                        ? (col.accessorKey as string)
-                        : (col as any).accessor
-                )?.toString() || '',
-                width: 25
-            }));
-
-            // 3. إضافة البيانات مرة واحدة بدون تكرار
-            data.forEach((archives: ProsecutionData) => {
-                const rowData = { ...archives };
-                worksheet.addRow(rowData);
-            });
-
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `القضايا_${new Date().toISOString()}.xlsx`;
-            a.click();
-
-        } catch (error) {
-            console.error('Export error:', error);
-            toast.error('فشل في التصدير: ' + (error as Error).message);
-        }
-    };
 
     const exportToExcelFull = async () => {
         const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/all/full`, {
             params: {
                 type,
+                page: currentPage,
+                limit: totalPages,
+                numberCase: debouncedCaseNumber,
+                itemNumber: debouncedItemNumber,
+                statusEvidence,
+                year,
+                actionType
             },
             headers: {
                 Authorization: token ? `Bearer ${token}` : '',
@@ -398,96 +372,124 @@ const ProsecutionTable = () => {
     }
 
     return (
-        <div className=" mx-auto p-4">
+        <div className=" mx-auto p-4 h-full">
             <div className="flex flex-wrap gap-4 mb-6 items-center justify-end">
 
                 <motion.div
                     initial={{ x: -50 }}
                     animate={{ x: 0 }}
-                    className="flex  justify-between gap-3 w-full  "
-                >
-                    <select
-                        value={totalPages}
-                        onChange={(e) => {
-                            // سيتم التعامل مع التغيير عبر onPaginationChange في useReactTable
-                            table.setPageSize(Number(e.target.value));
-                        }}
-                        className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value={10}>10 لكل صفحة</option>
-                        <option value={20}>20 لكل صفحة</option>
-                        <option value={50}>50 لكل صفحة</option>
-                        <option value={100}>100 لكل صفحة</option>
-                    </select>
-                    <div className=" flex  gap-4">
-                        <Select
-                            value={statusEvidence}
-                            onValueChange={setStatusEvidence}
-                            dir="rtl"
 
+                    className="flex  flex-col justify-between gap-3 w-full  "
+                >
+                    <Select
+                        value={actionType}
+                        onValueChange={(value) => {
+                            setActionType(value);
+                        }}
+                    >
+                        <SelectTrigger className=" self-end  h-full p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                        >
+                            <SelectValue placeholder="اختر نوع الجدول" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="action-taken">تم التصرف</SelectItem>
+                            <SelectItem value="no-action">لم يتم التصرف</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <div className="flex  justify-between w-full">
+                        <Select
+                            value={String(totalPages)}
+                            onValueChange={(e) => {
+                                // سيتم التعامل مع التغيير عبر onPaginationChange في useReactTable
+                                table.setPageSize(Number(e));
+                            }}
                         >
                             <SelectTrigger className="  h-full p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
                             >
                                 <SelectValue placeholder="اختر حالة الحرز" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="على ذمة التحقيق">على ذمة التحقيق</SelectItem>
-                                <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
-                                <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
-                                <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
+                                <SelectItem value={'5'}>5 لكل صفحة</SelectItem>
+                                <SelectItem value={'10'}>10 لكل صفحة</SelectItem>
+                                <SelectItem value={'20'}>20 لكل صفحة</SelectItem>
+                                <SelectItem value={'50'}>50 لكل صفحة</SelectItem>
+                                <SelectItem value={'100'}>100 لكل صفحة</SelectItem>
                             </SelectContent>
+
                         </Select>
+                        <div className=" flex f h-[40px] gap-4">
 
-                        <input
-                            type="number"
-                            placeholder="ابحث برقم القضية..."
-                            className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
-                            value={caseNumberSearch}
-                            onChange={(e) => setCaseNumberSearch(e.target.value)}
-                            min={'0'}
-                        />
-                        <input
-                            type="number"
-                            placeholder="ابحث برقم الأشياء..."
-                            className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
-                            value={itemNumberSearch}
-                            onChange={(e) => setItemNumberSearch(e.target.value)}
-                            min={'0'}
-                        />
+                           <div className=" w-48">
+                           <Select
+                                value={statusEvidence}
+                                onValueChange={setStatusEvidence}
+                            >
+                                <SelectTrigger className="w-full border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                    <SelectValue placeholder="اختر حالة الحرز" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="على ذمة التحقيق">على ذمة التحقيق</SelectItem>
+                                    <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
+                                    <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
+                                    <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
+                                    <SelectItem value="تم البيع">تم البيع </SelectItem>
+                                    <SelectItem value="تم التسليم"> تم التسليم</SelectItem>
+                                    <SelectItem value="تم الاعدام">تم الإعدام</SelectItem>
+                                </SelectContent>
+                            </Select>
 
-                        <input
-                            type="text"
-                            placeholder="ابحث  بالسنة..."
-                            className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
-                            value={year}
-                            onChange={(e) => setYear(e.target.value)}
-                            min={'0'}
-                        />
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={clearFilters}
-                            className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                            🗑️ مسح التصنيفات
-                        </motion.button>
+                           </div>
 
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={exportToExcel}
-                            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-                        >
-                            📥 تصدير إلى Excel
-                        </motion.button>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={exportToExcelFull}
-                            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-                        >
-                            📥 تصدير الكل Excel
-                        </motion.button>
+                            <Input
+                                type="number"
+                                placeholder="ابحث برقم القضية..."
+                                className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                                value={caseNumberSearch}
+                                onChange={(e) => setCaseNumberSearch(e.target.value)}
+                                min={'0'}
+                            />
+                            <Input
+                                type="number"
+                                placeholder="ابحث برقم الأشياء..."
+                                className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                                value={itemNumberSearch}
+                                onChange={(e) => setItemNumberSearch(e.target.value)}
+                                min={'0'}
+                            />
+
+                            <Input
+                                type="text"
+                                placeholder="ابحث  بالسنة..."
+                                className="p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
+                                value={year}
+                                onChange={(e) => setYear(e.target.value)}
+                                min={'0'}
+                            />
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={clearFilters}
+                                className={`px-4 py-2 rounded-lg transition-colors text-xs ${isDarkMode
+                                    ? 'bg-[#374151] text-[#93C5FD] hover:bg-[#1F2937]'
+                                    : 'bg-gray-100 hover:bg-gray-200'
+                                    }`}
+                            >
+                                🗑️ مسح التصنيفات
+                            </motion.button>
+
+
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={exportToExcelFull}
+                                className={`px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2 text-xs ${isDarkMode
+                                    ? 'bg-[#4F46E5] hover:bg-[#2563EB]'
+                                    : 'bg-green-500 hover:bg-green-600'
+                                    }`}
+                            >
+                                📥 تصدير الكل Excel
+                            </motion.button>
+                        </div>
                     </div>
 
 
@@ -500,31 +502,30 @@ const ProsecutionTable = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="rounded-xl border border-gray-200 shadow-lg bg-white overflow-x-auto"
-            >
+                className={`rounded-xl border shadow-lg  ${isDarkMode ? 'border-[#374151] bg-[#1F2937]' : 'border-gray-200 bg-white'
+                    }`}            >
                 <Table dir="rtl" className="min-w-full">
-                    <TableHeader className="bg-blue-50">
+                    <TableHeader className={isDarkMode ? 'bg-[#374151]' : 'bg-blue-50'}>
                         <TableRow>
-                            <TableCell className="text-center bg-blue-100 font-bold text-lg" colSpan={9}>
+                            <TableCell className={`text-center font-bold text-lg ${isDarkMode ? 'bg-[#374151] text-[#E5E7EB]' : 'bg-blue-100'}`} colSpan={9}>
                                 📁 بيانات الحرز
                             </TableCell>
-                            <TableCell className="text-center bg-green-100 font-bold text-lg" colSpan={3}>
+                            <TableCell className={`text-center font-bold text-lg ${isDarkMode ? 'bg-[#374151] text-[#E5E7EB]' : 'bg-blue-100'}`} colSpan={3}>
                                 🚪 مكان تواجد الحرز
                             </TableCell>
-                            <TableCell className="text-center bg-yellow-100 font-bold text-lg" colSpan={3}>
+                            <TableCell className={`text-center font-bold text-lg ${isDarkMode ? 'bg-[#374151] text-[#E5E7EB]' : 'bg-blue-100'}`} colSpan={3}>
                                 📝 التصرف في الاحراز
                             </TableCell>
-                            <TableCell className="text-center bg-red-100 font-bold text-lg" colSpan={1}>
+                            <TableCell className={`text-center font-bold text-lg ${isDarkMode ? 'bg-[#374151] text-[#E5E7EB]' : 'bg-blue-100'}`} colSpan={1}>
                                 الإجراءات
                             </TableCell>
                         </TableRow>
                         {table.getHeaderGroups().map(headerGroup => (
-                            <TableRow key={headerGroup.id} className="hover:bg-blue-50">
+                            <TableRow key={headerGroup.id} className={isDarkMode ? 'hover:bg-[#374151]' : 'hover:bg-blue-50'}>
                                 {headerGroup.headers.map(header => (
                                     <TableHead
                                         key={header.id}
-                                        className="text-center p-3 font-semibold text-gray-700"
-                                    >
+                                        className={`text-center p-3 font-semibold ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}                                    >
                                         {flexRender(header.column.columnDef.header, header.getContext())}
                                     </TableHead>
                                 ))}
@@ -541,14 +542,16 @@ const ProsecutionTable = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ delay: index * 0.05 }}
-                                    className="hover:bg-gray-50 even:bg-gray-50/30"
-                                >
+                                    className={`${isDarkMode ? 'hover:bg-[#374151] even:bg-[#1F2937]/30' : 'hover:bg-gray-50 even:bg-gray-50/30'}`}                                >
                                     {row.getVisibleCells().map(cell => (
                                         <motion.td
                                             key={cell.id}
-                                            className="text-center p-3 border-t border-gray-100"
+                                            className={`text-center p-3 border-t ${isDarkMode ? 'border-[#374151]' : 'border-gray-100'}`}
                                         >
-                                            <div className="px-2 py-1 rounded-md bg-white shadow-sm">
+                                            <div className={`px-2 py-1 rounded-md shadow-sm ${isDarkMode
+                                                ? 'bg-[#1F2937] text-[#9CA3AF]'
+                                                : 'bg-white'
+                                                }`}>
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                             </div>
                                         </motion.td>
@@ -561,14 +564,13 @@ const ProsecutionTable = () => {
             </motion.div>
 
             <div className="flex items-center justify-end gap-4 mt-6">
-
-
-
                 <motion.button
                     onClick={() => setCurrentPage(p => p + 1)}
                     disabled={currentPage * totalPages >= totalCount}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 flex items-center gap-2"
-                    whileHover={{ scale: 1.05 }}
+                    className={`px-4 py-2 rounded-lg transition-colors ${isDarkMode
+                        ? 'bg-[#374151] text-[#93C5FD] hover:bg-[#1F2937]'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                        }`} whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
                     ← التالي
@@ -581,8 +583,10 @@ const ProsecutionTable = () => {
                 <motion.button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 flex items-center gap-2"
-                    whileHover={{ scale: 1.05 }}
+                    className={`px-4 py-2 rounded-lg transition-colors ${isDarkMode
+                        ? 'bg-[#374151] text-[#93C5FD] hover:bg-[#1F2937]'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                        }`} whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
                     السابق →
@@ -598,18 +602,19 @@ const ProsecutionTable = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                        className=" fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50   "
                     >
                         <motion.div
                             initial={{ scale: 0.8 }}
                             animate={{ scale: 1 }}
-                            className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+                            className={`rounded-2xl shadow-xl p-8 border  ${isDarkMode ? 'bg-[#1F2937] border-[#374151]' : 'bg-white border-blue-100 '} w-full max-w-4xl max-h-[90vh] overflow-y-auto`}
                         >
-                            <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">
+                            <h2 className={`text-2xl font-bold mb-6 text-center  ${isDarkMode ? 'text-[#E5E7EB]' : 'text-blue-600'
+                                }`}>
                                 تعديل بيانات الحرز
                             </h2>
 
-                            <form onSubmit={handleUpdate} className="space-y-8">
+                            <form onSubmit={handleUpdate} className="space-y-8 ">
                                 {/* قسم بيانات الحرز */}
                                 <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
                                     <legend className="px-2 text-xl font-semibold text-blue-600">
@@ -621,10 +626,10 @@ const ProsecutionTable = () => {
 
                                         {/* المسلسل */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 المسلسل
                                             </label>
-                                            <input
+                                            <Input
                                                 type="number"
                                                 min="0"
                                                 value={editingData.serialNumber}
@@ -637,10 +642,10 @@ const ProsecutionTable = () => {
 
                                         {/* رقم الأشياء */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 رقم الأشياء
                                             </label>
-                                            <input
+                                            <Input
                                                 type="number"
                                                 min="0"
                                                 value={editingData.itemNumber}
@@ -653,10 +658,10 @@ const ProsecutionTable = () => {
 
                                         {/* رقم القضية */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 رقم القضية
                                             </label>
-                                            <input
+                                            <Input
                                                 type="number"
                                                 min="0"
                                                 value={editingData.numberCase}
@@ -669,7 +674,7 @@ const ProsecutionTable = () => {
 
                                         {/* نوع القضية لرقم القضية */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 نوع القضية لرقم القضية
                                             </label>
                                             <Select
@@ -692,10 +697,10 @@ const ProsecutionTable = () => {
 
                                         {/* السنة */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 السنة
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={editingData.year}
                                                 onChange={e => setEditingData(prev =>
@@ -707,10 +712,10 @@ const ProsecutionTable = () => {
 
                                         {/* التهمة */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 التهمة
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={editingData.charge}
                                                 onChange={e => setEditingData(prev =>
@@ -722,10 +727,10 @@ const ProsecutionTable = () => {
 
                                         {/* بيان الحرز */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 بيان الحرز
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={editingData.seizureStatement}
                                                 onChange={e => setEditingData(prev =>
@@ -737,10 +742,10 @@ const ProsecutionTable = () => {
 
                                         {/* الرقم الكلي */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 الرقم الكلي
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={editingData.totalNumber}
                                                 onChange={e => setEditingData(prev =>
@@ -752,7 +757,7 @@ const ProsecutionTable = () => {
 
                                         {/* نوع القضية لرقم الكلي */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 نوع القضية لرقم الكلي
                                             </label>
                                             <Select
@@ -785,10 +790,10 @@ const ProsecutionTable = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                                         {/* رقم الغرفة */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 رقم الغرفة
                                             </label>
-                                            <input
+                                            <Input
                                                 type="number"
                                                 min="0"
                                                 value={editingData.roomNumber}
@@ -801,10 +806,10 @@ const ProsecutionTable = () => {
 
                                         {/* رقم الاستاند */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 رقم الاستاند
                                             </label>
-                                            <input
+                                            <Input
                                                 type="number"
                                                 min="0"
                                                 value={editingData.referenceNumber}
@@ -817,10 +822,10 @@ const ProsecutionTable = () => {
 
                                         {/* رقم الرف */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 رقم الرف
                                             </label>
-                                            <input
+                                            <Input
                                                 type="number"
                                                 min="0"
                                                 value={editingData.shelfNumber}
@@ -842,10 +847,10 @@ const ProsecutionTable = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                                         {/* قرار النيابة */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 قرار النيابة
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={editingData.prosecutionDetentionDecision}
                                                 onChange={e => setEditingData(prev =>
@@ -857,10 +862,10 @@ const ProsecutionTable = () => {
 
                                         {/* حكم المحكمة النهائي */}
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 حكم المحكمة النهائي
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={editingData.finalCourtJudgment}
                                                 onChange={e => setEditingData(prev =>
@@ -871,26 +876,14 @@ const ProsecutionTable = () => {
                                         </div>
 
                                         {/* حالة الحرز */}
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700 text-right">
-                                                حالة الحرز
-                                            </label>
-                                            <Select
+                                        <div className="space-y-2 ">
+                                            <InputStatusEvidence
                                                 value={editingData.statusEvidence}
                                                 onValueChange={value => setEditingData(prev =>
                                                     prev ? { ...prev, statusEvidence: value } : null
                                                 )}
-                                            >
-                                                <SelectTrigger className="w-full border-blue-200 rounded-xl">
-                                                    <SelectValue placeholder="اختر حالة الحرز" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value=" على ذمة التحقيق"> على ذمة التحقيق </SelectItem>
-                                                    <SelectItem value="جاهز للتسليم">جاهز للتسليم</SelectItem>
-                                                    <SelectItem value="جاهز للبيع">جاهز للبيع</SelectItem>
-                                                    <SelectItem value="جاهز للاعدام">جاهز للإعدام</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            />
+
                                         </div>
                                     </div>
                                 </fieldset>
@@ -901,13 +894,13 @@ const ProsecutionTable = () => {
                                         type="button"
                                         onClick={() => setIsEditModalOpen(false)}
                                         variant="outline"
-                                        className="px-6 py-2"
+                                        className={`px-6 py-2 ${isDarkMode ? 'bg-[#374151] text-[#93C5FD] hover:bg-[#1F2937]' : 'bg-gray-100 hover:bg-gray-200'}`}
                                     >
                                         إلغاء
                                     </Button>
                                     <Button
                                         type="submit"
-                                        className="bg-indigo-600 hover:bg-indigo-700 px-6 py-2"
+                                        className={`bg-indigo-600 hover:bg-indigo-700 px-6 py-2 ${isDarkMode ? 'bg-[#374151] text-[#93C5FD] hover:bg-[#1F2937]' : ' '}`}
                                     >
                                         حفظ التغييرات
                                     </Button>

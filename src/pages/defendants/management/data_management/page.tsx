@@ -22,6 +22,8 @@ import { useAuth } from '@/context/userContext';
 import { useSearchParams } from "react-router-dom";
 import { useAbility } from '@casl/react';
 import { AbilityContext } from '@/context/AbilityContext';
+import { selectDarkMode } from '@/store/darkModeSlice';
+import { useSelector } from 'react-redux';
 
 
 const Page = () => {
@@ -55,6 +57,7 @@ const Page = () => {
     const type = searchParams.get('type');
     const { token, userData } = useAuth();
     const usernameParams = userData?.username;
+    const isDarkMode = useSelector(selectDarkMode);
 
 
     const fetchData = async (pageNumber: number = 1, pageSizeParam: number = 10) => {
@@ -203,91 +206,7 @@ const Page = () => {
         getPaginationRowModel: getPaginationRowModel(),
     });
 
-    const handleExport = async () => {
-        try {
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet("القضايا");
 
-            // تنسيق الأعمدة بالعربية
-            worksheet.columns = [
-                { header: "رقم مسلسل", key: "id", width: 15 },
-                { header: "رقم القضية", key: "caseNumber", width: 20 },
-                { header: "السنة", key: "year", width: 20 },
-                { header: "نوع القضية", key: "type_case", width: 20 },
-                { header: "رقم حصر التحقيق", key: "investigationID", width: 20 },
-                { header: "اسم المتهم", key: "defendantName", width: 20 },
-                { header: "اسم المتهم الثاني", key: "defendantNameAnother", width: 20 },
-                { header: "اسم المستخدم", key: "username", width: 20 },
-                { header: "بداية المدة", key: "startDate", width: 20 },
-                { header: "مدة الحبس", key: "imprisonmentDuration", width: 15 },
-                { header: "موعد التجديد", key: "renewalDate", width: 20 },
-                { header: "دائرة مصدر القرار", key: "issuingDepartment", width: 20 },
-                { header: "رقم الدائرة", key: "officeNumber", width: 20 },
-            ];
-
-            // تنسيق رأس الجدول
-            worksheet.getRow(1).font = {
-                bold: true,
-                color: { argb: 'FFFFFFFF' }
-            };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FF2D9596' }
-            };
-
-            // معالجة البيانات
-            filteredData.forEach(item => {
-                const startDate = new Date(item.startDate);
-                const renewalDate = new Date(startDate);
-
-                // حساب موعد التجديد بدقة
-                if (item.imprisonmentDuration) {
-                    renewalDate.setDate(startDate.getDate() + parseInt(item.imprisonmentDuration.toString() || "0") - 1);
-                }
-
-                // تنسيق التواريخ الميلادية بالعربية
-                const gregorianDateOptions = {
-                    year: 'numeric' as const,
-                    month: '2-digit' as const,
-                    day: '2-digit' as const,
-                    numberingSystem: 'arab' as const
-                };
-
-                worksheet.addRow({
-                    ...item,
-                    startDate: startDate.toLocaleDateString('ar-EG', gregorianDateOptions),
-                    renewalDate: renewalDate.toLocaleDateString('ar-EG', gregorianDateOptions),
-                });
-            });
-
-            // تطبيق التنسيق على كافة الصفوف
-            worksheet.eachRow((row, rowNumber) => {
-                row.alignment = { vertical: 'middle', horizontal: 'right' };
-                if (rowNumber > 1) {
-                    row.font = { name: 'Arial Arabic', size: 12 };
-                }
-            });
-
-            // تصدير الملف
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], {
-                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            });
-
-            const fileName = `القضايا_${new Date().toISOString().split('T')[0]}.xlsx`;
-
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            link.click();
-            URL.revokeObjectURL(link.href);
-
-        } catch (error) {
-            console.error('فشل التصدير:', error);
-            toast.error('فشل في تصدير الملف');
-        }
-    };
 
     const handleExportFull = async () => {
         try {
@@ -393,37 +312,46 @@ const Page = () => {
     };
 
     return (
-        <div dir="rtl" className="flex flex-col items-center min-h-screen p-4 bg-gray-50">
+        <div dir="rtl" className={`flex flex-col items-center min-h-screen p-4 ${
+            isDarkMode ? 'bg-[#111827]' : 'bg-gray-50'
+        }`}>
             <div className="w-full max-w-6xl space-y-4">
-                <div className="flex flex-wrap gap-4 justify-between items-center bg-white p-4 rounded-lg shadow">
+                <div className={`flex flex-wrap gap-4 justify-between items-center p-4 rounded-lg shadow ${
+                    isDarkMode 
+                    ? 'bg-[#1F2937] border-[#374151]' 
+                    : 'bg-white'
+                }`}>
                     <div className="flex gap-4 flex-1">
                         <input
                             type="text"
                             placeholder="رقم القضية"
                             value={caseNumberFilter}
                             onChange={(e) => setCaseNumberFilter(e.target.value)}
-                            className="border rounded-lg p-2 w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                            className={`border rounded-lg p-2 w-full max-w-xs focus:ring-2 ${
+                                isDarkMode
+                                ? 'bg-[#1F2937] border-[#374151] text-[#E5E7EB] focus:ring-[#818CF8]'
+                                : 'border-gray-200 focus:ring-blue-500'
+                            }`}
                         />
                         <input
                             type="date"
                             value={dateFilter}
                             onChange={(e) => setDateFilter(e.target.value)}
-                            className="border rounded-lg p-2 w-full max-w-xs focus:ring-2 focus:ring-blue-500"
+                            className={`border rounded-lg p-2 w-full max-w-xs focus:ring-2 ${
+                                isDarkMode
+                                ? 'bg-[#1F2937] border-[#374151] text-[#E5E7EB] focus:ring-[#818CF8]'
+                                : 'border-gray-200 focus:ring-blue-500'
+                            }`}
                         />
                     </div>
 
                     <button
-                        onClick={handleExport}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                    >
-                        <span>تصدير إلى أكسل</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                    </button>
-                    <button
                         onClick={handleExportFull}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                        className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                            isDarkMode
+                            ? 'bg-[#4F46E5] hover:bg-[#2563EB] text-[#E5E7EB]'
+                            : 'bg-green-500 hover:bg-green-600 text-white'
+                        }`}
                     >
                         📥 تصدير الكل Excel
                     </button>
@@ -431,27 +359,41 @@ const Page = () => {
 
                 {isLoading && (
                     <div className="text-center p-8">
-                        <div className="animate-spin inline-block w-8 h-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-                        <p className="mt-2 text-blue-600">جاري التحميل...</p>
+                        <div className={`animate-spin inline-block w-8 h-8 border-4 rounded-full border-t-transparent ${
+                            isDarkMode ? 'border-[#818CF8]' : 'border-blue-500'
+                        }`}></div>
+                        <p className={`mt-2 ${isDarkMode ? 'text-[#93C5FD]' : 'text-blue-600'}`}>
+                            جاري التحميل...
+                        </p>
                     </div>
                 )}
 
                 {error && (
-                    <div className="bg-red-100 p-4 rounded-lg text-red-700 text-center">
+                    <div className={`p-4 rounded-lg text-center ${
+                        isDarkMode 
+                        ? 'bg-red-900/20 text-red-300' 
+                        : 'bg-red-100 text-red-700'
+                    }`}>
                         {error}
                     </div>
                 )}
 
                 {!isLoading && !error && (
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <div className={`rounded-lg shadow overflow-hidden ${
+                        isDarkMode ? 'bg-[#1F2937]' : 'bg-white'
+                    }`}>
                         <Table className="w-full">
-                            <TableHeader className="bg-gray-50">
+                            <TableHeader className={isDarkMode ? 'bg-[#374151]' : 'bg-gray-50'}>
                                 {table.getHeaderGroups().map(headerGroup => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map(header => (
                                             <TableHead
                                                 key={header.id}
-                                                className="px-4 py-3 text-right font-semibold text-gray-700 border-b"
+                                                className={`px-4 py-3 text-right font-semibold border-b ${
+                                                    isDarkMode
+                                                    ? 'text-[#E5E7EB] border-[#374151]'
+                                                    : 'text-gray-700 border-gray-200'
+                                                }`}
                                             >
                                                 {flexRender(header.column.columnDef.header, header.getContext())}
                                             </TableHead>
@@ -464,12 +406,20 @@ const Page = () => {
                                 {table.getRowModel().rows.map(row => (
                                     <TableRow
                                         key={row.id}
-                                        className="hover:bg-gray-50 transition-colors even:bg-gray-50"
+                                        className={`${
+                                            isDarkMode
+                                            ? 'hover:bg-[#374151] even:bg-[#1F2937]/30'
+                                            : 'hover:bg-gray-50 even:bg-gray-50'
+                                        }`}
                                     >
                                         {row.getVisibleCells().map(cell => (
                                             <TableCell
                                                 key={cell.id}
-                                                className="text-center p-3 border-t border-gray-100"
+                                                className={`text-center p-3 border-t ${
+                                                    isDarkMode 
+                                                    ? 'border-[#374151] text-[#E5E7EB]' 
+                                                    : 'border-gray-100'
+                                                }`}
                                             >
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                             </TableCell>
@@ -480,7 +430,9 @@ const Page = () => {
                         </Table>
 
                         {filteredData.length === 0 && !isLoading && (
-                            <div className="p-6 text-center text-gray-500">
+                            <div className={`p-6 text-center ${
+                                isDarkMode ? 'text-[#9CA3AF]' : 'text-gray-500'
+                            }`}>
                                 لا توجد بيانات متطابقة مع عوامل التصفية
                             </div>
                         )}
@@ -492,20 +444,28 @@ const Page = () => {
                         <button
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:bg-gray-300"
+                            className={`px-4 py-2 rounded-lg ${
+                                isDarkMode
+                                ? 'bg-[#2563EB] hover:bg-[#1D4ED8] text-[#E5E7EB] disabled:bg-[#374151]'
+                                : 'bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-300'
+                            }`}
                         >
                             السابق
                         </button>
                         <button
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:bg-gray-300"
+                            className={`px-4 py-2 rounded-lg ${
+                                isDarkMode
+                                ? 'bg-[#2563EB] hover:bg-[#1D4ED8] text-[#E5E7EB] disabled:bg-[#374151]'
+                                : 'bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-300'
+                            }`}
                         >
                             التالي
                         </button>
                     </div>
 
-                    <div className="text-gray-700">
+                    <div className={`${isDarkMode ? 'text-[#9CA3AF]' : 'text-gray-700'}`}>
                         الصفحة {currentPage} من {totalPages} (إجمالي القضايا: {totalCases})
                     </div>
 
@@ -513,9 +473,13 @@ const Page = () => {
                         value={pageSize}
                         onChange={(e) => {
                             setPageSize(Number(e.target.value));
-                            setCurrentPage(1); // العودة إلى الصفحة الأولى عند تغيير حجم الصفحة
+                            setCurrentPage(1);
                         }}
-                        className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                        className={`border rounded-lg p-2 focus:ring-2 ${
+                            isDarkMode
+                            ? 'bg-[#1F2937] border-[#374151] text-[#E5E7EB] focus:ring-[#818CF8]'
+                            : 'border-gray-200 focus:ring-blue-500'
+                        }`}
                     >
                         <option value={10}>10 لكل صفحة</option>
                         <option value={20}>20 لكل صفحة</option>

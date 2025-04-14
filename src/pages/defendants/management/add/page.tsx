@@ -11,6 +11,8 @@ import TypeCase from "@/components/defendants/typeCase";
 import { useAuth } from '@/context/userContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from "lucide-react"; // استيراد أيقونة الإغلاق
+import { selectDarkMode } from '@/store/darkModeSlice';
+import { useSelector } from 'react-redux';
 import {
     Select,
     SelectContent,
@@ -32,7 +34,6 @@ const Page = () => {
     const [defendantNameAnother, setdefendantNameAnother] = useState('');
     const [usernameData, setUsernameData] = useState<[]>([]);
     const [username, setUsername] = useState('');
-
     const [searchParams] = useSearchParams();
     const { token, userData } = useAuth();
     const [prosecutionOfficeId, setProsecutionOfficeId] = useState('');
@@ -40,6 +41,7 @@ const Page = () => {
     const type = searchParams.get('type');
     const role = userData?.role;
     const member_number = userData?.member_id;
+    const isDarkMode = useSelector(selectDarkMode);
 
     // حالات جديدة للاستيراد
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -252,15 +254,21 @@ const Page = () => {
         fetchData();
     }, []);
     return (
-        <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div dir="rtl" className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 ${ isDarkMode ? 'bg-gradient-to-b from-[#1F2937] to-[#111827]' : 'bg-gradient-to-b from-blue-50 to-indigo-50' }`}>
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
-                    <h1 className="  h-[70px] text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className={`h-[70px] text-4xl md:text-5xl font-bold bg-clip-text text-transparent ${
+                        isDarkMode
+                        ? 'bg-gradient-to-r from-[#818CF8] to-[#60A5FA]'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                    }`}>
                         إضافة قضية جديدة
                     </h1>
                     <Button
                         onClick={() => setImportModalOpen(true)}
-                        className="bg-green-600 hover:bg-green-700"
+                        className={` text-white ${isDarkMode 
+                            ? 'bg-[#4F46E5] hover:bg-[#2563EB]' 
+                            : 'bg-green-600 hover:bg-green-700'}`}
                     >
                         استيراد من Excel
                     </Button>
@@ -277,7 +285,7 @@ const Page = () => {
                             <motion.div
                                 initial={{ scale: 0.8 }}
                                 animate={{ scale: 1 }}
-                                className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100 w-full max-w-2xl relative"
+                                className={`rounded-2xl shadow-xl p-8 border w-full max-w-2xl relative ${ isDarkMode ? 'bg-[#1F2937] border-[#374151]' : 'bg-white border-blue-100' }`}
                             >
                                 <button
                                     onClick={() => {
@@ -361,34 +369,34 @@ const Page = () => {
                     )}
                 </AnimatePresence>
 
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
+                <div className={`rounded-2xl shadow-xl p-8 border ${ isDarkMode ? 'bg-[#1F2937] border-[#374151]' : 'bg-white border-blue-100' }`}>
                     <form onSubmit={handleSubmit} className="space-y-8">
                         {/* بيانات القضية */}
                         <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
-                            <legend className="px-2 text-xl font-semibold text-blue-600">
+                        <legend className={`px-2 text-xl font-semibold ${ isDarkMode ? 'text-[#E5E7EB]' : 'text-blue-600' }`}>
                                 بيانات القضية
                             </legend>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
                                 {/* رقم القضية */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">رقم القضية</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>رقم القضية</label>
                                     <Input
                                         type="text"
                                         value={caseNumber}
                                         onChange={(e) => setCaseNumber(e.target.value)}
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                        className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}
                                     />
                                 </div>
 
                                 {/* السنة */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">السنة</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>السنة</label>
                                     <Input
                                         type="number"
                                         value={year}
                                         onChange={(e) => setYear(e.target.value)}
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                        className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}
                                     />
                                 </div>
 
@@ -399,41 +407,41 @@ const Page = () => {
 
                                 {/* رقم حصر التحقيق */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">رقم حصر التحقيق</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>رقم حصر التحقيق</label>
                                     <Input
                                         type="text"
                                         value={investigationID}
                                         onChange={(e) => setInvestigationID(e.target.value)}
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                        className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}
                                     />
                                 </div>
 
                                 {/* اسم المتهم */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">اسم المتهم</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>اسم المتهم</label>
                                     <Input
                                         type="text"
                                         value={defendantName}
                                         onChange={(e) => setDefendantName(e.target.value)}
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                        className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}
                                     />
                                 </div>
                                 {/* اسم المتهم الثاني*/}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">اسم المتهم الثاني</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>اسم المتهم الثاني</label>
                                     <Input
                                         type="text"
                                         value={defendantNameAnother}
                                         onChange={(e) => setdefendantNameAnother(e.target.value)}
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                        className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}
                                     />
                                 </div>
 
                                 {/*الاعضاء*/}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">الاعضاء</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>الاعضاء</label>
                                     <Select onValueChange={(value) => setUsername(value)}>
-                                        <SelectTrigger className="border-blue-200 focus:ring-2 focus:ring-indigo-500">
+                                        <SelectTrigger >
                                             <SelectValue placeholder="الاعضاء" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -449,7 +457,7 @@ const Page = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700 text-right">النيابة</label>
+                                        <label  className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>النيابة</label>
                                         <Select
                                             value={prosecutionOfficeId}
                                             onValueChange={(value) => setProsecutionOfficeId(value)}
@@ -474,7 +482,7 @@ const Page = () => {
 
                         {/* معلومات التجديد */}
                         <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
-                            <legend className="px-2 text-xl font-semibold text-blue-600">
+                        <legend className={`px-2 text-xl font-semibold ${ isDarkMode ? 'text-[#E5E7EB]' : 'text-blue-600' }`}>
                                 معلومات التجديد
                             </legend>
 
@@ -483,45 +491,45 @@ const Page = () => {
 
                                 {/* بداية المدة */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">بداية المدة</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>بداية المدة</label>
                                     <Input
                                         type="date"
                                         value={caseDate}
                                         onChange={(e) => setCaseDate(e.target.value)}
                                         min="2022-01-01"
                                         max="2027-12-31"
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                        className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}
                                     />
 
                                 </div>
 
                                 {/* مدة الحبس */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">مدة الحبس</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>مدة الحبس</label>
                                     <Input
                                         type="number"
                                         value={casePrisonDate}
                                         onChange={(e) => setCasePrisonDate(e.target.value)}
-                                        className="border-blue-200 focus:ring-2 focus:ring-indigo-500"
+                                        className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}
                                         min="1"
                                     />
                                 </div>
 
                                 {/* موعد التجديد */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">موعد التجديد</label>
-                                    <div className="w-full px-4 py-2 border border-blue-200 rounded-lg bg-gray-50">
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>موعد التجديد</label>
+                                    <div className={`w-full px-4 py-2 border  rounded-lg ${ isDarkMode ? 'bg-[#1F2937] text-gray-100 border-[#374151]' : 'bg-white text-gray-700 border-blue-200' }`}>
                                         {caseRenewalDate || '--/--/----'}
                                     </div>
                                 </div>
                                 {/* الدائرة مصدرة القرار */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">الدائرة مصدرة القرار</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>الدائرة مصدرة القرار</label>
                                     <Select
                                         value={issuingDepartment}
                                         onValueChange={setIssuingDepartment}
                                     >
-                                        <SelectTrigger className="border-blue-200 focus:ring-2 focus:ring-indigo-500">
+                                        <SelectTrigger >
                                             <SelectValue placeholder="اختر الدائرة" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -535,12 +543,12 @@ const Page = () => {
 
                                 {/* رقم الدائرة */}
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">رقم الدائرة</label>
+                                    <label className={`${isDarkMode ? 'text-gray-100' : 'text-gray-700'} block text-sm font-medium `}>رقم الدائرة</label>
                                     <Select
                                         value={officeNumber}
                                         onValueChange={setOfficeNumber}
                                     >
-                                        <SelectTrigger className="border-blue-200 focus:ring-2 focus:ring-indigo-500">
+                                        <SelectTrigger >
                                             <SelectValue placeholder="اختر الرقم" />
                                         </SelectTrigger>
                                         <SelectContent>
