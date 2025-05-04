@@ -26,6 +26,7 @@ const HomePageMembers = lazy(() => import('@/pages/members/home/page'));
 const ManagementCaseMembers = lazy(() => import('@/pages/members/management/data_management/page'));
 const ManagementCaseDefendants = lazy(() => import('@/pages/defendants/management/data_management/page'));
 const Home = lazy(() => import('@/pages/homePage'));
+const HomepageAdmin = lazy(() => import('@/pages/HomePageAdmin/HomePageAdmin'));
 const Archives = lazy(() => import('@/pages/archives/home/page'));
 const ArchivesManagement = lazy(() => import('@/pages/archives/management/page'));
 const ArchiveInsert = lazy(() => import('@/pages/archives/management/insert/page'));
@@ -75,7 +76,12 @@ const App = () => {
                         <Route path="/login" element={!isLoggedIn ? <Login /> : <Home />} />
 
                         <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
-                            <Route path="/" element={<Home />} />
+                        <Route 
+                                path="/" 
+                                element={
+                                    isAdmin ? <HomepageAdmin /> : <Home />
+                                } 
+                            />
 
                             {/* Defendants Case Routes */}
                             <Route path="case/defendants/*" element={
@@ -114,7 +120,7 @@ const App = () => {
                             >
                                 <Route index element={<Archives />} />
                                 <Route path="management" element={<ArchivesManagement />} />
-                                <Route path="management/insert" element={<ArchiveInsert />} />
+                                <Route path="management/add" element={<ArchiveInsert />} />
                                 <Route path="management/data" element={<ArchivesDataManagement />} />
                             </Route>
 

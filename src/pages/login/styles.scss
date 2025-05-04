@@ -1,0 +1,76 @@
+/* نطبّق الحركة فقط على الـ <use> داخل الـ svg الذي يحمل الكلاس wave-animation */
+.wave-animation {
+    overflow: hidden;          /* لإخفاء أي تجاوز عن الحاوية */
+    width: 100vw;
+    height: 340px;             /* أو whatever height تريد */
+    
+    use {
+      animation: move-forever 2s linear infinite;
+      
+      &:nth-child(1) {
+        animation-duration: 5s;
+      }
+      &:nth-child(2) {
+        animation-duration: 2.5s;
+        animation-delay: -1.5s;
+      }
+    }
+  }
+  
+  /* تعريف الكي فريمز */
+  @keyframes move-forever {
+    0%   { transform: translateX(-2px); }
+    100% { transform: translateX(0);    }
+  }
+  
+  /* بقية الصفحة تبقى كما هي بدون تأثير */
+
+
+  .wave-wrapper-logo{
+	position: relative;
+    width:  64px;
+    height: 64px;
+	overflow: hidden;
+	border-radius: 50%;
+	background-color: #EFF1F6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wave-logo{
+	position: absolute;
+	top: 70%;
+    width:  100px;
+    height: 100px;
+	background-color: #2C4F86;
+	border-radius: 35%;
+	animation-name: waves;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	&.one{
+		animation-duration: 7000ms;
+		opacity: 0.4;
+	}
+
+	&.two{
+		background-color: #70C7CB;
+		animation-duration: 9000ms;
+	}
+	
+	&.three{
+		animation-duration: 12000ms;
+	}
+}
+
+
+@keyframes waves{
+  0%{
+    transform: rotate(0deg);
+  }
+  100%{
+    transform: rotate(360deg);
+  }
+}
+
+  

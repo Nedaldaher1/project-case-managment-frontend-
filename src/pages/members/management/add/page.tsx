@@ -236,7 +236,7 @@ const Page = () => {
                     </h1>
                     <Button
                         onClick={() => setImportModalOpen(true)}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 text-white"
                     >
                         استيراد من Excel
                     </Button>

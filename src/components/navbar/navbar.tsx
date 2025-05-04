@@ -17,20 +17,24 @@ import { logoutSession } from '@/api/authApi';
 import { AbilityContext } from '@/context/AbilityContext';
 import { Can, useAbility } from '@casl/react';
 import { selectDarkMode } from '@/store/darkModeSlice';
-import {  useSelector } from 'react-redux'; 
+import { useSelector } from 'react-redux';
 
 interface NavbarProps {
     className?: string;
 }
-
+interface UserData {
+    username?: string;
+    officesAvailable?: Array<{
+        id: string;
+        name: string;
+    }>;
+}
 const Navbar = ({ className }: NavbarProps) => {
-    const { userData, isLoggedIn, logout } = useAuth();
+    const { userData, logout } = useAuth() as any;
     const isDarkMode = useSelector(selectDarkMode);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const isMobile = useMediaQuery({ maxWidth: 768 });
     const navigate = useNavigate();
     const ability = useAbility(AbilityContext);
-
+    const IdOffice = (userData?.officesAvailable as UserData['officesAvailable'])?.[0]?.id;
     const handleLogout = () => {
         logout();
         logoutSession();
@@ -38,132 +42,85 @@ const Navbar = ({ className }: NavbarProps) => {
     };
 
     return (
-        <nav dir='rtl' className={`${className} bg-gray-100 ${isDarkMode ? 'dark:bg-gray-800' : ''} py-4 px-6 shadow-sm relative z-50 transition-colors`}>
+        <nav dir='rtl' className={` bg-gradient-to-br from-[#1e3a8a] via-[#2563eb] to-[#3b82f6] py-4 px-6 shadow-sm relative z-50 transition-colors text-white ${className}`}>
             <div className="max-w-7xl mx-auto">
                 {/* تصميم سطح المكتب */}
-                {!isMobile ? (
-                    <div className="grid grid-cols-12 gap-4 items-center">
-                        <Link to="/" className="col-span-3 flex items-center">
-                            <img src="/logo.png" alt="logo" className="w-32 h-auto" />
-                        </Link>
+                <div className="grid grid-cols-12 gap-4 items-center">
+                    <Link to="/" className="col-span-3 flex items-center">
+                        <span className="text-white text-xl font-bold mr-2">منظومة تيسير الاعمال </span>
+                    </Link>
 
-                        <div className="col-span-6">
-                            <div className="flex  items-center  justify-center gap-4 text-center">
-                                {links.slice(0, 3).map((item, index) => (
-                                    <Can key={index} I={item.I} a={item.a} ability={ability}>
-                                        {(allowed) => allowed && (
-                                            <Link
-                                                key={index}
-                                                to={item.linkTo}
-                                                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                                            >
-                                                <span className={`font-medium  ${isDarkMode ? 'text-gray-700 dark:text-gray-100': ''}` }>{item.name}</span>
-                                            </Link>
-                                        )}
 
-                                    </Can>
-
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="col-span-3 flex justify-end items-center gap-4">
-                            <div className="text-right">
-                                <p className={`font-medium text-gray-700  ${isDarkMode ? 'dark:text-gray-100' : ''}`}>{userData?.username}</p>
-                                <p className="text-xs text-gray-500">حالة المستخدم</p>
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger>
-                                    <Avatar className="border-2 border-gray-300">
-                                        <AvatarImage src="/user-circle.svg" />
-                                        <AvatarFallback>
-                                            {userData?.username?.charAt(0).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className={` min-w-[200px] bg-white  ${isDarkMode ? 'dark:bg-gray-800 dark:text-white' : ''}`}>
-                                    <DropdownMenuLabel>{userData?.username}</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                        onClick={handleLogout}
-                                        className="text-red-600 cursor-pointer"
-                                    >
-                                        تسجيل الخروج
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </div>
-                ) : (
-                    /* تصميم الجوال المعدل */
-                    <div className="flex justify-between items-center">
-                        {/* الشعار */}
-                        <Link to="/">
-                            <img src="/logo.png" alt="logo" className="w-32 h-auto" />
-                        </Link>
-
-                        {/* زر القائمة */}
-                        <button
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="p-2 text-gray-700 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400"                        >
-                            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-                        </button>
-
-                        {/* القائمة المنبثقة */}
-                        {isMenuOpen && (
-                            <div className="fixed inset-0 bg-white z-50 pt-20 px-6">
-                                <div className="flex flex-col gap-4">
-                                    {/* زر الإغلاق */}
-                                    <button
-                                        onClick={() => setIsMenuOpen(false)}
-                                        className="absolute top-6 right-6 text-gray-500 hover:text-red-600"
-                                    >
-                                        <X size={28} />
-                                    </button>
-
-                                    {/* الروابط */}
-                                    {links.map((item, index) => (
-                                        <Link
-                                            key={index}
-                                            to={item.linkTo}
-                                            className="py-3 border-b hover:text-blue-600"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            {item.name}
-                                        </Link>
-                                    ))}
-
-                                    {/* حساب المستخدم */}
-                                    {isLoggedIn && (
-                                        <div className="mt-8">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger className="w-full">
-                                                    <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg">
-                                                        <Avatar>
-                                                            <AvatarImage src="/user-circle.svg" />
-                                                            <AvatarFallback>
-                                                                {userData?.username?.charAt(0).toUpperCase()}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <span>{userData?.username}</span>
-                                                    </div>
+                    <div className="col-span-6">
+                        <div className="flex  items-center  justify-center gap-4 text-center">
+                            {links.slice(0, 3).map((item, index) => (
+                                <Can key={index} I={item.I} a={item.a} ability={ability}>
+                                    {(allowed) => allowed && (
+                                        <>
+                                            <DropdownMenu dir='rtl'>
+                                                <DropdownMenuTrigger>
+                                                    <span className={`text-white hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium flex items-center relative `}>{item.name}</span>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent className="w-full">
-                                                    <DropdownMenuItem
-                                                        onClick={handleLogout}
-                                                        className="text-red-600"
-                                                    >
-                                                        تسجيل الخروج
-                                                    </DropdownMenuItem>
+                                                <DropdownMenuContent className={` min-w-[200px] bg-white  ${isDarkMode ? 'dark:bg-gray-800 dark:text-white' : ''}`}>
+                                                    <DropdownMenuLabel>الصفحات</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    <Link to={`${item.linkTo}/management/add?type=${IdOffice}`} className="text-gray-800 hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-400">
+
+                                                        <DropdownMenuItem
+                                                        >
+                                                            الادخال
+                                                        </DropdownMenuItem>
+                                                    </Link>
+                                                    <Link to={`${item.linkTo}/management/data?type=${IdOffice}`} className="text-gray-800 hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-400">
+                                                        <DropdownMenuItem
+                                                        >
+                                                            الاطلاع
+                                                        </DropdownMenuItem>
+
+                                                    </Link>
+
+
+
+
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
-                                        </div>
+                                        </>
                                     )}
-                                </div>
-                            </div>
-                        )}
+
+
+                                </Can>
+
+                            ))}
+                        </div>
                     </div>
-                )}
+
+                    <div className="col-span-3 flex justify-end items-center gap-4">
+
+                        <DropdownMenu dir='rtl'>
+                            <DropdownMenuTrigger>
+                                <Avatar >
+                                    <AvatarImage className="rounded-full" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" />
+                                    <AvatarFallback className="text-white mr-2 ml-1">
+                                        {userData?.username?.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className={` min-w-[200px] bg-white  ${isDarkMode ? 'dark:bg-gray-800 dark:text-white' : ''}`}>
+                                <DropdownMenuLabel>{userData?.username}</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    onClick={handleLogout}
+                                    className="text-red-600 cursor-pointer"
+                                >
+                                    تسجيل الخروج
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <div className="text-right">
+                            <p className={`font-medium text-gray-100 `}>{userData?.username}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </nav>
     );

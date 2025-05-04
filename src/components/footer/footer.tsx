@@ -9,7 +9,7 @@ const Footer: FC = () => {
     };
 
     return (
-        <footer className="w-full bg-gray-100 dark:bg-gray-900 py-6 md:py-8 transition-colors duration-500">
+        <footer className="w-full bg-gradient-to-br from-[#1e3a8a] via-[#2563eb] to-[#3b82f6] py-4 px-6 shadow-sm relative z-50 transition-colors text-white">
             <div className="container mx-auto px-4">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-center">
                     {/* الشعار */}
@@ -26,7 +26,7 @@ const Footer: FC = () => {
                     <div className="order-1 md:order-2">
                         <h2 
                             onClick={() => handleNavigation('/')}
-                            className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
+                            className="text-lg md:text-xl font-semibold  dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                         >
                             منظومة تيسير الاعمال
                         </h2>
@@ -34,8 +34,8 @@ const Footer: FC = () => {
 
                     {/* حقوق النشر */}
                     <div className="order-2 md:order-3">
-                        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
-                            © 2024 جميع الحقوق محفوظة<br className="md:hidden"/>
+                        <p className="text-sm md:text-base  dark:text-gray-400">
+                            © 2025 جميع الحقوق محفوظة<br className="md:hidden"/>
                             <span className="hidden md:inline"> - </span>
                             منظومة تيسير الاعمال
                         </p>

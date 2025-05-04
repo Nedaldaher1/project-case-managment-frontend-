@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
+
 import '@/globle.scss';
 
 const Management = () => {
@@ -40,7 +41,7 @@ const Management = () => {
 
                 {/* قسم الإدخال */}
                 <Link 
-                    to={`insert?type=${type}`} 
+                    to={`add?type=${type}`} 
                     className="relative group h-72 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:scale-105 shadow-xl 
                         bg-white/40 dark:bg-gray-800/40 backdrop-blur-lg 
                         border-2 border-blue-200/40 dark:border-gray-700/40 

@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 const Home = () => {
   const [loading, setLoading] = useState(true);
   const { token, userData } = useAuth();
+  console.log('userData', userData);  
 
 
   // تحويل البيانات إلى مصفوفة آمنة مع قيمة افتراضية

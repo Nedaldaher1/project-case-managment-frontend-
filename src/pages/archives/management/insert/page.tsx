@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/userContext";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
@@ -38,6 +38,7 @@ const Insert = () => {
     const [statusEvidence, setStatusEvidence] = useState('');
     const [typeCaseTotalNumber, setTypeCaseTotalNumber] = useState('');
     const [typeCaseNumber, setTypeCaseNumber] = useState('');
+    const [serialNumber, setSerialNumber] = useState<number | null>(null);
     const { token, userData } = useAuth();
     const officesAvailable: { id: string; name: string }[] =
         (userData?.officesAvailable as { id: string; name: string }[] | undefined) || [];
@@ -56,6 +57,51 @@ const Insert = () => {
 
     // تحويل البيانات إلى مصفوفة آمنة مع قيمة افتراضية
 
+    useEffect(() => {
+        const checkForKeywords = () => {
+          // قائمة الكلمات المطلوبة
+          const keywords = [
+            'سيف',
+            'السونكات',
+            'الخنجر',
+            'قوس',
+            'مطوة',
+            'ساطور',
+            'سكينة',
+            'بلطة',
+            'جنزير',
+            'سنجة',
+            'قطر',
+            'شفرة',
+            'عصاية',
+            'شنطة',
+            'فلاشة',
+            'حافظة',
+            'جلدية',
+            'شنطه',
+            'مطواه'
+          ];
+      
+          // تحويل النص إلى حالة بحث موحدة
+          const textToCheck = seizureStatement?.toLowerCase() || '';
+      
+          // التحقق من وجود أي كلمة ممنوعة
+          const found = keywords.some(keyword => 
+            textToCheck.includes(keyword.toLowerCase())
+          );
+      
+          if (found && statusEvidence !== 'جاهز للإعدام') {
+            setStatusEvidence('جاهز للإعدام');
+          } else if (!found && statusEvidence === 'جاهز للإعدام') {
+            setStatusEvidence(''); // أو القيمة الافتراضية
+          }
+        };
+      
+        checkForKeywords();
+      }, [seizureStatement]);
+      useEffect(() => {
+        console.log('تم تحديث حالة الحرز:', statusEvidence); // ← هذه ستظهر القيمة المحدثة
+      }, [statusEvidence]); // ← هذا الـ effect سينفذ عند كل تغيير في statusEvidence
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -81,6 +127,7 @@ const Insert = () => {
             const response = await axios.post(
                 `${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/create`,
                 {
+                    serialNumber,
                     itemNumber: Number(itemNumber),
                     charge,
                     seizureStatement,
@@ -140,6 +187,7 @@ const Insert = () => {
             setIsSubmitting(false);
         }
     };
+
     const handleFileUpload = async (file: File) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -155,6 +203,7 @@ const Insert = () => {
                     return {
                         itemNumber: item['رقم الأشياء'],
                         numberCase: item['رقم القضية'],
+                        serialNumber: item[ 'المسلسل'],
                         typeCaseNumber: item['نوع القضية'],
                         year: item['السنة'],
                         charge: item['التهمة'],
@@ -242,7 +291,7 @@ const Insert = () => {
                     </h1>
                     <Button
                         onClick={() => setImportModalOpen(true)}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 text-white"
                     >
                         استيراد من Excel
                     </Button>
@@ -296,10 +345,10 @@ const Insert = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="space-y-6 text-center">
+                                    <div className="space-y-6 text-center z-50">
                                         {isProcessing ? (
                                             <>
-                                                <Progress value={uploadProgress} className="h-3" />
+                                                <Progress value={uploadProgress} className="h-3 bg-red" />
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="text-green-600">الناجحة: {successCount}</div>
                                                     <div className="text-yellow-600">لم يتم التعديل: {notEditCount}</div>
@@ -357,6 +406,18 @@ const Insert = () => {
 
 
                              
+                                {/* رقم المسلسل */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">رقم المسلسل</label>
+                                    <input
+                                        type="number"
+                                        value={serialNumber || ''}
+                                        onChange={(e) => setSerialNumber(Number(e.target.value))}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        min="0"
+                                        required
+                                    />
+                                </div>
 
                                 {/* رقم الأشياء */}
                                 <div className="space-y-2">

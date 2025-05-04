@@ -4,10 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/context/userContext';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import WaveAnimation from '@/components/animation/WaveAnimation';
 import {
   InputOTP,
   InputOTPGroup,
-  InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import {
@@ -21,22 +22,25 @@ import {
 } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { GoLaw } from 'react-icons/go';
+import './styles.scss'
 
-// تعريف مخطط التحقق من صحة رمز 2FA باستخدام Zod
 const FormSchema = z.object({
   pin: z.string().min(6, {
     message: "يجب أن يتكون الرمز من 6 أرقام",
   }),
 });
 
+
+
 const Login = () => {
-  const { 
-    login, 
-    verify2FA, 
-    is2FARequired, 
-    error, 
-    fieldErrors, 
-    isUnauthorized, 
+  const {
+    login,
+    verify2FA,
+    is2FARequired,
+    error,
+    fieldErrors,
+    isUnauthorized,
     isLoggedIn,
     tempUserData,
     logout
@@ -45,7 +49,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  // إعادة التوجيه إذا كان المستخدم مسجل الدخول
   useEffect(() => {
     if (isLoggedIn) {
       navigate('/');
@@ -54,147 +57,229 @@ const Login = () => {
     if (tempUserData) {
       logout();
     }
-  }, [ navigate ]);
+  }, [navigate]);
 
-  // تهيئة useForm للتحقق من صحة رمز 2FA
   const form = useForm<{ pin: string }>({
     resolver: zodResolver(FormSchema),
   });
 
-  // معالجة تسجيل الدخول
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await login(username, password);
   };
 
-  // معالجة التحقق من رمز 2FA
   const handle2FASubmit = form.handleSubmit(({ pin }) => {
     verify2FA(pin);
   });
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4  ">
-      <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl flex flex-col md:flex-row" 
-           style={{ height: '80vh', maxHeight: '600px' }}>
-        
-      
+    <div dir='rtl' className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
+      {/* Wave Background */}
+      <div className="absolute bottom-0 w-full wave-animation  z-10">
+        <svg
+          viewBox="0 0 2 1"
+          preserveAspectRatio="none">
+          <defs>
+            <path id="w"
+              d="
+      m0 1v-.5 
+      q.5.5 1 0
+      t1 0 1 0 1 0
+      v.5z" />
+          </defs>
+          <g>
+            <use href="#w" y=".0" fill="#2d55aa" />
+            <use href="#w" y=".1" fill="#3461c1" />
+            <use href="#w" y=".2" fill="#4579e2" />
+          </g>
+        </svg>      </div>
 
-        {/* Left Section */}
-        <div className="md:w-1/2 bg-[#45369f] rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none 
-                        flex items-center justify-center p-4 flex-1">
-          <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold text-center font-[Cairo]">
-            مرحباً بك
-          </h1>
-        </div>
+      {/* Login Container */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="relative bg-white rounded-2xl w-full max-w-md z-10 shadow-xl"
+      >
+        <motion.div
+          className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-blue-400"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 1.5, delay: 0.3 }}
+        />
 
-        {/* Right Section */}
-        <div className="md:w-1/2 p-6 relative flex-1 flex flex-col">
-          <div className="absolute top-4 right-4">
-            <img 
-              src="/logo.png" 
-              alt="Logo" 
-              className="w-20 md:w-24 lg:w-32" 
-            />
-          </div>
+        <div className="p-8">
+          <motion.div
+            className="flex flex-col items-center mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.div
+              className="logo bg-white p-4 rounded-full shadow-lg mb-4"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="wave-wrapper-logo">
 
-          <div className="flex-1 flex flex-col items-center justify-center">
-            {!is2FARequired ? (
-              <form onSubmit={handleLoginSubmit} className="w-full max-w-md space-y-6">
-                <div dir="rtl" className="space-y-2">
+                <div className="wave-logo one"></div>
+                <div className="wave-logo two"></div>
+                <div className="wave-logo three"></div>
+               <img src="/logo void.png" alt="Logo" className="w-16 h-16 Z-[50] relative" />
+
+              </div>
+            </motion.div>
+            <h1 className="text-2xl font-bold text-blue-800">منظومة تيسير الاعمال</h1>
+            <p className="text-blue-600 mt-2">تسجيل الدخول للوحة التحكم</p>
+          </motion.div>
+
+          {!is2FARequired ? (
+            <motion.form
+              onSubmit={handleLoginSubmit}
+              className="space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-blue-700 mb-1">
+                  اسم المستخدم
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-blue-400">
+                    <i className="fas fa-user"></i>
+                  </div>
                   <Input
-                    className="w-full py-3 px-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg 
-                             focus:border-[#45369f] dark:focus:border-purple-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="اسم المستخدم"
+                    id="username"
+                    className="w-full pr-10 pl-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-300 text-gray-700"
+                    placeholder="أدخل اسم المستخدم"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                   />
                   {fieldErrors.username && (
-                    <p className="text-red-500 text-sm">{fieldErrors.username}</p>
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.username}</p>
                   )}
                 </div>
+              </div>
 
-                <div dir="rtl" className="space-y-2">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-blue-700 mb-1">
+                  كلمة المرور
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-blue-400">
+                    <i className="fas fa-lock"></i>
+                  </div>
                   <Input
-                    className="w-full py-3 px-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg 
-                             focus:border-[#45369f] dark:focus:border-purple-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     type="password"
-                    placeholder="كلمة المرور"
+                    id="password"
+                    className="w-full pr-10 pl-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-300 text-gray-700"
+                    placeholder="أدخل كلمة المرور"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   {fieldErrors.password && (
-                    <p className="text-red-500 text-sm">{fieldErrors.password}</p>
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.password}</p>
                   )}
                 </div>
+              </div>
 
-                {error && (
-                  <p className="text-red-500 text-sm text-center">{error}</p>
-                )}
+              {error && (
+                <p className="text-red-500 text-sm text-center">{error}</p>
+              )}
 
-                <Button 
-                  type="submit" 
-                  className="w-full py-3 bg-[#45369f] hover:bg-[#5847b5] dark:bg-purple-600 dark:hover:bg-purple-700 text-white"
-                >
-                  تسجيل الدخول
-                </Button>
-              </form>
-            ) : (
-              <Form {...form}>
-                <form onSubmit={handle2FASubmit} className="w-full max-w-md space-y-8">
-                  <FormField
-                    control={form.control}
-                    name="pin"
-                    render={({ field }) => (
-                      <FormItem className="space-y-4 w-full">
-                        <FormLabel className="block text-center text-xl font-semibold text-gray-700 dark:text-gray-200">
-                          التحقق الثنائي (2FA)
-                        </FormLabel>
-                        
-                        <FormControl>
-                          <div className="flex justify-center w-full">
-                            <InputOTP 
-                              maxLength={6} 
-                              {...field}
-                              className="gap-2 md:gap-3 w-full justify-between"
-                            >
-                              <InputOTPGroup className="w-full justify-between">
-                                {[...Array(6)].map((_, index) => (
-                                  <InputOTPSlot 
-                                    key={index} 
-                                    index={index}
-                                    className="w-12 h-12 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                  />
-                                ))}
-                              </InputOTPGroup>
-                            </InputOTP>
-                          </div>
-                        </FormControl>
+              <Button
+                type="submit"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                تسجيل الدخول
+                <i className="fas fa-sign-in-alt mr-2"></i>
+              </Button>
+            </motion.form>
+          ) : (
+            <Form {...form}>
+              <motion.form
+                onSubmit={handle2FASubmit}
+                className="space-y-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+              >
+                <FormField
+                  control={form.control}
+                  name="pin"
+                  render={({ field }) => (
+                    <FormItem className="space-y-4 w-full">
+                      <FormLabel className="block text-center text-xl font-semibold text-blue-800">
+                        التحقق الثنائي (2FA)
+                      </FormLabel>
 
-                        <FormDescription className="text-center text-gray-500 dark:text-gray-400">
-                          أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة
-                        </FormDescription>
+                      <FormControl>
+                        <div className="flex justify-center w-full">
+                          <InputOTP
+                            maxLength={6}
+                            {...field}
+                            className="gap-2 md:gap-3 w-full justify-between"
+                          >
+                            <InputOTPGroup className="w-full justify-between">
+                              {[...Array(6)].map((_, index) => (
+                                <InputOTPSlot
+                                  key={index}
+                                  index={index}
+                                  className="w-12 h-12 border-2 border-blue-200 bg-white text-gray-900"
+                                />
+                              ))}
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                      </FormControl>
 
-                        {isUnauthorized && (
-                          <FormMessage className="text-center text-red-500">
-                            الرمز غير صحيح
-                          </FormMessage>
-                        )}
+                      <FormDescription className="text-center text-blue-600">
+                        أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة
+                      </FormDescription>
 
-                        <Button 
-                          type="submit" 
-                          className="w-full py-3 bg-[#45369f] hover:bg-[#5847b5] dark:bg-purple-600 dark:hover:bg-purple-700 text-white"
-                        >
-                          تحقق
-                        </Button>
-                      </FormItem>
-                    )}
-                  />
-                </form>
-              </Form>
-            )}
-          </div>
+                      {isUnauthorized && (
+                        <FormMessage className="text-center text-red-500">
+                          الرمز غير صحيح
+                        </FormMessage>
+                      )}
+
+                      <Button
+                        type="submit"
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        تحقق
+                      </Button>
+                    </FormItem>
+                  )}
+                />
+              </motion.form>
+            </Form>
+          )}
+
+          <motion.div
+            className="mt-6 text-center text-sm text-blue-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9 }}
+          >
+            <p>ليس لديك حساب؟ <a href="#" className="font-medium text-blue-700 hover:text-blue-800">تواصل مع المسؤول</a></p>
+          </motion.div>
         </div>
-      </div>
+
+        <div className="px-8 py-4 bg-blue-50 border-t border-blue-100 text-center">
+          <motion.p
+            className="text-xs text-blue-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            © 2025 جميع الحقوق محفوظة<br className="md:hidden" />
+            <span className="hidden md:inline"> - </span>
+            منظومة تيسير الاعمال
+          </motion.p>
+        </div>
+      </motion.div>
     </div>
   );
 };

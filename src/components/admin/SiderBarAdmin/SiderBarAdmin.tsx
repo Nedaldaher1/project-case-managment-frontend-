@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
+import "./style.scss";
 
 const sidebarVariants = {
   open: {
@@ -51,21 +52,19 @@ const labelVariants = {
 
 const SidebarAdmin = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const { logout } = useAuth();
-  const username = Cookies.get("username") || "المستخدم";
+  const { logout , userData } = useAuth();
+  const username = userData?.username  || "المستخدم";
 
   const navItems = [
     { to: "/", label: "الرئيسية", icon: <Home /> },
-    { to: "/cases", label: "إدارة القضايا", icon: <Gavel />, isDropdown: true },
-    { to: "/employees", label: "إدارة الموظفين", icon: <Users /> },
+    { to: "/cases", label: "منظومة تيسير الاعمال", icon: <Gavel />, isDropdown: true },
     { to: "/reports", label: "التقارير", icon: <BarChart2 /> },
-    { to: "/chat", label: "الشات الداخلي", icon: <MessageCircle /> },
     { to: "/settings", label: "الإعدادات", icon: <SettingsIcon /> },
   ];
 
   return (
     <motion.div
-      className="sidebar bg-primary-800 text-white flex flex-col"
+      className="sidebar bg-primary-800 text-white flex flex-col relative  overflow-hidden"
       variants={sidebarVariants}
       animate={isOpen ? "open" : "closed"}
       initial="open"
@@ -91,7 +90,7 @@ const SidebarAdmin = () => {
                 animate="open"
                 exit="closed"
               >
-                نظام القضايا
+               منظومة تيسير الأعمال
               </motion.span>
             )}
           </AnimatePresence>
@@ -99,11 +98,11 @@ const SidebarAdmin = () => {
         {
           isOpen && (
             <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-primary-200 hover:text-white focus:outline-none"
-          >
-            <Menu />
-          </button>
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-primary-200 hover:text-white focus:outline-none"
+            >
+              <Menu />
+            </button>
           )
         }
 
@@ -125,7 +124,6 @@ const SidebarAdmin = () => {
                 exit="closed"
               >
                 <div className="font-medium">{username}</div>
-                <div className="text-xs text-primary-300">مدير النيابة</div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -141,8 +139,8 @@ const SidebarAdmin = () => {
                 <DropdownMenuTrigger asChild>
                   <motion.button
                     className={`flex items-center w-full p-2 gap-2 rounded-lg transition-colors ${window.location.pathname.startsWith(to)
-                        ? "text-white bg-primary-700"
-                        : "text-primary-200 hover:text-white hover:bg-primary-700"
+                      ? "text-white bg-primary-700"
+                      : "text-primary-200 hover:text-white hover:bg-primary-700"
                       }`}
                   >
                     <div className="flex-shrink-0">{icon}</div>
@@ -162,8 +160,6 @@ const SidebarAdmin = () => {
                   </motion.button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right">
-                  <DropdownMenuLabel>صفحات النظام</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Link to="/case/defendants">تجديد حبس المتهمين</Link>
                   </DropdownMenuItem>
@@ -179,8 +175,8 @@ const SidebarAdmin = () => {
               <Link
                 to={to}
                 className={`flex items-center p-2 gap-2 rounded-lg transition-colors ${window.location.pathname === to
-                    ? "text-white bg-primary-700"
-                    : "text-primary-200 hover:text-white hover:bg-primary-700"
+                  ? "text-white bg-primary-700"
+                  : "text-primary-200 hover:text-white hover:bg-primary-700"
                   }`}
               >
                 <div className="flex-shrink-0">{icon}</div>
@@ -201,10 +197,11 @@ const SidebarAdmin = () => {
             )}
           </div>
         ))}
+        
       </nav>
 
       {/* Footer / Logout */}
-      <div className="p-4 border-t border-primary-700">
+      <div className="p-4  border-primary-700  relative z-40">
         <button
           onClick={async () => {
             await logoutSession();
@@ -227,6 +224,11 @@ const SidebarAdmin = () => {
             )}
           </AnimatePresence>
         </button>
+      </div>
+      <div className="absolute bottom-0 left-0 w-full h-[10px]">
+      <div className='wave -one'></div>
+      <div className='wave -two'></div>
+      <div className='wave -three'></div>
       </div>
     </motion.div>
   );
