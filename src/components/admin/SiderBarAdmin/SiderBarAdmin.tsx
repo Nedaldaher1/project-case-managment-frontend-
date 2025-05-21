@@ -57,7 +57,7 @@ const SidebarAdmin = () => {
 
   const navItems = [
     { to: "/", label: "الرئيسية", icon: <Home /> },
-    { to: "/cases", label: "منظومة تيسير الاعمال", icon: <Gavel />, isDropdown: true },
+    { to: "/cases", label: "منظومة قضايا الاعضاء", icon: <Gavel />, isDropdown: true },
     { to: "/reports", label: "التقارير", icon: <BarChart2 /> },
     { to: "/settings", label: "الإعدادات", icon: <SettingsIcon /> },
   ];
@@ -90,7 +90,7 @@ const SidebarAdmin = () => {
                 animate="open"
                 exit="closed"
               >
-               منظومة تيسير الأعمال
+                  منظومة قضايا الاعضاء
               </motion.span>
             )}
           </AnimatePresence>
@@ -161,13 +161,7 @@ const SidebarAdmin = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right">
                   <DropdownMenuItem>
-                    <Link to="/case/defendants">تجديد حبس المتهمين</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
                     <Link to="/case/members"> قضايا الأعضاء</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link to="/archives">نظام الأحراز</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

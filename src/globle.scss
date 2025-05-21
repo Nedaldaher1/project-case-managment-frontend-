@@ -186,3 +186,23 @@ input[type="number"]::-webkit-outer-spin-button {
   background: blue;
   opacity: 1;
 }
+
+
+
+@keyframes modalEntry {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes modalExit {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+.modal-entry {
+  animation: modalEntry 0.3s ease-out;
+}
+
+.modal-exit {
+  animation: modalExit 0.3s ease-in;
+}

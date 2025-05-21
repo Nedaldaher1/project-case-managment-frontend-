@@ -28,7 +28,7 @@ const Footer: FC = () => {
                             onClick={() => handleNavigation('/')}
                             className="text-lg md:text-xl font-semibold  dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                         >
-                            منظومة تيسير الاعمال
+                           منظومة قضايا الاعضاء
                         </h2>
                     </div>
 
@@ -37,7 +37,7 @@ const Footer: FC = () => {
                         <p className="text-sm md:text-base  dark:text-gray-400">
                             © 2025 جميع الحقوق محفوظة<br className="md:hidden"/>
                             <span className="hidden md:inline"> - </span>
-                            منظومة تيسير الاعمال
+                            منظومة قضايا الاعضاء
                         </p>
                     </div>
                 </div>

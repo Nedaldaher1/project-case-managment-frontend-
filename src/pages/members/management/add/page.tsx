@@ -15,6 +15,7 @@ import Cookies from "js-cookie";
 import { useAuth } from "@/context/userContext";
 import OffcierName from "@/components/members/officerName";
 import ActionType from "@/components/members/actionType";
+import GuideModalPopup from "@/components/members/guid_pdf_show";
 import {
     Select,
     SelectContent,
@@ -76,6 +77,7 @@ const PageAdd = () => {
     const [selectedPdf, setSelectedPdf] = useState('');
     const [numPages, setNumPages] = useState<number>(0);
     const [pageNumber, setPageNumber] = useState(1);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const pdfFiles: { [key: string]: string } = {
         'الاتجار في البشر': '/pdfs/output_7.14.pdf',
@@ -98,16 +100,15 @@ const PageAdd = () => {
     const openPdfModal = () => {
         setSelectedPdf(pdfFiles[accusation]);
         console.log('Selected PDF:', pdfFiles[accusation]);
+        setIsModalOpen(true);
         setIsPdfModalOpen(true);
     };
 
-    const closePdfModal = () => {
-        setIsPdfModalOpen(false);
-        setPageNumber(1);
-    };
-    const handlePageChange = (newPage: number) => {
-        setPageNumber(Math.max(1, Math.min(newPage, numPages)));
-    };
+    // const closePdfModal = () => {
+    //     setIsPdfModalOpen(false);
+    //     setPageNumber(1);
+    // };
+
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -297,63 +298,68 @@ const PageAdd = () => {
             )}
             <AnimatePresence>
                 {isPdfModalOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.8 }}
-                            animate={{ scale: 1 }}
-                            className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-4xl relative"
-                        >
-                            <button
-                                onClick={closePdfModal}
-                                className="absolute top-4 left-4 text-gray-500 hover:text-gray-700"
-                            >
-                                <X className="h-6 w-6" />
-                            </button>
+                    <GuideModalPopup
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        selectedPdf={selectedPdf}
+                    />
+                    // <motion.div
+                    //     initial={{ opacity: 0 }}
+                    //     animate={{ opacity: 1 }}
+                    //     exit={{ opacity: 0 }}
+                    //     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                    // >
+                    //     <motion.div
+                    //         initial={{ scale: 0.8 }}
+                    //         animate={{ scale: 1 }}
+                    //         className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-4xl relative"
+                    //     >
+                    //         <button
+                    //             onClick={closePdfModal}
+                    //             className="absolute top-4 left-4 text-gray-500 hover:text-gray-700"
+                    //         >
+                    //             <X className="h-6 w-6" />
+                    //         </button>
 
-                            <div className="flex flex-col items-center gap-4 h-[80vh]">
-                                <Document
-                                    file={selectedPdf}
-                                    onLoadError={(error) => console.error('Failed to load PDF:', error)}
+                            // <div className="flex flex-col items-center gap-4 h-[80vh]">
+                            //     <Document
+                            //         file={selectedPdf}
+                            //         onLoadError={(error) => console.error('Failed to load PDF:', error)}
 
-                                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                                    className="flex-1 overflow-auto"
-                                >
-                                    <Page
-                                        pageNumber={pageNumber}
-                                        width={800}
-                                        renderAnnotationLayer={false}
-                                    />
-                                </Document>
+                            //         onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                            //         className="flex-1 overflow-auto"
+                            //     >
+                            //         <Page
+                            //             pageNumber={pageNumber}
+                            //             width={800}
+                            //             renderAnnotationLayer={false}
+                            //         />
+                            //     </Document>
 
-                                <div className="flex items-center gap-4 mt-4">
-                                    <Button
-                                        onClick={() => handlePageChange(pageNumber - 1)}
-                                        disabled={pageNumber <= 1}
-                                        variant="outline"
-                                    >
-                                        السابق
-                                    </Button>
+                            //     <div className="flex items-center gap-4 mt-4">
+                            //         <Button
+                            //             onClick={() => handlePageChange(pageNumber - 1)}
+                            //             disabled={pageNumber <= 1}
+                            //             variant="outline"
+                            //         >
+                            //             السابق
+                            //         </Button>
 
-                                    <span className="text-gray-600">
-                                        الصفحة {pageNumber} من {numPages}
-                                    </span>
+                            //         <span className="text-gray-600">
+                            //             الصفحة {pageNumber} من {numPages}
+                            //         </span>
 
-                                    <Button
-                                        onClick={() => handlePageChange(pageNumber + 1)}
-                                        disabled={pageNumber >= numPages}
-                                        variant="outline"
-                                    >
-                                        التالي
-                                    </Button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
+                            //         <Button
+                            //             onClick={() => handlePageChange(pageNumber + 1)}
+                            //             disabled={pageNumber >= numPages}
+                            //             variant="outline"
+                            //         >
+                            //             التالي
+                            //         </Button>
+                            //     </div>
+                            // </div>
+                    //     </motion.div>
+                    // </motion.div>
                 )}
             </AnimatePresence>
 

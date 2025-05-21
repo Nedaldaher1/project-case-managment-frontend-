@@ -81,17 +81,6 @@ const App = () => {
                                 } 
                             />
 
-                            {/* Defendants Case Routes */}
-                            <Route path="case/defendants/*" element={
-                                <RoleProtectedRoute action="view" subject="CaseSystem">
-                                    <ArchivesLayout />
-                                </RoleProtectedRoute>
-                            }>
-                                <Route path="management/add" element={<AddCaseDefendants />} />
-                                <Route path="management/data" element={<ManagementCaseDefendants />} />
-                                <Route path="management" element={<HomePageDefendantsManagement />} />
-                                <Route path="*" element={<HomePageDefendants />} />
-                            </Route>
 
                             {/* Members Case Routes */}
                             <Route path="/case/members/*" element={
@@ -105,22 +94,7 @@ const App = () => {
                                 <Route path="*" element={<HomePageMembers />} />
                             </Route>
 
-                            {/* Archive Routes */}
-                            <Route
-                                path="archives/*"
-                                element={
-                                    <RoleProtectedRoute action="view" subject="ElectronicArchive">
-                                        <>
-                                            <ArchivesLayout /> {/* استبدل Outlet بالمكون الجديد */}
-                                        </>
-                                    </RoleProtectedRoute>
-                                }
-                            >
-                                <Route index element={<Archives />} />
-                                <Route path="management" element={<ArchivesManagement />} />
-                                <Route path="management/add" element={<ArchiveInsert />} />
-                                <Route path="management/data" element={<ArchivesDataManagement />} />
-                            </Route>
+
 
                         </Route>
 
