@@ -9,6 +9,9 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { useSearchParams } from 'react-router-dom'
 import InputStatusEvidence from "@/components/archives/inputStatusEvidence";
+
+
+
 import {
     Select,
     SelectContent,
@@ -17,8 +20,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { read, utils } from 'xlsx';
-
-
 
 const Insert = () => {
     const [prosecutionOfficeId, setProsecutionOfficeId] = useState('');
@@ -34,8 +35,9 @@ const Insert = () => {
     const [numberCase, setNumberCase] = useState('');
     const [prosecutionDetentionDecision, setProsecutionDetentionDecision] = useState('');
     const [finalCourtJudgment, setFinalCourtJudgment] = useState('');
+    const [startCourtJudgment, setStartCourtJudgment] = useState('');
     const [year, setYear] = useState<string>('');
-    const [statusEvidence, setStatusEvidence] = useState('');
+    const [statusEvidence, setStatusEvidence] = useState('على ذمة التحقيق');
     const [typeCaseTotalNumber, setTypeCaseTotalNumber] = useState('');
     const [typeCaseNumber, setTypeCaseNumber] = useState('');
     const [serialNumber, setSerialNumber] = useState<number | null>(null);
@@ -44,7 +46,8 @@ const Insert = () => {
         (userData?.officesAvailable as { id: string; name: string }[] | undefined) || [];
     const [searchParams] = useSearchParams()
     const type = searchParams.get('type')
-    // حالات جديدة للاستيراد
+
+    // حالات الاستيراد
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [successCount, setSuccessCount] = useState(0);
@@ -53,55 +56,84 @@ const Insert = () => {
     const [hasEditCount, setHasEditCount] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [showResults, setShowResults] = useState(false); // حالة لعرض النتائج
+    const [showResults, setShowResults] = useState(false);
 
-    // تحويل البيانات إلى مصفوفة آمنة مع قيمة افتراضية
+
+
 
     useEffect(() => {
-        const checkForKeywords = () => {
-          // قائمة الكلمات المطلوبة
-          const keywords = [
-            'سيف',
-            'السونكات',
-            'الخنجر',
-            'قوس',
-            'مطوة',
-            'ساطور',
-            'سكينة',
-            'بلطة',
-            'جنزير',
-            'سنجة',
-            'قطر',
-            'شفرة',
-            'عصاية',
-            'شنطة',
-            'فلاشة',
-            'حافظة',
-            'جلدية',
-            'شنطه',
-            'مطواه'
-          ];
-      
-          // تحويل النص إلى حالة بحث موحدة
-          const textToCheck = seizureStatement?.toLowerCase() || '';
-      
-          // التحقق من وجود أي كلمة ممنوعة
-          const found = keywords.some(keyword => 
-            textToCheck.includes(keyword.toLowerCase())
-          );
-      
-          if (found && statusEvidence !== 'جاهز للإعدام') {
-            setStatusEvidence('جاهز للإعدام');
-          } else if (!found && statusEvidence === 'جاهز للإعدام') {
-            setStatusEvidence(''); // أو القيمة الافتراضية
-          }
+        const normalizeText = (text: string) =>
+            text.replace(/\s+/g, ' ').trim().toLowerCase();
+
+        const checkStatus = () => {
+            // 1. قائمة الكلمات الممنوعة للإعدام
+            const forbiddenKeywords = [
+                'سيف', 'السونكات', 'الخنجر', 'قوس', 'مطوة',
+                'ساطور', 'سكينة', 'بلطة', 'جنزير', 'سنجة',
+                'قطر', 'شفرة', 'عصاية', 'شنطة', 'فلاشة',
+                'حافظة', 'جلدية', 'شنطه', 'مطواه'
+            ];
+            const seizureText = normalizeText(seizureStatement || '');
+            const hasForbidden = forbiddenKeywords.some(kw =>
+                seizureText.includes(kw)
+            );
+            if (hasForbidden) {
+                setStatusEvidence('جاهز للإعدام');
+                return;
+            }
+
+            // 2. قائمة عبارات "البيع"
+            const saleKeywords = [
+                'مصادرة هاتف',
+                'مصادرة الهاتف',
+                'مصادرة المحمول',
+                'غير معلوم',
+                'مر عليها ثلاث سنوات'
+            ];
+
+            // 3. قائمة عبارات "التسليم"
+            const deliveryKeywords = [
+                'مصادرة',
+                'المصادرة',
+                'براءة',
+                'ببراءة',
+                'برائه',
+                'براءه',
+                'ببراءه',
+                'براءت',
+                'براته',
+                'براة',
+                'براأة',
+                'رد',
+                'إرجاع',
+                'عدم',
+                'تسليم',
+                'استرداد',
+                'حفظ',
+                'الحفظ',
+                'حفظها',
+                'بقاء',
+                'إعادة'
+            ];
+
+            // نص الحكم النهائي بعد تطبيـــع
+            const judgment = normalizeText(finalCourtJudgment || '');
+
+            // فحص البيع أولاً
+            const hasSale = saleKeywords.some(kw => judgment.includes(kw));
+            // ثم فحص التسليم
+            const hasDelivery = !hasSale && deliveryKeywords.some(kw => judgment.includes(kw));
+
+            // التعيين النهائي للحالة
+            let newStatus = 'على ذمة التحقيق';
+            if (hasSale) newStatus = 'جاهز للبيع';
+            else if (hasDelivery) newStatus = 'جاهز للتسليم';
+
+            setStatusEvidence(newStatus);
         };
-      
-        checkForKeywords();
-      }, [seizureStatement]);
-      useEffect(() => {
-        console.log('تم تحديث حالة الحرز:', statusEvidence); // ← هذه ستظهر القيمة المحدثة
-      }, [statusEvidence]); // ← هذا الـ effect سينفذ عند كل تغيير في statusEvidence
+
+        checkStatus();
+    }, [seizureStatement, finalCourtJudgment]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -134,6 +166,7 @@ const Insert = () => {
                     disposalOfSeizure,
                     prosecutionDetentionDecision,
                     finalCourtJudgment,
+                    startCourtJudgment,
                     totalNumber,
                     roomNumber: Number(roomNumber),
                     referenceNumber: Number(referenceNumber),
@@ -152,7 +185,6 @@ const Insert = () => {
                 }
             );
 
-
             if (response.data.success) {
                 setProsecutionOfficeId('');
                 setItemNumber('');
@@ -166,12 +198,12 @@ const Insert = () => {
                 setNumberCase('');
                 setProsecutionDetentionDecision('');
                 setFinalCourtJudgment('');
+                setStartCourtJudgment('');
                 setYear('');
                 setStatusEvidence('');
                 setTypeCaseTotalNumber('');
                 setTypeCaseNumber('');
                 toast.success('تم إضافة الأرشيف بنجاح!');
-
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -197,28 +229,26 @@ const Insert = () => {
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = utils.sheet_to_json(worksheet);
 
-                // تحويل البيانات مع التحقق من الحقول المطلوبة
-                const cases = jsonData.map((item: any) => {
-                    // التحقق من الحقول الأساسية
-                    return {
-                        itemNumber: item['رقم الأشياء'],
-                        numberCase: item['رقم القضية'],
-                        serialNumber: item[ 'المسلسل'],
-                        typeCaseNumber: item['نوع القضية'],
-                        year: item['السنة'],
-                        charge: item['التهمة'],
-                        seizureStatement: item['بيان الحرز'],
-                        totalNumber: item['الرقم الكلي'],
-                        typeCaseTotalNumber: item['نوع القضية للرقم الكلي'],
-                        roomNumber: item['رقم الغرفة'],
-                        referenceNumber: item['رقم الاستاند'],
-                        shelfNumber: item['رقم الرف'],
-                        prosecutionDetentionDecision: item['قرار النيابة في الحرز'],
-                        finalCourtJudgment: item['حكم المحكمة النهائي'],
-                        statusEvidence: item['حالة الحرز'],
-                        prosecutionOfficeId: type,
-                    };
-                });
+                const cases = jsonData.map((item: any) => ({
+                    itemNumber: item['رقم الأشياء'],
+                    numberCase: item['رقم القضية'],
+                    serialNumber: item['المسلسل'],
+                    typeCaseNumber: item['نوع القضية'],
+                    year: item['السنة'],
+                    charge: item['التهمة'],
+                    seizureStatement: item['بيان الحرز'],
+                    totalNumber: item['الرقم الكلي'],
+                    typeCaseTotalNumber: item['نوع القضية للرقم الكلي'],
+                    roomNumber: item['رقم الغرفة'],
+                    referenceNumber: item['رقم الاستاند'],
+                    shelfNumber: item['رقم الرف'],
+                    prosecutionDetentionDecision: item['قرار النيابة في الحرز'],
+                    finalCourtJudgment: item['حكم المحكمة النهائي'],
+                    startCourtJudgment: item['حكم المحكمة الابتدائي'],
+
+                    statusEvidence: item['حالة الحرز'],
+                    prosecutionOfficeId: type,
+                }));
 
                 setIsProcessing(true);
                 let success = 0;
@@ -237,22 +267,12 @@ const Insert = () => {
                                 }
                             }
                         );
-                        if (res.status === 202) {
-                            notEdit++;
-                        }
-                        if (res.status === 201) {
-                            hasEdit++;
-                        }
-                        if (res.status == 200) {
-                            success++;
-                        }
+                        if (res.status === 202) notEdit++;
+                        if (res.status === 201) hasEdit++;
+                        if (res.status == 200) success++;
                     } catch (error) {
                         errors++;
-                        if (axios.isAxiosError(error)) {
-                            console.error(`خطأ في الصف ${i + 1}:`, error.response?.data || error.message);
-                        } else {
-                            console.error(`خطأ في الصف ${i + 1}:`, error);
-                        }
+                        console.error(`خطأ في الصف ${i + 1}:`, error);
                     }
 
                     setUploadProgress((i + 1) / cases.length * 100);
@@ -261,8 +281,7 @@ const Insert = () => {
                     setNotEditCount(notEdit);
                     setHasEditCount(hasEdit);
 
-
-                    await new Promise(resolve => setTimeout(resolve, 100)); // تقليل التأخير
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 }
 
                 setIsProcessing(false);
@@ -270,11 +289,7 @@ const Insert = () => {
                 setSelectedFile(null);
                 toast.success(`البيانات التي تمت إضافتها: ${success}, البيانات التي لم يتم تعديلها أو كانت موجودة مسبقًا: ${notEdit}, الأخطاء: ${errors}`);
             } catch (error) {
-                if (error instanceof Error) {
-                    toast.error(error.message || 'حدث خطأ في معالجة الملف');
-                } else {
-                    toast.error('حدث خطأ في معالجة الملف');
-                }
+                toast.error('حدث خطأ في معالجة الملف');
                 setIsProcessing(false);
             }
         };
@@ -296,6 +311,7 @@ const Insert = () => {
                         استيراد من Excel
                     </Button>
                 </div>
+
                 <AnimatePresence>
                     {(importModalOpen || showResults) && (
                         <motion.div
@@ -392,21 +408,14 @@ const Insert = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
+
                 <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100">
                     <form onSubmit={handleSubmit} className="space-y-8">
-
-                        {/* قسم بيانات الحرز */}
                         <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
                             <legend className="px-2 text-xl font-semibold text-blue-600">
                                 بيانات الحرز
                             </legend>
-
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-
-
-
-                             
-                                {/* رقم المسلسل */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">رقم المسلسل</label>
                                     <input
@@ -419,7 +428,6 @@ const Insert = () => {
                                     />
                                 </div>
 
-                                {/* رقم الأشياء */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">رقم الأشياء</label>
                                     <input
@@ -429,11 +437,9 @@ const Insert = () => {
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                                         min="0"
                                         required
-
                                     />
                                 </div>
 
-                                {/* رقم القضية */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">رقم القضية</label>
                                     <input
@@ -446,7 +452,6 @@ const Insert = () => {
                                     />
                                 </div>
 
-                                {/* نوع القضية */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right"> نوع القضية  </label>
                                     <Select
@@ -473,7 +478,6 @@ const Insert = () => {
                                     </Select>
                                 </div>
 
-                                {/* السنة */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">السنة</label>
                                     <input
@@ -481,10 +485,9 @@ const Insert = () => {
                                         value={year}
                                         onChange={(e) => setYear(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-
                                     />
                                 </div>
-                                {/* التهمة */}
+
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">التهمة</label>
                                     <input
@@ -492,11 +495,9 @@ const Insert = () => {
                                         value={charge}
                                         onChange={(e) => setCharge(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-
                                     />
                                 </div>
 
-                                {/* بيان الحرز */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">بيان الحرز</label>
                                     <input
@@ -504,11 +505,9 @@ const Insert = () => {
                                         value={seizureStatement}
                                         onChange={(e) => setSeizureStatement(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-
                                     />
                                 </div>
 
-                                {/* الرقم الكلي */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">الرقم الكلي</label>
                                     <input
@@ -517,11 +516,9 @@ const Insert = () => {
                                         onChange={(e) => setTotalNumber(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                                         min="0"
-
                                     />
                                 </div>
 
-                                {/* نوع القضية  للرقم الكلي*/}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right"> نوع القضية لرقم الكلي</label>
                                     <Select
@@ -547,7 +544,7 @@ const Insert = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                {/* النيابة */}
+
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">النيابة</label>
                                     <Select
@@ -571,14 +568,11 @@ const Insert = () => {
                             </div>
                         </fieldset>
 
-                        {/* قسم مكان تواجد الحرز */}
                         <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
                             <legend className="px-2 text-xl font-semibold text-blue-600">
                                 مكان تواجد الحرز
                             </legend>
-
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                                {/* رقم الغرفة */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">رقم الغرفة</label>
                                     <input
@@ -587,11 +581,9 @@ const Insert = () => {
                                         onChange={(e) => setRoomNumber(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                                         min="0"
-
                                     />
                                 </div>
 
-                                {/* رقم الاستاند */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">رقم الاستاند</label>
                                     <input
@@ -600,11 +592,9 @@ const Insert = () => {
                                         onChange={(e) => setReferenceNumber(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                                         min="0"
-
                                     />
                                 </div>
 
-                                {/* رقم الرف */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">رقم الرف</label>
                                     <input
@@ -613,20 +603,16 @@ const Insert = () => {
                                         onChange={(e) => setShelfNumber(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                                         min="0"
-
                                     />
                                 </div>
                             </div>
                         </fieldset>
 
-                        {/* قسم التصرف في الحرز */}
                         <fieldset className="border-2 border-blue-100 rounded-xl p-6 text-right">
                             <legend className="px-2 text-xl font-semibold text-blue-600">
                                 التصرف في الحرز
                             </legend>
-
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                                {/* قرار النيابة */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">قرار النيابة</label>
                                     <input
@@ -634,11 +620,9 @@ const Insert = () => {
                                         value={prosecutionDetentionDecision}
                                         onChange={(e) => setProsecutionDetentionDecision(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-
                                     />
                                 </div>
 
-                                {/* حكم المحكمة النهائي */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700 text-right">حكم المحكمة النهائي</label>
                                     <input
@@ -646,18 +630,23 @@ const Insert = () => {
                                         value={finalCourtJudgment}
                                         onChange={(e) => setFinalCourtJudgment(e.target.value)}
                                         className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-
                                     />
                                 </div>
-
-                                {/* حالة الحرز */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700 text-right">حكم المحكمة الابتدائي</label>
+                                    <input
+                                        type="text"
+                                        value={startCourtJudgment}
+                                        onChange={(e) => setStartCourtJudgment(e.target.value)}
+                                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                    />
+                                </div>
                                 <div className="space-y-2">
                                     <InputStatusEvidence value={statusEvidence} onValueChange={setStatusEvidence} />
                                 </div>
                             </div>
                         </fieldset>
 
-                        {/* زر الإرسال */}
                         <div className="flex justify-end">
                             <Button
                                 type="submit"
@@ -674,4 +663,4 @@ const Insert = () => {
     );
 };
 
-export default Insert;  
+export default Insert;

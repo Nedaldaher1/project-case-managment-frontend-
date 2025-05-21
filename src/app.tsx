@@ -66,9 +66,7 @@ const App = () => {
 
 
             <main className={`${isAdmin ? '' : ''} ${isDarkMode ? 'bg-gray-900' : ''} transition-all w-full`}>
-                <div className='fixed bottom-10  right-20 z-50 flex items-center gap-4'>
-                    <DarkModeToggle />
-                </div>
+
 
 
                 <Suspense fallback={<div>Loading...</div>}>

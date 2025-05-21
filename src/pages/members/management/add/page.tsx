@@ -22,8 +22,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Document, Page, pdfjs } from 'react-pdf';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
 
-const Page = () => {
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+
+
+// Use the correct path to the PDF.js worker as a string
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker
+const PageAdd = () => {
     // بيانات القضية
     const [caseNumber, setCaseNumber] = useState('');
     const [year, setYear] = useState('');
@@ -60,6 +68,46 @@ const Page = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [showResults, setShowResults] = useState(false); // حالة لعرض النتائج
+
+
+
+    const [showPdfButton, setShowPdfButton] = useState(false);
+    const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [selectedPdf, setSelectedPdf] = useState('');
+    const [numPages, setNumPages] = useState<number>(0);
+    const [pageNumber, setPageNumber] = useState(1);
+
+    const pdfFiles: { [key: string]: string } = {
+        'الاتجار في البشر': '/pdfs/output_7.14.pdf',
+        'اموال عامة': '/pdfs/output_16.41.pdf',
+        'اهمال الطبي': '/pdfs/output_43.51.pdf',
+        'تزوير': '/pdfs/output_53.65.pdf',
+        'تهريب مهاجرين': '/pdfs/output_67.76.pdf',
+        'القتل': '/pdfs/output_78.93.pdf',
+    };
+    useEffect(() => {
+        const checkCharge = () => {
+            const shouldShow = Object.keys(pdfFiles).includes(accusation);
+            setShowPdfButton(shouldShow);
+            if (!shouldShow) setIsPdfModalOpen(false);
+        };
+
+        checkCharge();
+    }, [accusation]);
+
+    const openPdfModal = () => {
+        setSelectedPdf(pdfFiles[accusation]);
+        console.log('Selected PDF:', pdfFiles[accusation]);
+        setIsPdfModalOpen(true);
+    };
+
+    const closePdfModal = () => {
+        setIsPdfModalOpen(false);
+        setPageNumber(1);
+    };
+    const handlePageChange = (newPage: number) => {
+        setPageNumber(Math.max(1, Math.min(newPage, numPages)));
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -229,6 +277,86 @@ const Page = () => {
     }, []);
     return (
         <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+            {showPdfButton && (
+                <motion.div
+                    initial={{ x: -100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 100 }}
+                    className="fixed bottom-8 right-8 z-50"
+                >
+                    <Button
+                        onClick={openPdfModal}
+                        className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg rounded-full px-6 py-3 flex items-center gap-2"
+                    >
+                        <span>عرض الدليل الإرشادي</span>
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.65 4.5 1.734V4.804zm1 0v10.93C11.782 14.65 13.331 14 14.5 14c1.255 0 2.443.29 3.5.804V4.804A7.969 7.969 0 0014.5 4c-1.669 0-3.218.65-4.5 1.734zM14.5 3c-1.287 0-2.49.252-3.5.707V2h-2v1.707A7.967 7.967 0 005.5 3C4.58 3 3.704 3.181 2.9 3.5h.222c.061 0 .122.006.182.017C4.12 3.164 5.091 3.43 6 3.707v12.586c-.909.277-1.88.543-2.696.69-.06.011-.121.017-.182.017H2.9c.804.319 1.68.5 2.6.5 1.287 0 2.49-.252 3.5-.707V18h2v-1.707a7.967 7.967 0 003.5.707c.92 0 1.796-.181 2.6-.5h-.222c-.061 0-.122-.006-.182-.017-.816-.147-1.787-.413-2.696-.69V3.707c.909-.277 1.88-.543 2.696-.69.06-.011.121-.017.182-.017h.222c-.804-.319-1.68-.5-2.6-.5z" />
+                        </svg>
+                    </Button>
+                </motion.div>
+            )}
+            <AnimatePresence>
+                {isPdfModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-4xl relative"
+                        >
+                            <button
+                                onClick={closePdfModal}
+                                className="absolute top-4 left-4 text-gray-500 hover:text-gray-700"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+
+                            <div className="flex flex-col items-center gap-4 h-[80vh]">
+                                <Document
+                                    file={selectedPdf}
+                                    onLoadError={(error) => console.error('Failed to load PDF:', error)}
+
+                                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                                    className="flex-1 overflow-auto"
+                                >
+                                    <Page
+                                        pageNumber={pageNumber}
+                                        width={800}
+                                        renderAnnotationLayer={false}
+                                    />
+                                </Document>
+
+                                <div className="flex items-center gap-4 mt-4">
+                                    <Button
+                                        onClick={() => handlePageChange(pageNumber - 1)}
+                                        disabled={pageNumber <= 1}
+                                        variant="outline"
+                                    >
+                                        السابق
+                                    </Button>
+
+                                    <span className="text-gray-600">
+                                        الصفحة {pageNumber} من {numPages}
+                                    </span>
+
+                                    <Button
+                                        onClick={() => handlePageChange(pageNumber + 1)}
+                                        disabled={pageNumber >= numPages}
+                                        variant="outline"
+                                    >
+                                        التالي
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="  h-[70px] text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -345,74 +473,85 @@ const Page = () => {
                             </legend>
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-4">
 
-                            {/* رقم القضية */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">رقم القضية</label>
-                                <Input
-                                    type="text"
-                                    value={caseNumber}
-                                    onChange={(e) => setCaseNumber(e.target.value)}
-                                    required
-                                />
-                            </div>
+                                {/* رقم القضية */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">رقم القضية</label>
+                                    <Input
+                                        type="text"
+                                        value={caseNumber}
+                                        onChange={(e) => setCaseNumber(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                            {/* السنة */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">السنة</label>
-                                <Select value={year} onValueChange={setYear}>
-                                    <SelectTrigger className="w-40">
-                                        <SelectValue placeholder="السنة" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="2023">2023</SelectItem>
-                                        <SelectItem value="2024">2024</SelectItem>
-                                        <SelectItem value="2025">2025</SelectItem>
-                                        <SelectItem value="2026">2026</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                {/* السنة */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">السنة</label>
+                                    <Select value={year} onValueChange={setYear}>
+                                        <SelectTrigger className="w-40">
+                                            <SelectValue placeholder="السنة" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="2023">2023</SelectItem>
+                                            <SelectItem value="2024">2024</SelectItem>
+                                            <SelectItem value="2025">2025</SelectItem>
+                                            <SelectItem value="2026">2026</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                            {
-                                actionOther === 'حتى الآن' && (
-                                    <div className="space-y-2">
-                                        <TypeCase value={caseType} onValueChange={setCaseType} />
-                                    </div>
-                                )
-                            }
+                                {
+                                    actionOther === 'حتى الآن' && (
+                                        <div className="space-y-2">
+                                            <TypeCase value={caseType} onValueChange={setCaseType} />
+                                        </div>
+                                    )
+                                }
 
-                            {/* رقم حصر التحقيق */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">رقم حصر التحقيق</label>
-                                <Input
-                                    type="text"
-                                    value={investigationID}
-                                    onChange={(e) => setInvestigationID(e.target.value)}
-                                    required
-                                />
-                            </div>
+                                {/* رقم حصر التحقيق */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">رقم حصر التحقيق</label>
+                                    <Input
+                                        type="text"
+                                        value={investigationID}
+                                        onChange={(e) => setInvestigationID(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700"> التهمة </label>
-                                <Input
-                                    type="text"
-                                    value={accusation}
-                                    onChange={(e) => setAccusation(e.target.value)}
-                                    required
-                                />
-                            </div>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700"> التهمة </label>
+                                    <Select
+                                        value={accusation}
+                                        onValueChange={setAccusation}
+                                        required
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="اختر التهمة" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="الاتجار في البشر">الاتجار في البشر</SelectItem>
+                                            <SelectItem value="اموال عامة">اموال عامة</SelectItem>
+                                            <SelectItem value="اهمال الطبي">اهمال الطبي</SelectItem>
+                                            <SelectItem value="تزوير">تزوير</SelectItem>
+                                            <SelectItem value="تهريب مهاجرين">تهريب مهاجرين</SelectItem>
+                                            <SelectItem value="القتل">القتل</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                            {/* اسم المتهم */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">اسم المتهم</label>
-                                <Input
-                                    type="text"
-                                    value={accusedName}
-                                    onChange={(e) => setAccusedName(e.target.value)}
-                                    required
-                                />
-                            </div>
+                                {/* اسم المتهم */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">اسم المتهم</label>
+                                    <Input
+                                        type="text"
+                                        value={accusedName}
+                                        onChange={(e) => setAccusedName(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                            {/* رقم العضو */}
+                                {/* رقم العضو */}
                                 {/*الاعضاء*/}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700">الاعضاء</label>
@@ -603,4 +742,4 @@ const Page = () => {
     );
 };
 
-export default Page;
+export default PageAdd;

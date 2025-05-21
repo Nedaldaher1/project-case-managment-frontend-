@@ -5,6 +5,9 @@ import path from 'path';
 
 export default defineConfig({
   // تعيين base إلى './' لضمان استخدام مسارات نسبية بعد عملية build
+  optimizeDeps: {
+    include: ['pdfjs-dist']
+  },
   base: './',
   plugins: [
     react(),
@@ -15,7 +18,12 @@ export default defineConfig({
     assetsDir: 'assets', // اختياري لكن مفيد للتنظيم
   },
   server: {
-    port: 4000
+    port: 4000,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp'
+    }
   },
   resolve: {
     alias: {

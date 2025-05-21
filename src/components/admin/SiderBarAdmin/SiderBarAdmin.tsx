@@ -164,7 +164,7 @@ const SidebarAdmin = () => {
                     <Link to="/case/defendants">تجديد حبس المتهمين</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link to="/case/members">تجديد قضايا الأعضاء</Link>
+                    <Link to="/case/members"> قضايا الأعضاء</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Link to="/archives">نظام الأحراز</Link>

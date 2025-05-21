@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/select"
 const inputStatusEvidence = ({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) => {
 
+    
     return (
         <>
             <label className="block text-sm font-medium text-gray-700 text-right">حالة الحرز</label>

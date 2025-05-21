@@ -58,6 +58,7 @@ const Dashboard = () => {
       combinedTotal: 0,
     },
   });
+  console.log('data', data);
 
   const [loading, setLoading] = useState(true);
   const token = Cookies.get('token') || '';

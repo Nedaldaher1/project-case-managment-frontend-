@@ -50,6 +50,7 @@ interface ProsecutionData {
     year: string;
     prosecutionDetentionDecision: string;
     finalCourtJudgment: string;
+    startCourtJudgment: string;
     statusEvidence: string;
     typeCaseTotalNumber: string;
     typeCaseNumber: string;
@@ -66,7 +67,6 @@ interface ApiResponse {
 
 const ProsecutionTable = () => {
     const [data, setData] = useState<ProsecutionData[]>([]);
-    console.log('data', data);
     const [totalCount, setTotalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -74,7 +74,6 @@ const ProsecutionTable = () => {
     const [searchParams] = useSearchParams();
     const type = searchParams.get('type');
     const [statusEvidence, setStatusEvidence] = useState('');
-
     const [caseNumberSearch, setCaseNumberSearch] = useState('');
     const [itemNumberSearch, setItemNumberSearch] = useState('');
     const [year, setYear] = useState('');
@@ -82,6 +81,8 @@ const ProsecutionTable = () => {
     const [debouncedItemNumber, setDebouncedItemNumber] = useState('');
     const [debouncedYear, setDebouncedYear] = useState(null as string | null);
     const [actionType, setActionType] = useState('action-taken');
+    const [localStatusEvidence, setLocalStatusEvidence] = useState(''); // حالة محلية للـ modal
+    const [startCourtJudgment, setStartCourtJudgment] = useState('');
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
@@ -120,6 +121,8 @@ const ProsecutionTable = () => {
             if (!import.meta.env.VITE_REACT_APP_API_URL) {
                 throw new Error('API URL is not defined');
             }
+            console.log('statusEvidence', statusEvidence);
+
             const response = await axios.get<ApiResponse>(`${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/all`, {
                 params: {
                     type,
@@ -147,16 +150,18 @@ const ProsecutionTable = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [type, totalPages, actionType]);
+    }, [type, totalPages, actionType,statusEvidence]);
 
     useEffect(() => {
         fetchData(currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear || '', statusEvidence);
     }, [currentPage, debouncedCaseNumber, debouncedItemNumber, debouncedYear, totalPages, statusEvidence, actionType, fetchData]);
-
+    
     const handleEdit = (data: ProsecutionData) => {
         setEditingData(data);
+        setLocalStatusEvidence(data.statusEvidence); // نسخ القيمة الأولية
         setIsEditModalOpen(true);
-    };
+      };
+    
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -167,6 +172,7 @@ const ProsecutionTable = () => {
                 `${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/update/${editingData.id}`,
                  {
                     ...editingData,
+                    statusEvidence: localStatusEvidence, // استخدام الحالة المحلية
                     actionType,
                  },
                 
@@ -230,6 +236,7 @@ const ProsecutionTable = () => {
         { accessorKey: 'shelfNumber', header: 'رقم الرف' },
         { accessorKey: 'prosecutionDetentionDecision', header: 'قرار النيابة في الحرز' },
         { accessorKey: 'finalCourtJudgment', header: 'حكم المحكمة النهائي' },
+        {accessorKey: 'startCourtJudgment', header: 'حكم المحكمة الابتدائي' },
         { accessorKey: 'statusEvidence', header: 'حالة الحرز' },
         {
             id: 'actions',
@@ -280,8 +287,6 @@ const ProsecutionTable = () => {
         setDebouncedYear(null);
         
     };
-
-
 
     const exportToExcelFull = async () => {
         const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/archives/data/all/full`, {
@@ -347,6 +352,72 @@ const ProsecutionTable = () => {
         }
     };
 
+
+    useEffect(() => {
+        const checkStatus = () => {
+            // 1. التحقق من كلمات بيان الحرز أولاً
+            const forbiddenKeywords = [
+                'سيف', 'السونكات', 'الخنجر', 'قوس', 'مطوة', 
+                'ساطور', 'سكينة', 'بلطة', 'جنزير', 'سنجة',
+                'قطر', 'شفرة', 'عصاية', 'شنطة', 'فلاشة',
+                'حافظة', 'جلدية', 'شنطه', 'مطواه'
+            ];
+    
+            const seizureText = editingData?.seizureStatement?.toLowerCase() || '';
+            const hasForbidden = forbiddenKeywords.some(kw => 
+                seizureText.includes(kw.toLowerCase())
+            );
+    
+            if (hasForbidden) {
+                setLocalStatusEvidence('جاهز للإعدام');
+                return;
+            }
+    
+            // 2. إذا لم توجد كلمات ممنوعة، تحقق من حكم المحكمة
+            const deliveryKeywords = [
+                "مصادرة", "المصادرة", "براءة", "ببراءة", "برائه", 
+                "براءه", "ببراءه", "براءت", "براته", "براة", 
+                "براأة", "رد", "إرجاع", "عدم", "تسليم", 
+                "استرداد", "حفظ", "الحفظ", "حفظها", "بقاء", "إعادة"
+            ];
+    
+            const saleKeywords = [
+                "مصادرة هاتف",
+                "مصادرة الهاتف",
+                "مصادرة المحمول",
+                "المصادرة",
+                "غير معلوم",
+                "مر عليها ثلاث سنوات"
+            ];
+    
+            const judgmentText = editingData?.finalCourtJudgment?.toLowerCase() || '';
+            
+            // تحسين المطابقة مع مراعاة التشكيل والمسافات
+            const normalizeText = (text: string) => 
+                text
+                    .replace(/\s+/g, ' ') // توحيد المسافات
+                    .trim();
+    
+            const normalizedJudgment = normalizeText(judgmentText);
+    
+            // البحث الجزئي مع مراعاة السياق
+            const hasDelivery = deliveryKeywords.some(k => 
+                normalizedJudgment.includes(normalizeText(k.toLowerCase()))
+            );
+    
+            const hasSale = saleKeywords.some(k => 
+                normalizedJudgment.includes(normalizeText(k.toLowerCase()))
+            );
+    
+            let newStatus = "على ذمة التحقيق";
+            if (hasDelivery) newStatus = "جاهز للتسليم";
+            else if (hasSale) newStatus = "جاهز للبيع";
+    
+            setLocalStatusEvidence(newStatus);
+        };
+    
+        checkStatus();
+    }, [editingData?.seizureStatement, editingData?.finalCourtJudgment]);
     if (isLoading) {
         return (
             <motion.div
@@ -400,13 +471,12 @@ const ProsecutionTable = () => {
                         <Select
                             value={String(totalPages)}
                             onValueChange={(e) => {
-                                // سيتم التعامل مع التغيير عبر onPaginationChange في useReactTable
                                 table.setPageSize(Number(e));
                             }}
                         >
                             <SelectTrigger className="  h-full p-2 border rounded-lg w-48 text-right focus:ring-2 focus:ring-blue-500"
                             >
-                                <SelectValue placeholder="اختر حالة الحرز" />
+                                <SelectValue placeholder="عدد الصفحات" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={'5'}>5 لكل صفحة</SelectItem>
@@ -513,7 +583,7 @@ const ProsecutionTable = () => {
                             <TableCell className={`text-center font-bold text-lg ${isDarkMode ? 'bg-[#374151] text-[#E5E7EB]' : 'bg-blue-100'}`} colSpan={3}>
                                 🚪 مكان تواجد الحرز
                             </TableCell>
-                            <TableCell className={`text-center font-bold text-lg ${isDarkMode ? 'bg-[#374151] text-[#E5E7EB]' : 'bg-blue-100'}`} colSpan={3}>
+                            <TableCell className={`text-center font-bold text-lg ${isDarkMode ? 'bg-[#374151] text-[#E5E7EB]' : 'bg-blue-100'}`} colSpan={4}>
                                 📝 التصرف في الاحراز
                             </TableCell>
                             <TableCell className={`text-center font-bold text-lg ${isDarkMode ? 'bg-[#374151] text-[#E5E7EB]' : 'bg-blue-100'}`} colSpan={1}>
@@ -874,14 +944,26 @@ const ProsecutionTable = () => {
                                                 className="w-full px-4 py-2 border border-blue-200 rounded-xl"
                                             />
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className={`block text-sm font-medium text-gray-700 text-right ${isDarkMode ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                                حكم المحكمة الابتدائي
+                                            </label>
+                                            <Input
+                                                type="text"
+                                                value={editingData.startCourtJudgment}
+                                                onChange={e => setEditingData(prev =>
+                                                    prev ? { ...prev, startCourtJudgment: e.target.value } : null
+                                                )}
+                                                className="w-full px-4 py-2 border border-blue-200 rounded-xl"
+                                            />
+                                        </div>
 
                                         {/* حالة الحرز */}
                                         <div className="space-y-2 ">
                                             <InputStatusEvidence
-                                                value={editingData.statusEvidence}
-                                                onValueChange={value => setEditingData(prev =>
-                                                    prev ? { ...prev, statusEvidence: value } : null
-                                                )}
+                                                value={localStatusEvidence}
+                                                onValueChange={setLocalStatusEvidence}
+
                                             />
 
                                         </div>
