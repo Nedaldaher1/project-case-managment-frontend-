@@ -9,6 +9,7 @@ interface CardData {
   description: string;
   icon: JSX.Element;
   color: string;
+  image: string
 }
 
 interface GuideModalPopupProps {
@@ -17,7 +18,7 @@ interface GuideModalPopupProps {
   selectedPdf: string;
 }
 
-const GuideModalPopup = ({ isOpen, onClose,selectedPdf }: GuideModalPopupProps) => {
+const GuideModalPopup = ({ isOpen, onClose, selectedPdf }: GuideModalPopupProps) => {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showPdfButton, setShowPdfButton] = useState(false);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
@@ -31,6 +32,8 @@ const GuideModalPopup = ({ isOpen, onClose,selectedPdf }: GuideModalPopupProps) 
       description: 'هنا لشرح النص التشريعي',
       icon: <Info className="h-16 w-16" />,
       color: 'from-blue-500 to-blue-600',
+      image: "/icons_member/Picture6.png"
+
     },
     {
       type: 'resources',
@@ -38,6 +41,8 @@ const GuideModalPopup = ({ isOpen, onClose,selectedPdf }: GuideModalPopupProps) 
       description: 'لمعرفة تطبقات احكام محكمة النقض',
       icon: <BookOpen className="h-16 w-16" />,
       color: 'from-green-500 to-green-600',
+      image: "/icons_member/Picture2.png"
+
     },
     {
       type: 'faq',
@@ -45,6 +50,8 @@ const GuideModalPopup = ({ isOpen, onClose,selectedPdf }: GuideModalPopupProps) 
       description: 'الارشادات والتدابير التي يجب اخدها في الاعتبار',
       icon: <CircleHelp className="h-16 w-16" />,
       color: 'from-purple-500 to-purple-600',
+      image: "/icons_member/Picture4.png"
+
     },
     {
       type: 'contact',
@@ -52,11 +59,12 @@ const GuideModalPopup = ({ isOpen, onClose,selectedPdf }: GuideModalPopupProps) 
       description: 'تعرف على الأمور الأكثر شيوعًا',
       icon: <Mail className="h-16 w-16" />,
       color: 'from-orange-500 to-orange-600',
+      image: "/icons_member/Picture1.png"
     },
   ];
   const handlePageChange = (newPage: number) => {
     setPageNumber(Math.max(1, Math.min(newPage, numPages)));
-};
+  };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -69,34 +77,23 @@ const GuideModalPopup = ({ isOpen, onClose,selectedPdf }: GuideModalPopupProps) 
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-white flex  justify-center items-center rounded-xl w-full h-[100vh] max-w-7xl max-h-[90vh] overflow-y-auto relative"
+            className=" flex  justify-center items-center rounded-xl w-full h-[700px] max-w-7xl overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
             initial={{ scale: 0.9, y: 50, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.9, y: 50, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            style={{backgroundImage: `url('/background.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center'}}
           >
             {/* المحتوى */}
             <div className="flex flex-col p-16 gap-32">
               {!selectedCard ? (
                 <>
-                  <h2 className="text-5xl font-bold text-gray-800 mb-8 text-center">
-                    الدليل الإرشادي
-                  </h2>
 
-                  <div className="flex flex-row flex-wrap gap-6 justify-center">
+
+                  <div className="grid grid-rows-2 grid-cols-2 gap-6 justify-center">
                     {cardsData.map((card) => (
-                      <div
-                        key={card.type}
-                        className={`${card.color} flex flex-col items-center justify-start w-[250px] h-[250px] text-center text-white rounded-lg p-6 cursor-pointer transition-transform duration-300 hover:scale-105 bg-gradient-to-br`}
-                        onClick={() => setSelectedCard(card.type)}
-                      >
-                        <div className="flex flex-col items-center">
-                          <div className="mb-4">{card.icon}</div>
-                          <h3 className="text-lg font-bold">{card.title}</h3>
-                          <p className="text-sm opacity-90 mt-2">{card.description}</p>
-                        </div>
-                      </div>
+                      <img onClick={() => setSelectedCard(card.type)} key={card.type} src={card.image} alt="icon" className="w-[200px] h-[200px] mb-4" />
                     ))}
                   </div>
                 </>
@@ -122,43 +119,43 @@ const GuideModalPopup = ({ isOpen, onClose,selectedPdf }: GuideModalPopupProps) 
 
                   <div className="bg-gray-100 p-4 rounded-lg">
                     <p className="text-gray-700">
-                    <div className="flex flex-col items-center gap-4 h-[70vh]">
-                                <Document
-                                    file={selectedPdf}
-                                    onLoadError={(error) => console.error('Failed to load PDF:', error)}
+                      <div className="flex flex-col items-center gap-4 h-[70vh]">
+                        <Document
+                          file={selectedPdf}
+                          onLoadError={(error) => console.error('Failed to load PDF:', error)}
 
-                                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                                    className="flex-1 overflow-auto"
-                                >
-                                    <Page
-                                        pageNumber={pageNumber}
-                                        width={800}
-                                        renderAnnotationLayer={false}
-                                    />
-                                </Document>
+                          onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                          className="flex-1 overflow-auto"
+                        >
+                          <Page
+                            pageNumber={pageNumber}
+                            width={800}
+                            renderAnnotationLayer={false}
+                          />
+                        </Document>
 
-                                <div className="flex items-center gap-4 mt-4">
-                                    <Button
-                                        onClick={() => handlePageChange(pageNumber - 1)}
-                                        disabled={pageNumber <= 1}
-                                        variant="outline"
-                                    >
-                                        السابق
-                                    </Button>
+                        <div className="flex items-center gap-4 mt-4">
+                          <Button
+                            onClick={() => handlePageChange(pageNumber - 1)}
+                            disabled={pageNumber <= 1}
+                            variant="outline"
+                          >
+                            السابق
+                          </Button>
 
-                                    <span className="text-gray-600">
-                                        الصفحة {pageNumber} من {numPages}
-                                    </span>
+                          <span className="text-gray-600">
+                            الصفحة {pageNumber} من {numPages}
+                          </span>
 
-                                    <Button
-                                        onClick={() => handlePageChange(pageNumber + 1)}
-                                        disabled={pageNumber >= numPages}
-                                        variant="outline"
-                                    >
-                                        التالي
-                                    </Button>
-                                </div>
-                            </div>
+                          <Button
+                            onClick={() => handlePageChange(pageNumber + 1)}
+                            disabled={pageNumber >= numPages}
+                            variant="outline"
+                          >
+                            التالي
+                          </Button>
+                        </div>
+                      </div>
                     </p>
                   </div>
                 </motion.div>
