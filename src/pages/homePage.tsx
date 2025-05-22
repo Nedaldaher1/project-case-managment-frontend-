@@ -12,7 +12,7 @@ const Home = () => {
   return (
     <div className="  flex items-center justify-center h-[100vh] ">
       <h1 className="text-4xl font-bold text-center text-gray-800 dark:text-gray-200" data-aos="fade-up">
-      منظومة قضايا الاعضاء داخل نيابات جنوب المنصورة الكلية 
+      منظومة قضايا الاعضاء داخل نيابات جنوب المنصورة  
       </h1>
     </div>
   );

@@ -80,7 +80,7 @@ const PageAdd = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const pdfFiles: { [key: string]: any } = {
-        'جرائم تقنية المعلومات': [
+'جرائم تقنية المعلومات': [
             {
                 pathname: 'شرح',
                 path:'/pdfs/output_5.23.pdf',
@@ -107,9 +107,280 @@ const PageAdd = () => {
 
             }
         ],
-        'احكام محكمة النقض': [],
-        'الاسئلة الاسترشادية': [],
-        'المأخذ': [],
+        'جرائم الإتجار بالبشر': [
+            {
+                pathname: 'شرح',
+                path:'/pdfs/21.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/22.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/23.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/24.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+        'الرشوة': [
+            {
+                pathname: 'شرح',
+                path:'/pdfs/31.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/32.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/33.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/34.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+        'الزنا': [
+                        {
+                pathname: 'شرح',
+                path:'/pdfs/41.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/42.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/43.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/44.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+        'الهجرة غير الشرعية': [
+                        {
+                pathname: 'شرح',
+                path:'/pdfs/51.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/52.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/53.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/54.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+               'غسل اموال': [
+                        {
+                pathname: 'شرح',
+                path:'/pdfs/61.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/62.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/63.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/64.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+               'الاهمال الطبي': [
+                        {
+                pathname: 'شرح',
+                path:'/pdfs/71.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/72.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/73.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/74.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+                       'التهديد مصحوب بطلب': [
+                        {
+                pathname: 'شرح',
+                path:'/pdfs/81.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/82.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/83.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/84.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+
+              'مواقعة انثى بغير رضاها': [
+                        {
+                pathname: 'شرح',
+                path:'/pdfs/91.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/92.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/93.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/94.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+
+           'مخدرات': [
+                        {
+                pathname: 'شرح',
+                path:'/pdfs/101.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/102.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/103.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/104.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+
+        'الاختلاس': [
+                        {
+                pathname: 'شرح',
+                path:'/pdfs/111.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/112.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/113.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/114.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+
     };
     useEffect(() => {
         const checkCharge = () => {
@@ -563,10 +834,17 @@ const PageAdd = () => {
                                             <SelectValue placeholder="اختر التهمة" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="جرائم تقنية المعلومات">جرائم تقنية المعلومات</SelectItem>
-                                            <SelectItem value="احكام محكمة النقض">احكام محكمة النقض</SelectItem>
-                                            <SelectItem value="الاسئلة الاسترشادية">الاسئلة الاسترشادية</SelectItem>
-                                            <SelectItem value="المأخذ">المأخذ</SelectItem>
+                                        <SelectItem value="جرائم تقنية المعلومات">جرائم تقنية المعلومات</SelectItem>
+                                            <SelectItem value="جرائم الإتجار بالبشر">جرائم الإتجار بالبشر</SelectItem>
+                                            <SelectItem value="الرشوة">الرشوة</SelectItem>
+                                            <SelectItem value="الزنا">الزنا</SelectItem>
+                                            <SelectItem value="الهجرة غير الشرعية">الهجرة غير الشرعية</SelectItem>
+                                            <SelectItem value="غسل اموال">غسل اموال</SelectItem>
+                                            <SelectItem value="الاهمال الطبي">الاهمال الطبي</SelectItem>
+                                            <SelectItem value="التهديد مصحوب بطلب">التهديد المصحوب بطلب</SelectItem>
+                                            <SelectItem value="مواقعة انثى بغير رضاها">مواقعة انثى بغير رضاها</SelectItem>
+                                            <SelectItem value="مخدرات">مخدرات</SelectItem>
+                                            <SelectItem value="الاختلاس">الاختلاس</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

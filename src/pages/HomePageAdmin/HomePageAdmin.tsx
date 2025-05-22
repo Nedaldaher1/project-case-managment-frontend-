@@ -360,7 +360,6 @@ const Dashboard = () => {
 
           {/* جدول القضايا الحديثة */}
           <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
-            {/* ... نفس الجدول السابق ... */}
           </div>
         </div>
       </main>

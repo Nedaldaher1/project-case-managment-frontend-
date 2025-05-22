@@ -1,16 +1,8 @@
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, CircleHelp, BookOpen, Info } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { LockKeyhole, LockKeyholeOpen } from 'lucide-react';
 import { Document, Page } from 'react-pdf';
-
-interface CardData {
-  type: string;
-  title: string;
-  description: string;
-  icon: JSX.Element;
-  color: string;
-}
+import { debounce } from 'lodash';
 
 interface PDFItem {
   pathname: string;
@@ -34,66 +26,86 @@ const GuideModalPopup = ({
   isOpen,
   onClose,
   selectedPdf,
-  accusation
+  accusation,
 }: GuideModalPopupProps) => {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState(1);
-  const [contact, setContact] = useState<any >([]);
+  const [contact, setContact] = useState<PDFItem[]>([]);
   const [filePath, setFilePath] = useState<string | null>(null);
+  const [itIsLocked, setItIsLocked] = useState(false);
 
-  // const cardsData: CardData[] = [
-  //   {
-  //     type: 'services',
-  //     title: 'الشرح',
-  //     description: 'هنا لشرح النص التشريعي',
-  //     icon: <Info className="h-16 w-16" />,
-  //     color: 'from-blue-500 to-blue-600',
-  //   },
-  //   {
-  //     type: 'resources',
-  //     title: 'تطبيقات احكام محكمة النقض',
-  //     description: 'لمعرفة تطبقات احكام محكمة النقض',
-  //     icon: <BookOpen className="h-16 w-16" />,
-  //     color: 'from-green-500 to-green-600',
-  //   },
-  //   {
-  //     type: 'faq',
-  //     title: 'الارشادات الواجب اتخاذها',
-  //     description: 'الارشادات والتدابير التي يجب اخذها في الاعتبار',
-  //     icon: <CircleHelp className="h-16 w-16" />,
-  //     color: 'from-purple-500 to-purple-600',
-  //   },
-  //   {
-  //     type: 'contact',
-  //     title: 'المآخذ الشائعة',
-  //     description: 'تعرف على الأمور الأكثر شيوعًا',
-  //     icon: <Mail className="h-16 w-16" />,
-  //     color: 'from-orange-500 to-orange-600',
-  //   },
-  // ];
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastChangeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (selectedPdf && accusation) {
+      const items = selectedPdf[accusation] || [];
+      setContact(items);
+      setSelectedCard(null);
+      setPageNumber(1);
+      setNumPages(0);
+      setFilePath(null);
+    }
+  }, [accusation, selectedPdf]);
 
   const handlePageChange = (newPage: number) => {
-    setPageNumber(Math.max(1, Math.min(newPage, numPages)));
+    const validPage = Math.max(1, Math.min(newPage, numPages));
+    if (validPage === pageNumber) return;
+    setPageNumber(validPage);
+    lastChangeRef.current = Date.now();
+  };
+
+  const onScroll = debounce(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    if (Date.now() - lastChangeRef.current < 300) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    if (scrollTop + clientHeight >= scrollHeight - 2) {
+      handlePageChange(pageNumber + 1);
+    }
+  }, 200);
+
+  const onWheel = (e: WheelEvent) => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    if (Date.now() - lastChangeRef.current < 300) return;
+    if (e.deltaY < 0) {
+      handlePageChange(pageNumber - 1);
+    }
   };
 
   useEffect(() => {
-    if (typeof selectedPdf === 'object' && selectedPdf !== null) {
-      for (const [key, value] of Object.entries(selectedPdf)) {
-        if (key === accusation) {
-          setContact(value as any);
-          break; // إيقاف الحلقة
-        }
-      }
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', onScroll);
+    el.addEventListener('wheel', onWheel);
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      el.removeEventListener('wheel', onWheel);
+      onScroll.cancel();
+    };
+  }, [pageNumber, numPages]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
-  }, [accusation, selectedPdf]);
   
-  console.log(contact)
+    // في حال تم إزالة المكون فجأة (أمان)
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+  
+
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-hidden"
           onClick={onClose}
           dir="rtl"
           initial={{ opacity: 0 }}
@@ -101,88 +113,107 @@ const GuideModalPopup = ({
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="flex justify-center items-center rounded-xl w-full h-[700px] max-w-7xl overflow-y-auto relative"
+            className="flex justify-center items-center rounded-xl w-full h-screen max-w-7xl relative "
             onClick={(e) => e.stopPropagation()}
             initial={{ scale: 0.9, y: 50, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.9, y: 50, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            style={{ backgroundImage: `url('/background.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            style={{
+              backgroundImage: `url('/background.jpg')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
           >
-            <div className="flex flex-col p-16 gap-32">
+            <div className="flex flex-col p-8 gap-8 w-full h-full">
               {!selectedCard ? (
-                <div className="grid grid-rows-2 grid-cols-2 gap-6 justify-center">
-                  {contact.map((item: PDFItem) => (
-                  <motion.div
-                    key={item.pathname}
-                    className="flex flex-col items-center cursor-pointer"
-                    onClick={() => setSelectedCard(item.pathname)}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <img
-                    src={item.image}
-                    alt={item.pathname}
-                    onClick={() => setFilePath(item.path)}
-                    className="w-[200px] h-[200px] mb-4 rounded-lg shadow-lg"
-                    />
-                  </motion.div>
-                  ))}
+                <div className="flex justify-center items-center min-h-screen">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {contact.map((item) => (
+                      <motion.div
+                        key={item.pathname}
+                        className="flex flex-col items-center cursor-pointer"
+                        onClick={() => {
+                          setSelectedCard(item.pathname);
+                          setFilePath(item.path);
+                          setPageNumber(1);
+                          lastChangeRef.current = Date.now();
+                        }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.pathname}
+                          className="w-[200px] h-[200px] mb-4 rounded-lg shadow-lg"
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <motion.div
                   key="details"
+                  className="w-full h-full flex flex-col"
                   initial={{ x: 100, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: 100, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 >
-                  <button
-                    onClick={() => setSelectedCard(null)}
-                    className="mb-6 text-white hover:text-gray-800"
-                  >
-                    العودة للقائمة
-                  </button>
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={() => setSelectedCard(null)}
+                      className="text-white hover:text-gray-200"
+                    >
+                      العودة للقائمة
+                    </button>
+                    <div
+                      onClick={() => setItIsLocked(!itIsLocked)}
+                      className="bg-white fixed left-16 top-4 z-50 rounded-xl flex items-center px-4 py-2 gap-2 cursor-pointer shadow-lg"
+                    >
+                      {itIsLocked ? (
+                        <>
+                          <p className="text-black text-lg">مفتوح</p>
+                          <LockKeyholeOpen className="w-6 h-6 text-black" />
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-black text-lg">مغلق</p>
+                          <LockKeyhole className="w-6 h-6 text-black" />
+                        </>
+                      )}
+                    </div>
+                  </div>
 
-
-
-                  <div className="bg-gray-100 p-4 rounded-lg">
-                    <div className="flex flex-col items-center gap-4 h-[70vh]">
-                      <Document
-                        file={filePath}
-                        onLoadError={(error) => console.error('فشل في تحميل PDF:', error)}
-                        onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                        className="flex-1 overflow-auto"
+                    <div className="bg-gray-100 flex-1 rounded-lg relative h-full  ">
+                    {/* حاوية التمرير الوحيدة والمربوطة بالحالة */}
+                    <div
+                      ref={scrollContainerRef}
+                      className={`w-full h-full flex justify-center ${itIsLocked ? 'overflow-hidden' : 'overflow-auto'} `}
                       >
-                        <Page
-                          pageNumber={pageNumber}
-                          width={800}
-                          renderAnnotationLayer={false}
-                        />
-                      </Document>
-
-                      <div className="flex items-center gap-4 mt-4">
-                        <Button
-                          onClick={() => handlePageChange(pageNumber - 1)}
-                          disabled={pageNumber <= 1}
-                          variant="outline"
+                      {filePath && (
+                        <Document
+                          file={filePath}
+                          onLoadError={(error) =>
+                            console.error('فشل في تحميل PDF:', error)
+                          }
+                          onLoadSuccess={({ numPages }) =>
+                            setNumPages(numPages)
+                          }
                         >
-                          السابق
-                        </Button>
-
-                        <span className="text-gray-600">
-                          الصفحة {pageNumber} من {numPages}
-                        </span>
-
-                        <Button
-                          onClick={() => handlePageChange(pageNumber + 1)}
-                          disabled={pageNumber >= numPages}
-                          variant="outline"
-                        >
-                          التالي
-                        </Button>
-                      </div>
+                          <Page
+                            className="w-full flex justify-center items-center h-[100vh]"
+                            pageNumber={pageNumber}
+                            width={window.innerWidth * 0.8}
+                            renderAnnotationLayer={false}
+                            scale={0.8}
+                          />
+                        </Document>
+                      )}
+                    </div>
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-75 px-3 py-1 rounded-full z-10">
+                      الصفحة {pageNumber} من {numPages}
                     </div>
                   </div>
                 </motion.div>
