@@ -74,18 +74,42 @@ const PageAdd = () => {
 
     const [showPdfButton, setShowPdfButton] = useState(false);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-    const [selectedPdf, setSelectedPdf] = useState('');
+    const [selectedPdf, setSelectedPdf] = useState({} as any);
     const [numPages, setNumPages] = useState<number>(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const pdfFiles: { [key: string]: string } = {
-        'الاتجار في البشر': '/pdfs/output_7.14.pdf',
-        'اموال عامة': '/pdfs/output_16.41.pdf',
-        'اهمال الطبي': '/pdfs/output_43.51.pdf',
-        'تزوير': '/pdfs/output_53.65.pdf',
-        'تهريب مهاجرين': '/pdfs/output_67.76.pdf',
-        'القتل': '/pdfs/output_78.93.pdf',
+    const pdfFiles: { [key: string]: any } = {
+        'جرائم تقنية المعلومات': [
+            {
+                pathname: 'شرح',
+                path:'/pdfs/output_5.23.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path:'/pdfs/output_25.25.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path:'/pdfs/output_27.27.pdf',
+                image: "/icons_member/Picture4.png"
+
+                
+            },
+            {
+                pathname: 'المأخذ',
+                path:'/pdfs/output_29.29.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+        'احكام محكمة النقض': [],
+        'الاسئلة الاسترشادية': [],
+        'المأخذ': [],
     };
     useEffect(() => {
         const checkCharge = () => {
@@ -98,8 +122,8 @@ const PageAdd = () => {
     }, [accusation]);
 
     const openPdfModal = () => {
-        setSelectedPdf(pdfFiles[accusation]);
-        console.log('Selected PDF:', pdfFiles[accusation]);
+        setSelectedPdf(pdfFiles);
+        console.log('Selected PDF:', pdfFiles);
         setIsModalOpen(true);
         setIsPdfModalOpen(true);
     };
@@ -299,9 +323,12 @@ const PageAdd = () => {
             <AnimatePresence>
                 {isPdfModalOpen && (
                     <GuideModalPopup
+                        accusation={accusation}
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
                         selectedPdf={selectedPdf}
+                        setSelectedPdf={setSelectedPdf}
+                        
                     />
                     // <motion.div
                     //     initial={{ opacity: 0 }}
@@ -536,12 +563,10 @@ const PageAdd = () => {
                                             <SelectValue placeholder="اختر التهمة" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="الاتجار في البشر">الاتجار في البشر</SelectItem>
-                                            <SelectItem value="اموال عامة">اموال عامة</SelectItem>
-                                            <SelectItem value="اهمال الطبي">اهمال الطبي</SelectItem>
-                                            <SelectItem value="تزوير">تزوير</SelectItem>
-                                            <SelectItem value="تهريب مهاجرين">تهريب مهاجرين</SelectItem>
-                                            <SelectItem value="القتل">القتل</SelectItem>
+                                            <SelectItem value="جرائم تقنية المعلومات">جرائم تقنية المعلومات</SelectItem>
+                                            <SelectItem value="احكام محكمة النقض">احكام محكمة النقض</SelectItem>
+                                            <SelectItem value="الاسئلة الاسترشادية">الاسئلة الاسترشادية</SelectItem>
+                                            <SelectItem value="المأخذ">المأخذ</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
