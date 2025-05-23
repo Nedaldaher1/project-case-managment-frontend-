@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Document, Page, pdfjs } from 'react-pdf';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
+import ChatModal from '@/components/common/ChatModal';
 
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -662,6 +663,7 @@ const PageAdd = () => {
             </AnimatePresence>
 
             <div className="max-w-4xl mx-auto">
+                <ChatModal/>
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="  h-[70px] text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                         إضافة قضية جديدة
