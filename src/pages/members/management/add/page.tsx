@@ -81,29 +81,29 @@ const PageAdd = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const pdfFiles: { [key: string]: any } = {
-'جرائم تقنية المعلومات': [
+        'جرائم تقنية المعلومات': [
             {
                 pathname: 'شرح',
-                path:'/pdfs/output_5.23.pdf',
+                path: '/pdfs/output_5.23.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/output_25.25.pdf',
+                path: '/pdfs/output_25.25.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/output_27.27.pdf',
+                path: '/pdfs/output_27.27.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/output_29.29.pdf',
+                path: '/pdfs/output_29.29.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
@@ -111,26 +111,26 @@ const PageAdd = () => {
         'جرائم الإتجار بالبشر': [
             {
                 pathname: 'شرح',
-                path:'/pdfs/21.pdf',
+                path: '/pdfs/21.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/22.pdf',
+                path: '/pdfs/22.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/23.pdf',
+                path: '/pdfs/23.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/24.pdf',
+                path: '/pdfs/24.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
@@ -138,245 +138,245 @@ const PageAdd = () => {
         'الرشوة': [
             {
                 pathname: 'شرح',
-                path:'/pdfs/31.pdf',
+                path: '/pdfs/31.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/32.pdf',
+                path: '/pdfs/32.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/33.pdf',
+                path: '/pdfs/33.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/34.pdf',
+                path: '/pdfs/34.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
         ],
         'الزنا': [
-                        {
+            {
                 pathname: 'شرح',
-                path:'/pdfs/41.pdf',
+                path: '/pdfs/41.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/42.pdf',
+                path: '/pdfs/42.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/43.pdf',
+                path: '/pdfs/43.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/44.pdf',
+                path: '/pdfs/44.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
         ],
         'الهجرة غير الشرعية': [
-                        {
+            {
                 pathname: 'شرح',
-                path:'/pdfs/51.pdf',
+                path: '/pdfs/51.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/52.pdf',
+                path: '/pdfs/52.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/53.pdf',
+                path: '/pdfs/53.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/54.pdf',
+                path: '/pdfs/54.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
         ],
-               'غسل اموال': [
-                        {
+        'غسل اموال': [
+            {
                 pathname: 'شرح',
-                path:'/pdfs/61.pdf',
+                path: '/pdfs/61.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/62.pdf',
+                path: '/pdfs/62.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/63.pdf',
+                path: '/pdfs/63.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/64.pdf',
+                path: '/pdfs/64.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
         ],
-               'الاهمال الطبي': [
-                        {
+        'الاهمال الطبي': [
+            {
                 pathname: 'شرح',
-                path:'/pdfs/71.pdf',
+                path: '/pdfs/71.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/72.pdf',
+                path: '/pdfs/72.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/73.pdf',
+                path: '/pdfs/73.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/74.pdf',
+                path: '/pdfs/74.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
         ],
-                       'التهديد مصحوب بطلب': [
-                        {
+        'التهديد مصحوب بطلب': [
+            {
                 pathname: 'شرح',
-                path:'/pdfs/81.pdf',
+                path: '/pdfs/81.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/82.pdf',
+                path: '/pdfs/82.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/83.pdf',
+                path: '/pdfs/83.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/84.pdf',
-                image: "/icons_member/Picture1.png"
-
-            }
-        ],
-
-              'مواقعة انثى بغير رضاها': [
-                        {
-                pathname: 'شرح',
-                path:'/pdfs/91.pdf',
-                image: "/icons_member/Picture6.png"
-
-            },
-            {
-                pathname: 'احكام محكمة النقض',
-                path:'/pdfs/92.pdf',
-                image: "/icons_member/Picture2.png"
-
-            },
-            {
-                pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/93.pdf',
-                image: "/icons_member/Picture4.png"
-
-                
-            },
-            {
-                pathname: 'المأخذ',
-                path:'/pdfs/94.pdf',
+                path: '/pdfs/84.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
         ],
 
-           'مخدرات': [
-                        {
+        'مواقعة انثى بغير رضاها': [
+            {
                 pathname: 'شرح',
-                path:'/pdfs/101.pdf',
+                path: '/pdfs/91.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/102.pdf',
+                path: '/pdfs/92.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/103.pdf',
+                path: '/pdfs/93.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/104.pdf',
+                path: '/pdfs/94.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+
+        'مخدرات': [
+            {
+                pathname: 'شرح',
+                path: '/pdfs/101.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path: '/pdfs/102.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path: '/pdfs/103.pdf',
+                image: "/icons_member/Picture4.png"
+
+
+            },
+            {
+                pathname: 'المأخذ',
+                path: '/pdfs/104.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
         ],
 
         'الاختلاس': [
-                        {
+            {
                 pathname: 'شرح',
-                path:'/pdfs/111.pdf',
+                path: '/pdfs/111.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path:'/pdfs/112.pdf',
+                path: '/pdfs/112.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path:'/pdfs/113.pdf',
+                path: '/pdfs/113.pdf',
                 image: "/icons_member/Picture4.png"
 
-                
+
             },
             {
                 pathname: 'المأخذ',
-                path:'/pdfs/114.pdf',
+                path: '/pdfs/114.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
@@ -573,7 +573,7 @@ const PageAdd = () => {
         fetchData();
     }, []);
     return (
-        <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50  py-12 px-4 sm:px-6 lg:px-8">
             {showPdfButton && (
                 <motion.div
                     initial={{ x: -100, opacity: 0 }}
@@ -600,70 +600,14 @@ const PageAdd = () => {
                         onClose={() => setIsModalOpen(false)}
                         selectedPdf={selectedPdf}
                         setSelectedPdf={setSelectedPdf}
-                        
+
                     />
-                    // <motion.div
-                    //     initial={{ opacity: 0 }}
-                    //     animate={{ opacity: 1 }}
-                    //     exit={{ opacity: 0 }}
-                    //     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                    // >
-                    //     <motion.div
-                    //         initial={{ scale: 0.8 }}
-                    //         animate={{ scale: 1 }}
-                    //         className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-4xl relative"
-                    //     >
-                    //         <button
-                    //             onClick={closePdfModal}
-                    //             className="absolute top-4 left-4 text-gray-500 hover:text-gray-700"
-                    //         >
-                    //             <X className="h-6 w-6" />
-                    //         </button>
 
-                            // <div className="flex flex-col items-center gap-4 h-[80vh]">
-                            //     <Document
-                            //         file={selectedPdf}
-                            //         onLoadError={(error) => console.error('Failed to load PDF:', error)}
-
-                            //         onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                            //         className="flex-1 overflow-auto"
-                            //     >
-                            //         <Page
-                            //             pageNumber={pageNumber}
-                            //             width={800}
-                            //             renderAnnotationLayer={false}
-                            //         />
-                            //     </Document>
-
-                            //     <div className="flex items-center gap-4 mt-4">
-                            //         <Button
-                            //             onClick={() => handlePageChange(pageNumber - 1)}
-                            //             disabled={pageNumber <= 1}
-                            //             variant="outline"
-                            //         >
-                            //             السابق
-                            //         </Button>
-
-                            //         <span className="text-gray-600">
-                            //             الصفحة {pageNumber} من {numPages}
-                            //         </span>
-
-                            //         <Button
-                            //             onClick={() => handlePageChange(pageNumber + 1)}
-                            //             disabled={pageNumber >= numPages}
-                            //             variant="outline"
-                            //         >
-                            //             التالي
-                            //         </Button>
-                            //     </div>
-                            // </div>
-                    //     </motion.div>
-                    // </motion.div>
                 )}
             </AnimatePresence>
 
             <div className="max-w-4xl mx-auto">
-                <ChatModal/>
+                <ChatModal />
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="  h-[70px] text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                         إضافة قضية جديدة
@@ -836,7 +780,7 @@ const PageAdd = () => {
                                             <SelectValue placeholder="اختر التهمة" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                        <SelectItem value="جرائم تقنية المعلومات">جرائم تقنية المعلومات</SelectItem>
+                                            <SelectItem value="جرائم تقنية المعلومات">جرائم تقنية المعلومات</SelectItem>
                                             <SelectItem value="جرائم الإتجار بالبشر">جرائم الإتجار بالبشر</SelectItem>
                                             <SelectItem value="الرشوة">الرشوة</SelectItem>
                                             <SelectItem value="الزنا">الزنا</SelectItem>

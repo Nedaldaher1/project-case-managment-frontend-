@@ -37,7 +37,7 @@ const Home = () => {
     }, [token, userData]);
 
     return (
-        <div className={`min-h-screen py-16 px-4 sm:px-6 lg:px-8 ${
+        <div className={` min-h-screen py-16 px-4 sm:px-6 lg:px-8 ${
             isDarkMode 
             ? 'bg-gradient-to-b from-[#1F2937] to-[#111827]' 
             : 'bg-gradient-to-b from-blue-50 to-indigo-50'

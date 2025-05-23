@@ -5,15 +5,15 @@ const ButtonBackPage = () => {
     const navigate = useNavigate();
     
     return (
-        <Button
-        variant="outline"
-        className="mb-4"
-        onClick={() => {
-            navigate(-1);
-        }}
-        >
-        الرجوع للصفحة السابقة
-        </Button>
+        <div className="pt-16">
+            <Button
+                variant="outline"
+                className="mb-4"
+                onClick={() => navigate(-1)}
+            >
+                العودة
+            </Button>
+        </div>
     );
 }
 export default ButtonBackPage;

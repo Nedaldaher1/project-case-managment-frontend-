@@ -58,9 +58,9 @@ const ChatModal = () => {
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-50">
+<div className="fixed bottom-8 left-8 z-50">
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen(!isOpen   )}
         className="w-16 h-16 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-700 transition-all duration-300 flex items-center justify-center"
       >
         <Bot className="h-8 w-8" />
@@ -72,11 +72,11 @@ const ChatModal = () => {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="absolute bottom-full right-0 mb-4 w-80"
-          >
+            className="absolute bottom-full left-0 mb-4 w-80"
+            >
             <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
               <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
-                <h3 className="text-lg font-semibold">المساعد القانوني</h3>
+                <h3 className="text-lg font-semibold">المساعد الارشادي</h3>
                 <button onClick={() => setIsOpen(false)}>
                   <X className="h-5 w-5" />
                 </button>

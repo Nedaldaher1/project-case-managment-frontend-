@@ -59,7 +59,7 @@ const App = () => {
 
 
     return (
-        <div className={`${isLoggedIn && isAdmin ? 'flex min-h-screen' : ''}  `}>
+        <div className={`  ${isLoggedIn && isAdmin ? 'flex min-h-screen' : ''}  `}>
 
             {/* Conditional Navbar */}
             {isLoggedIn && (isAdmin ? <NavbarAdmin /> : <NavBar />)}

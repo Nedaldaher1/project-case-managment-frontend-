@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Cookies from "js-cookie";
 import { useAuth } from "@/context/userContext";
 import { logoutSession } from "@/api/authApi";
 import {
   Home,
   Gavel,
-  Users,
   BarChart2,
-  MessageCircle,
   Settings as SettingsIcon,
   Menu,
   LogOut,
@@ -17,215 +14,164 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import "./style.scss";
 
-const sidebarVariants = {
-  open: {
-    width: 300,
-    transition: { type: "spring", stiffness: 200, damping: 30 },
-  },
-  closed: {
-    width: 64,
-    transition: { type: "spring", stiffness: 200, damping: 30 },
-  },
-};
+const NavbarAdmin = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { logout, userData } = useAuth();
+  const username = userData?.username || "المستخدم";
 
-const labelVariants = {
-  open: {
-    opacity: 1,
-    x: 0,
-    width: "auto",
-    transition: { duration: 0.2 },
-  },
-  closed: {
-    opacity: 0,
-    x: -20,
-    width: 0,
-    transition: { duration: 0.2 },
-  },
-};
+  type NavItem = {
+    to: string;
+    label: string;
+    icon: React.ReactNode;
+    subItems?: { to: string; label: string }[];
+  };
 
-const SidebarAdmin = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const { logout , userData } = useAuth();
-  const username = userData?.username  || "المستخدم";
-
-  const navItems = [
+  const navItems: NavItem[] = [
     { to: "/", label: "الرئيسية", icon: <Home /> },
-    { to: "/cases", label: "منظومة قضايا الاعضاء", icon: <Gavel />, isDropdown: true },
-    { to: "/reports", label: "التقارير", icon: <BarChart2 /> },
-    { to: "/settings", label: "الإعدادات", icon: <SettingsIcon /> },
+    { 
+      to: "/case/members", 
+      label: "قضايا الاعضاء", 
+      icon: <Gavel />, 
+      // subItems: [ { to: "/case/members/sub", label: "فرعي" } ], // Uncomment and edit if you want subItems
+    },
+
   ];
 
   return (
-    <motion.div
-      className="sidebar bg-primary-800 text-white flex flex-col relative  overflow-hidden"
-      variants={sidebarVariants}
-      animate={isOpen ? "open" : "closed"}
-      initial="open"
+    <motion.nav 
+      className="  navbar fixed top-0  w-full bg-primary-800 text-white shadow-lg z-50"
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5 }}
     >
-      {/* Header */}
-      <div className="p-4 flex items-center justify-between border-b border-primary-700">
-        <div className="flex items-center gap-2">
-          {
-            !isOpen ? (
-              <button
-                onClick={() => setIsOpen(!isOpen)}>
-                <Home className="text-2xl text-primary-300" />
-              </button>
-            ) : (
-              <Home className="text-2xl text-primary-300" />
-            )
-          }          <AnimatePresence>
-            {isOpen && (
-              <motion.span
-                className="sidebar-text mr-2 text-xl font-bold overflow-hidden whitespace-nowrap"
-                variants={labelVariants}
-                initial="closed"
-                animate="open"
-                exit="closed"
-              >
-                  منظومة قضايا الاعضاء
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </div>
-        {
-          isOpen && (
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* الشعار وزر القائمة */}
+          <div className="flex items-center gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-primary-700 p-2 rounded-lg">
+                <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center">
+                  <span className="text-sm">{username.charAt(0)}</span>
+                </div>
+                <span className="hidden md:block">{username}</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-primary-800 text-white border-primary-700">
+                <DropdownMenuItem 
+                  className="hover:bg-primary-700"
+                  onClick={async () => {
+                    await logoutSession();
+                    logout();
+                  }}
+                >
+                  <LogOut className="mr-2" size={16} />
+                  تسجيل الخروج
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* زر القائمة للجوال */}
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-primary-200 hover:text-white focus:outline-none"
+              className="md:hidden p-2 hover:bg-primary-700 rounded-lg"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <Menu />
             </button>
-          )
-        }
-
-      </div>
-
-      {/* User Info */}
-      <div className="  p-3 border-b border-primary-700">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
-            <Users className="text-primary-200" />
           </div>
-          <AnimatePresence>
-            {isOpen && (
-              <motion.div
-                className="mr-3 overflow-hidden"
-                variants={labelVariants}
-                initial="closed"
-                animate="open"
-                exit="closed"
-              >
-                <div className="font-medium">{username}</div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto">
-        {navItems.map(({ to, label, icon, isDropdown }) => (
-          <div key={label} className="p-2">
-            {isDropdown ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <motion.button
-                    className={`flex items-center w-full p-2 gap-2 rounded-lg transition-colors ${window.location.pathname.startsWith(to)
-                      ? "text-white bg-primary-700"
-                      : "text-primary-200 hover:text-white hover:bg-primary-700"
-                      }`}
+          {/* عناصر التنقل لسطح المكتب */}
+          <div className="hidden md:flex items-center gap-4">
+            {navItems.map((item) => (
+              <div key={item.label} className="relative group">
+                {item.subItems ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center gap-1 px-4 py-2 hover:bg-primary-700 rounded-lg transition-colors">
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-primary-800 text-white border-primary-700">
+                      {item.subItems.map((subItem) => (
+                        <DropdownMenuItem key={subItem.label} className="hover:bg-primary-700">
+                          <Link to={subItem.to} className="w-full px-4 py-2">
+                            {subItem.label}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link
+                    to={item.to}
+                    className="flex items-center gap-1 px-4 py-2 hover:bg-primary-700 rounded-lg transition-colors"
                   >
-                    <div className="flex-shrink-0">{icon}</div>
-                    <AnimatePresence>
-                      {isOpen && (
-                        <motion.span
-                          className="mr-3 overflow-hidden whitespace-nowrap"
-                          variants={labelVariants}
-                          initial="closed"
-                          animate="open"
-                          exit="closed"
-                        >
-                          {label}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </motion.button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="right">
-                  <DropdownMenuItem>
-                    <Link to="/case/members"> قضايا الأعضاء</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link
-                to={to}
-                className={`flex items-center p-2 gap-2 rounded-lg transition-colors ${window.location.pathname === to
-                  ? "text-white bg-primary-700"
-                  : "text-primary-200 hover:text-white hover:bg-primary-700"
-                  }`}
-              >
-                <div className="flex-shrink-0">{icon}</div>
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.span
-                      className="mr-3 overflow-hidden whitespace-nowrap"
-                      variants={labelVariants}
-                      initial="closed"
-                      animate="open"
-                      exit="closed"
-                    >
-                      {label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Link>
-            )}
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </Link>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-        
-      </nav>
 
-      {/* Footer / Logout */}
-      <div className="p-4  border-primary-700  relative z-40">
-        <button
-          onClick={async () => {
-            await logoutSession();
-            logout();
-          }}
-          className="flex items-center w-full gap-2 text-primary-200 hover:text-white focus:outline-none"
-        >
-          <LogOut className="flex-shrink-0" />
-          <AnimatePresence>
-            {isOpen && (
-              <motion.span
-                className="mr-3 overflow-hidden whitespace-nowrap"
-                variants={labelVariants}
-                initial="closed"
-                animate="open"
-                exit="closed"
-              >
-                تسجيل الخروج
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
+          {/* الجزء الأيمن (المستخدم وتسجيل الخروج) */}
+
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2">
+              <span className="text-xl font-bold hidden md:block">
+                منظومة قضايا الاعضاء
+              </span>
+            </Link>
+          </div>
+          
+        </div>
+
+        {/* قائمة الجوال */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              className="md:hidden bg-primary-800"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              {navItems.map((item) => (
+                <div key={item.label} className="px-4 py-2 border-t border-primary-700">
+                  {item.subItems ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="w-full flex items-center gap-2 px-4 py-2 hover:bg-primary-700 rounded-lg">
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-primary-800 text-white border-primary-700">
+                        {item.subItems.map((subItem) => (
+                          <DropdownMenuItem key={subItem.label} className="hover:bg-primary-700">
+                            <Link to={subItem.to} className="w-full px-4 py-2">
+                              {subItem.label}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <Link
+                      to={item.to}
+                      className="flex items-center gap-2 px-4 py-2 hover:bg-primary-700 rounded-lg"
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      <div className="absolute bottom-0 left-0 w-full h-[10px]">
-      <div className='wave -one'></div>
-      <div className='wave -two'></div>
-      <div className='wave -three'></div>
-      </div>
-    </motion.div>
+    </motion.nav>
   );
 };
 
-export default SidebarAdmin;
+export default NavbarAdmin;

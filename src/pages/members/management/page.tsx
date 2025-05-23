@@ -9,7 +9,7 @@ const Management = () => {
     const isDarkMode = useSelector(selectDarkMode);
 
     return (
-        <div className={`min-h-screen flex items-center justify-center p-4 ${
+        <div className={`min-h-screen flex items-center justify-center   ${
             isDarkMode 
             ? 'bg-gradient-to-br from-[#1F2937] to-[#111827]' 
             : 'bg-gradient-to-br from-blue-50 to-blue-100'

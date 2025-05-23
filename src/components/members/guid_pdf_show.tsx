@@ -1,6 +1,6 @@
 import { JSX, useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { LockKeyhole, LockKeyholeOpen } from 'lucide-react';
+import { motion, AnimatePresence  } from 'framer-motion';
+import { LockKeyhole, LockKeyholeOpen , X } from 'lucide-react';
 import { Document, Page } from 'react-pdf';
 import { debounce } from 'lodash';
 
@@ -34,6 +34,7 @@ const GuideModalPopup = ({
   const [contact, setContact] = useState<PDFItem[]>([]);
   const [filePath, setFilePath] = useState<string | null>(null);
   const [itIsLocked, setItIsLocked] = useState(false);
+
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastChangeRef = useRef<number>(0);
@@ -172,17 +173,8 @@ const GuideModalPopup = ({
                       onClick={() => setItIsLocked(!itIsLocked)}
                       className="bg-white fixed left-16 top-4 z-50 rounded-xl flex items-center px-4 py-2 gap-2 cursor-pointer shadow-lg"
                     >
-                      {itIsLocked ? (
-                        <>
-                          <p className="text-black text-lg">مفتوح</p>
-                          <LockKeyholeOpen className="w-6 h-6 text-black" />
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-black text-lg">مغلق</p>
-                          <LockKeyhole className="w-6 h-6 text-black" />
-                        </>
-                      )}
+                    <X onClick={onClose}/>    
+
                     </div>
                   </div>
 
