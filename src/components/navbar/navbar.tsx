@@ -18,6 +18,7 @@ import { AbilityContext } from '@/context/AbilityContext';
 import { Can, useAbility } from '@casl/react';
 import { selectDarkMode } from '@/store/darkModeSlice';
 import { useSelector } from 'react-redux';
+import {useSearchParams} from 'react-router-dom';
 
 interface NavbarProps {
     className?: string;
@@ -34,6 +35,7 @@ const Navbar = ({ className }: NavbarProps) => {
     const isDarkMode = useSelector(selectDarkMode);
     const navigate = useNavigate();
     const ability = useAbility(AbilityContext);
+    
     const IdOffice = (userData?.officesAvailable as UserData['officesAvailable'])?.[0]?.id;
     const handleLogout = () => {
         logout();

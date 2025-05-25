@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/userContext";
 import { Link } from 'react-router-dom';
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import { selectDarkMode } from '@/store/darkModeSlice';
 import { useSelector } from 'react-redux';
@@ -36,8 +35,13 @@ const Home = () => {
         }
     }, [token, userData]);
 
+    // حفظ اسم النيابة في localStorage
+    const handleOfficeSelection = (officeName: string) => {
+        localStorage.setItem('selectedProsecution', encodeURIComponent(officeName));
+    };
+
     return (
-        <div className={` min-h-screen py-16 px-4 sm:px-6 lg:px-8 ${
+        <div className={`min-h-screen py-16 px-4 sm:px-6 lg:px-8 ${
             isDarkMode 
             ? 'bg-gradient-to-b from-[#1F2937] to-[#111827]' 
             : 'bg-gradient-to-b from-blue-50 to-indigo-50'
@@ -64,8 +68,9 @@ const Home = () => {
                         {officesAvailable.map((office) => (
                             <Link
                                 key={office.id}
-                                to={`management?type=${office.id}`}
+                                to={`/case/members/management?type=${encodeURIComponent(office.id)}&name=${encodeURIComponent(office.name)}`}
                                 className="relative group transform transition-all duration-300 hover:-translate-y-2"
+                                onClick={() => handleOfficeSelection(office.name)}
                             >
                                 <div className={`relative p-8 rounded-2xl shadow-lg border transition-all duration-300 h-full flex items-center justify-center overflow-hidden ${
                                     isDarkMode

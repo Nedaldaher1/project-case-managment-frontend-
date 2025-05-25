@@ -111,6 +111,9 @@ export default {
 					'100%': { transform: 'translateY(20px)' },
 				},
 			},
+			fontFamily: {
+				arabic: ['ArabicFont']
+			}
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

@@ -32,13 +32,14 @@ const NavbarAdmin = () => {
   };
 
   const navItems: NavItem[] = [
-    { to: "/", label: "الرئيسية", icon: <Home /> },
     { 
       to: "/case/members", 
       label: "قضايا الاعضاء", 
       icon: <Gavel />, 
       // subItems: [ { to: "/case/members/sub", label: "فرعي" } ], // Uncomment and edit if you want subItems
     },
+    { to: "/", label: "الرئيسية", icon: <Home /> },
+
 
   ];
 

@@ -16,6 +16,8 @@ import { useAuth } from "@/context/userContext";
 import OffcierName from "@/components/members/officerName";
 import ActionType from "@/components/members/actionType";
 import GuideModalPopup from "@/components/members/guid_pdf_show";
+import FloatingExportButton from "@/components/common/ pdfRenderExport";
+
 import {
     Select,
     SelectContent,
@@ -23,9 +25,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Document, Page, pdfjs } from 'react-pdf';
+import { pdfjs } from 'react-pdf';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
 import ChatModal from '@/components/common/ChatModal';
+
 
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -41,11 +44,14 @@ const PageAdd = () => {
     const [investigationID, setInvestigationID] = useState('');
     const [accusedName, setAccusedName] = useState('');
     const { userData } = useAuth();
+    console.log('userData', userData);
     const [searchParams] = useSearchParams();
     const token = Cookies.get('token');
     const member_number = userData?.member_id;
     const id = userData?.id;
     const prosecutionOfficeId = searchParams.get('type')
+    const prosecutionName = searchParams.get('name')
+    console.log('prosecutionName', prosecutionName);
     const role = userData?.role;
     // الإجراءات
     const [defendantStatus, setDefendantStatus] = useState('');
@@ -80,6 +86,7 @@ const PageAdd = () => {
     const [pageNumber, setPageNumber] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    
     const pdfFiles: { [key: string]: any } = {
         'جرائم تقنية المعلومات': [
             {
@@ -379,8 +386,10 @@ const PageAdd = () => {
                 path: '/pdfs/114.pdf',
                 image: "/icons_member/Picture1.png"
 
-            }
+            },
+
         ],
+        'تبديد لوحات المعدنية': []
 
     };
     useEffect(() => {
@@ -574,6 +583,16 @@ const PageAdd = () => {
     }, []);
     return (
         <div dir="rtl" className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50  py-12 px-4 sm:px-6 lg:px-8">
+
+
+            {
+                accusation == 'تبديد لوحات المعدنية' && (
+                    <FloatingExportButton
+                    accusedName={accusedName}
+                    caseNumber={caseNumber}
+                    prosecutorName={prosecutionName || ""}
+                />                )
+            }
             {showPdfButton && (
                 <motion.div
                     initial={{ x: -100, opacity: 0 }}
@@ -791,6 +810,7 @@ const PageAdd = () => {
                                             <SelectItem value="مواقعة انثى بغير رضاها">مواقعة انثى بغير رضاها</SelectItem>
                                             <SelectItem value="مخدرات">مخدرات</SelectItem>
                                             <SelectItem value="الاختلاس">الاختلاس</SelectItem>
+                                            <SelectItem value="تبديد لوحات المعدنية">تبديد لوحات المعدنية</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
