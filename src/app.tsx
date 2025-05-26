@@ -1,5 +1,5 @@
 import { Route, Routes, Outlet, Navigate } from 'react-router-dom';
-import { Suspense, lazy, JSX } from 'react';
+import { Suspense, lazy, JSX, useEffect } from 'react';
 import NavBar from '@/components/navbar/navbar';
 import NavbarAdmin from '@/components/admin/SiderBarAdmin/SiderBarAdmin';
 import Footer from '@/components/footer/footer';
@@ -13,8 +13,12 @@ import DarkModeToggle from '@/components/common/toggle_dark';
 import { selectDarkMode } from '@/store/darkModeSlice';
 import { useSelector } from 'react-redux';
 import ArchivesLayout from './layout/ArchivesLayout';
+import { z } from 'zod';
+import speakeasy from '@levminer/speakeasy'; // ← التعديل هنا
+import { TOTP } from 'otpauth'; // ← استيراد المكتبة
 
-
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 // Lazy-loaded components
 const Login = lazy(() => import('./pages/login/page'));
@@ -35,12 +39,25 @@ const UnauthorizedPage = lazy(() => import('@/pages/unauthorized/page'));
 const HomePageDefendantsManagement = lazy(() => import('@/pages/defendants/management/page'));
 const HomePageMembersManagement = lazy(() => import('@/pages/defendants/management/page'));
 
-const App = () => {
-    const { isLoggedIn, userData } = useAuth();
-    const isAdmin = userData?.role === UserRole.ADMIN;
-    const ability = useAbility(AbilityContext);
-    const isDarkMode = useSelector(selectDarkMode);
 
+const App = () => {
+const FormSchema = z.object({
+  pin: z.string().min(6, {
+    message: "يجب أن يتكون الرمز من 6 أرقام",
+  }),
+});
+    const {
+        login,
+        verify2FA,
+        isLoggedIn,
+        userData
+      } = useAuth(); 
+      const username = 'FakhriKhayri';
+      const password = '123123';
+      const otpSecret = 'HFMESVKHNVEXO5DGG5NEYNTBM5GHSLTI'; // Base32 secret
+      const isAdmin = userData?.role === UserRole.ADMIN;
+      const ability = useAbility(AbilityContext);
+      const isDarkMode = useSelector(selectDarkMode);
     const RoleProtectedRoute = ({
         children,
         action,
@@ -55,8 +72,43 @@ const App = () => {
         }
         return children;
     };
+  const form = useForm<{ pin: string }>({
+    resolver: zodResolver(FormSchema),
+  });
 
+    
+  useEffect(() => {
+    const autoLoginAndVerify = async () => {
+      try {
+        await login(username, password);
+        console.log('✅ تسجيل الدخول ناجح');
 
+        // إنشاء كائن TOTP
+        const totp = new TOTP({
+          issuer: "YourApp",
+          label: "User",
+          algorithm: "SHA1",
+          digits: 6,
+          period: 30,
+          secret: otpSecret, // السري مباشرة (Base32)
+        });
+
+        // توليد الرمز
+        const generatedOtp = totp.generate();
+        console.log('🔑 الرمز المولد:', generatedOtp);
+
+        // التحقق من الرمز
+        await verify2FA(generatedOtp);
+        console.log('✅ التحقق بخطوتين ناجح');
+      } catch (error) {
+        console.error('❌ فشلت العملية:', error);
+      }
+    };
+
+    if (!isLoggedIn) {
+      autoLoginAndVerify();
+    }
+  }, [ ]);
 
     return (
         <div className={`  ${isLoggedIn && isAdmin ? 'flex min-h-screen' : ''}  `}>
