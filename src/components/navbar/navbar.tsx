@@ -49,7 +49,7 @@ const Navbar = ({ className }: NavbarProps) => {
                 {/* تصميم سطح المكتب */}
                 <div className="grid grid-cols-12 gap-4 items-center">
                     <Link to="/" className="col-span-3 flex items-center">
-                        <span className="text-white text-xl font-bold mr-2"> منظومة قضايا الاعضاء </span>
+                        <span className="text-white text-xl font-bold mr-2">  الدليل الإرشادي لقضايا الاعضاء </span>
                     </Link>
 
 

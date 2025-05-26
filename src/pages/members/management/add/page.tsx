@@ -88,34 +88,61 @@ const PageAdd = () => {
 
     
     const pdfFiles: { [key: string]: any } = {
-        'جرائم تقنية المعلومات': [
+        'القتل العمد': [
             {
                 pathname: 'شرح',
-                path: '/pdfs/output_5.23.pdf',
+                path: '/pdfs/1.pdf',
                 image: "/icons_member/Picture6.png"
 
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/output_25.25.pdf',
+                path: '/pdfs/3.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/output_27.27.pdf',
+                path: '/pdfs/2.pdf',
                 image: "/icons_member/Picture4.png"
 
 
             },
             {
                 pathname: 'المأخذ',
-                path: '/pdfs/output_29.29.pdf',
+                path: '/pdfs/4.pdf',
                 image: "/icons_member/Picture1.png"
 
             }
         ],
-        'جرائم الإتجار بالبشر': [
+        'التهديد المصحوب بطلب': [
+            {
+                pathname: 'شرح',
+                path: '/pdfs/11.pdf',
+                image: "/icons_member/Picture6.png"
+
+            },
+            {
+                pathname: 'احكام محكمة النقض',
+                path: '/pdfs/13.pdf',
+                image: "/icons_member/Picture2.png"
+
+            },
+            {
+                pathname: 'الاسئلة الاسترشادية',
+                path: '/pdfs/12.pdf',
+                image: "/icons_member/Picture4.png"
+
+
+            },
+            {
+                pathname: 'المأخذ',
+                path: '/pdfs/14.pdf',
+                image: "/icons_member/Picture1.png"
+
+            }
+        ],
+        'مواقعة انثي بدون رضائها': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/21.pdf',
@@ -124,13 +151,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/22.pdf',
+                path: '/pdfs/23.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/23.pdf',
+                path: '/pdfs/22.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -142,7 +169,7 @@ const PageAdd = () => {
 
             }
         ],
-        'الرشوة': [
+        'الزنا': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/31.pdf',
@@ -151,13 +178,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/32.pdf',
+                path: '/pdfs/33.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/33.pdf',
+                path: '/pdfs/32.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -169,7 +196,7 @@ const PageAdd = () => {
 
             }
         ],
-        'الزنا': [
+        'الاهمال الطبي': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/41.pdf',
@@ -178,13 +205,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/42.pdf',
+                path: '/pdfs/43.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/43.pdf',
+                path: '/pdfs/42.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -205,13 +232,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/52.pdf',
+                path: '/pdfs/53.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/53.pdf',
+                path: '/pdfs/52.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -223,7 +250,7 @@ const PageAdd = () => {
 
             }
         ],
-        'غسل اموال': [
+        'الاتجار بالبشر': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/61.pdf',
@@ -232,13 +259,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/62.pdf',
+                path: '/pdfs/63.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/63.pdf',
+                path: '/pdfs/62.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -250,7 +277,7 @@ const PageAdd = () => {
 
             }
         ],
-        'الاهمال الطبي': [
+        'غسل الاموال': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/71.pdf',
@@ -259,13 +286,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/72.pdf',
+                path: '/pdfs/73.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/73.pdf',
+                path: '/pdfs/72.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -277,7 +304,8 @@ const PageAdd = () => {
 
             }
         ],
-        'التهديد مصحوب بطلب': [
+
+        'التزوير': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/81.pdf',
@@ -286,13 +314,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/82.pdf',
+                path: '/pdfs/83.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/83.pdf',
+                path: '/pdfs/82.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -305,7 +333,7 @@ const PageAdd = () => {
             }
         ],
 
-        'مواقعة انثى بغير رضاها': [
+        'الاختلاس': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/91.pdf',
@@ -314,13 +342,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/92.pdf',
+                path: '/pdfs/93.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/93.pdf',
+                path: '/pdfs/92.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -333,7 +361,7 @@ const PageAdd = () => {
             }
         ],
 
-        'مخدرات': [
+        'السلاح': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/101.pdf',
@@ -342,13 +370,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/102.pdf',
+                path: '/pdfs/103.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/103.pdf',
+                path: '/pdfs/102.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -358,10 +386,10 @@ const PageAdd = () => {
                 path: '/pdfs/104.pdf',
                 image: "/icons_member/Picture1.png"
 
-            }
-        ],
+            },
 
-        'الاختلاس': [
+        ],
+        'المخدرات': [
             {
                 pathname: 'شرح',
                 path: '/pdfs/111.pdf',
@@ -370,13 +398,13 @@ const PageAdd = () => {
             },
             {
                 pathname: 'احكام محكمة النقض',
-                path: '/pdfs/112.pdf',
+                path: '/pdfs/113.pdf',
                 image: "/icons_member/Picture2.png"
 
             },
             {
                 pathname: 'الاسئلة الاسترشادية',
-                path: '/pdfs/113.pdf',
+                path: '/pdfs/112.pdf',
                 image: "/icons_member/Picture4.png"
 
 
@@ -386,8 +414,7 @@ const PageAdd = () => {
                 path: '/pdfs/114.pdf',
                 image: "/icons_member/Picture1.png"
 
-            },
-
+            }
         ],
         'تبديد لوحات المعدنية': []
 
@@ -799,17 +826,17 @@ const PageAdd = () => {
                                             <SelectValue placeholder="اختر التهمة" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="جرائم تقنية المعلومات">جرائم تقنية المعلومات</SelectItem>
-                                            <SelectItem value="جرائم الإتجار بالبشر">جرائم الإتجار بالبشر</SelectItem>
-                                            <SelectItem value="الرشوة">الرشوة</SelectItem>
-                                            <SelectItem value="الزنا">الزنا</SelectItem>
-                                            <SelectItem value="الهجرة غير الشرعية">الهجرة غير الشرعية</SelectItem>
-                                            <SelectItem value="غسل اموال">غسل اموال</SelectItem>
+                                            <SelectItem value="القتل العمد">القتل العمد</SelectItem>
+                                            <SelectItem value="التهديد المصحوب بطلب">التهديد المصحوب بطلب</SelectItem>
+                                            <SelectItem value="مواقعة انثي بدون رضائها">مواقعة انثي بدون رضائها</SelectItem>
                                             <SelectItem value="الاهمال الطبي">الاهمال الطبي</SelectItem>
-                                            <SelectItem value="التهديد مصحوب بطلب">التهديد المصحوب بطلب</SelectItem>
-                                            <SelectItem value="مواقعة انثى بغير رضاها">مواقعة انثى بغير رضاها</SelectItem>
-                                            <SelectItem value="مخدرات">مخدرات</SelectItem>
+                                            <SelectItem value="الهجرة غير الشرعية">الهجرة غير الشرعية</SelectItem>
+                                            <SelectItem value="الاتجار بالبشر">الاتجار بالبشر</SelectItem>
+                                            <SelectItem value="غسل الاموال">غسل الاموال</SelectItem>
+                                            <SelectItem value="التزوير">التزوير</SelectItem>
                                             <SelectItem value="الاختلاس">الاختلاس</SelectItem>
+                                            <SelectItem value="سلاح">سلاح</SelectItem>
+                                            <SelectItem value="المخدرات">المخدرات</SelectItem>
                                             <SelectItem value="تبديد لوحات المعدنية">تبديد لوحات المعدنية</SelectItem>
                                         </SelectContent>
                                     </Select>

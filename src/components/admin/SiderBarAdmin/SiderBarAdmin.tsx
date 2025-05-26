@@ -122,7 +122,7 @@ const NavbarAdmin = () => {
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-2">
               <span className="text-xl font-bold hidden md:block">
-                منظومة قضايا الاعضاء
+                 الدليل الإرشادي لقضايا الاعضاء
               </span>
             </Link>
           </div>

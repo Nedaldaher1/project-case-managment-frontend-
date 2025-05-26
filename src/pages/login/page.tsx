@@ -129,7 +129,7 @@ const Login = () => {
 
               </div>
             </motion.div>
-            <h1 className="text-2xl font-bold text-blue-800"> منظومة قضايا الاعضاء </h1>
+            <h1 className="text-2xl font-bold text-blue-800">  الدليل الإرشادي لقضايا الاعضاء </h1>
             <p className="text-blue-600 mt-2">تسجيل الدخول للوحة التحكم</p>
           </motion.div>
 
@@ -276,7 +276,7 @@ const Login = () => {
           >
             © 2025 جميع الحقوق محفوظة<br className="md:hidden" />
             <span className="hidden md:inline"> - </span>
-            منظومة قضايا الاعضاء
+             الدليل الإرشادي لقضايا الاعضاء
           </motion.p>
         </div>
       </motion.div>

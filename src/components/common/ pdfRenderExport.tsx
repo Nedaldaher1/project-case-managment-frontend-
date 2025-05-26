@@ -215,7 +215,7 @@ const OfficialDocument = ({ accusedName, caseNumber, prosecutorName }: OfficialD
                         <View style={pdfStyles.lawSectionContainer}>
                             <Text style={pdfStyles.lawText}>ثانيا : تأمر</Text>
                             <Text style={{ fontSize: 10, lineHeight: 2, textAlign: 'right' }}>
-                                بتغريم المتهم {accusedName} حسن 25  خمسة وعشرون جنيه فقط لاغير والمصاريف يعلن المتهم
+                                بتغريم المتهم {accusedName}  25  خمسة وعشرون جنيه فقط لاغير والمصاريف يعلن المتهم
                             </Text>
                         </View>
                     </View>
